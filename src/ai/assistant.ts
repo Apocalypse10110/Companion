@@ -260,6 +260,15 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       case "CREATE_REMINDER": {
         if (!p.text) return { text: "What would you like me to remind you about?", awaiting: { intent, slot: "text" } };
         const what = yourify(recoverCase(request.text, p.text).replace(/^./, (ch) => ch.toLowerCase()));
+        // The AI gives the time in the person's words ("tomorrow at 9"); work out the real time here,
+        // on the phone, the same way as for the on-device rules. If it can't be worked out, we ask.
+        if (!p.at && p.when) {
+          const parsed = parseWhen(p.when, now());
+          if (parsed) {
+            p.at = parsed.at.toISOString();
+            if (parsed.recurrence && !p.recurrence) p.recurrence = parsed.recurrence;
+          }
+        }
         if (!p.at) {
           return {
             text: `When should I remind you to ${what}? You can say something like "at 8 tonight" or "tomorrow morning".`,
