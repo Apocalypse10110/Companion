@@ -15,6 +15,9 @@ export const INTENT_NAMES = [
   "CREATE_REMINDER",
   "LIST_REMINDERS",
   "CHECK_WEATHER",
+  "READ_EMAIL",
+  "CHECK_CALENDAR",
+  "PLAY_MUSIC",
   "READ_TIME",
   "FIND_INFORMATION",
   "HELP",
@@ -145,6 +148,14 @@ export function validateIntent(raw: unknown): Intent | null {
       break;
     case "FIND_INFORMATION":
       params.query = cleanString(p.query, LONG);
+      break;
+    case "CHECK_CALENDAR": {
+      const w = (cleanString(p.when, 40) ?? "").toLowerCase();
+      params.when = /tomorrow/.test(w) ? "tomorrow" : /week/.test(w) ? "week" : "today";
+      break;
+    }
+    case "PLAY_MUSIC":
+      params.query = cleanString(p.query, 100) ?? "relaxing music";
       break;
     case "HELP":
       params.topic = cleanString(p.topic, SHORT);

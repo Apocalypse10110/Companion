@@ -256,15 +256,57 @@ export function classify(text: string, now: Date = new Date()): Intent | null {
 
   return (
     time(s) ??
+    calendarIntent(s) ??
     reminder(s, now) ??
     accessibility(s) ??
     call(s) ??
+    accountsIntent(s) ??
     message(s) ??
+    music(s) ??
     weather(s) ??
     openApp(s) ??
     help(s) ??
     null
   );
+}
+
+/** Email (connected accounts). "Open my email" stays OPEN_APPLICATION. */
+function accountsIntent(s: string): Intent | null {
+  if (/^(?:open|launch|start)\b/.test(s)) return null;
+  if (
+    /\b(?:e-?mails?|inbox|gmail|outlook)\b/.test(s) &&
+    /^(?:read|check|any|do i have|have i got|did i get|are there|is there|what|show|my|new|latest|go through|look at|tell me)\b/.test(s)
+  )
+    return { name: "READ_EMAIL", params: {} };
+  return null;
+}
+
+/**
+ * Asking about the calendar by name ("what's on my calendar?", "check my diary", "am I busy this
+ * week?"). Plainer questions ("what do I have today?") list reminders, and that answer also includes
+ * calendar events when a calendar is connected.
+ */
+function calendarIntent(s: string): Intent | null {
+  if (/^(?:open|launch|start|show me|go to|bring up|pull up)\b/.test(s)) return null; // "open my calendar" opens the app
+  const named = /\b(?:calendar|diary)\b/.test(s);
+  const busy = /^am i (?:busy|free|doing anything)\b/.test(s);
+  if (!named && !busy) return null;
+  if (/\b(?:add|put|make|book|create|set)\b/.test(s)) return null; // adding events is a reminder for now
+  return { name: "CHECK_CALENDAR", params: { when: /tomorrow/.test(s) ? "tomorrow" : /week/.test(s) ? "week" : "today" } };
+}
+
+/** "Play some Frank Sinatra", "put on relaxing music". */
+function music(s: string): Intent | null {
+  const m =
+    s.match(/^(?:play|put on|stick on|i(?:'d| would) like to (?:hear|listen to)|i want to (?:hear|listen to)|let me (?:hear|listen to)|listen to)(?: me)?(?: some| a| the| my)? ?(.*)$/);
+  if (!m) return null;
+  const q = m[1]
+    .replace(/\b(?:on|from|using|with) (?:spotify|the radio|youtube)\b/g, "")
+    .replace(/\bplease\b/g, "")
+    .trim();
+  if (/^(?:messages?|texts?|voicemails?|reminders?)$/.test(q)) return null;
+  const query = !q || /^(?:music|songs?|tunes|something|anything)$/.test(q) ? "relaxing music" : q;
+  return { name: "PLAY_MUSIC", params: { query } };
 }
 
 /** Does this sentence look like a question we could answer with general knowledge? */

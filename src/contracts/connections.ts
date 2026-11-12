@@ -11,7 +11,7 @@
  */
 
 /** Known accounts. The UI shows a generic row for any other id. */
-export type ConnectionId = "google-calendar" | "gmail" | (string & {});
+export type ConnectionId = "google-calendar" | "gmail" | "outlook" | "spotify" | (string & {});
 
 export type ConnectionState =
   /** Linked and working. `account` says which account. */

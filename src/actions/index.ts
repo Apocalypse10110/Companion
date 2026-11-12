@@ -14,11 +14,22 @@ import { addPerson, findPeople, isPhoneNumber, type Person } from "@/people/stor
 import { contactPicker as defaultPicker, defaultLauncher, detectOS, type ContactPicker, type Launcher, type OS } from "@/phone/platform";
 import { permissions as defaultPermissions } from "@/permissions";
 import { recordHandoff } from "@/phone/handoff";
+import { checkCalendar, playMusic, readEmail } from "./accounts";
 import { mapsUrl, searchUrl, smsUrl, telUrl } from "./links";
 import { addReminder, describeReminders } from "./reminders";
 import { planSetting, settingsBridge } from "./settingsBridge";
 
-const SUPPORTED = new Set<ActionKind>(["call", "message", "open-app", "reminder", "list-reminders", "accessibility"]);
+const SUPPORTED = new Set<ActionKind>([
+  "call",
+  "message",
+  "open-app",
+  "reminder",
+  "list-reminders",
+  "accessibility",
+  "read-email",
+  "check-calendar",
+  "play-music",
+]);
 
 export interface ActionDeps {
   launch?: Launcher;
@@ -26,6 +37,7 @@ export interface ActionDeps {
   picker?: () => ContactPicker | null;
   permissions?: PermissionsService;
   now?: () => Date;
+  fetch?: typeof fetch;
 }
 
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
@@ -44,6 +56,8 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
   const picker = deps.picker ?? defaultPicker;
   const perms = deps.permissions ?? defaultPermissions;
   const now = deps.now ?? (() => new Date());
+  const fetchImpl = deps.fetch ?? ((...a: Parameters<typeof fetch>) => fetch(...a));
+  const lang = () => (typeof navigator !== "undefined" && navigator.language) || "en-US";
 
   /**
    * Find the one person meant. Zero matches: offer the Android contact picker, or explain how to add
@@ -202,8 +216,20 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
             return await reminder(action);
           case "list-reminders": {
             const which = action.params.which === "today" || action.params.which === "all" ? action.params.which : "next";
-            return { ok: true, message: describeReminders(which, now(), navigator.language || "en-US") };
+            const reminders = describeReminders(which, now(), lang());
+            if (which === "next") return { ok: true, message: reminders };
+            // "What do I have today?" also covers a connected calendar (if there is one).
+            const cal = await checkCalendar(which === "today" ? "today" : "week", fetchImpl, now(), lang()).catch(() => null);
+            if (!cal?.ok || /^There's nothing/.test(cal.message)) return { ok: true, message: reminders };
+            const none = /^You don't have any reminders/.test(reminders);
+            return { ok: true, message: none ? cal.message : `${reminders} ${cal.message}` };
           }
+          case "read-email":
+            return await readEmail(fetchImpl, now());
+          case "check-calendar":
+            return await checkCalendar(str(action.params.when) || "today", fetchImpl, now(), lang());
+          case "play-music":
+            return await playMusic(str(action.params.query) || "relaxing music", fetchImpl, launch);
           case "accessibility":
             return accessibility(action);
           default:

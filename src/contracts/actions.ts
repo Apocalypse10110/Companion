@@ -20,6 +20,10 @@ export type ActionKind =
   | "accessibility"
   /** Read stored reminders back. The result message is what gets shown and spoken. */
   | "list-reminders"
+  /** Connected accounts: read the latest emails, read the calendar, play music. */
+  | "read-email"
+  | "check-calendar"
+  | "play-music"
   | (string & {});
 
 export interface ProposedAction {

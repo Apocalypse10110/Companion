@@ -83,6 +83,7 @@ More: [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md) · [docs/PRIVACY.md](do
 | "Text Anna I'm late" | Opens Messages with the text ready; you tap Send | Same |
 | Who "my daughter" is | Settings → People: type it, or import a contact card from Contacts | Settings → People, or pick from your contacts |
 | Reminders | By voice or in Settings (add, edit, done, repeat). On screen and spoken while Companion is open; notifications once added to the Home Screen | Same, with notifications while open or recently in the background |
+| Email, calendar, music (after connecting in Settings) | "Read my email", "what's on my calendar tomorrow?", "play some Frank Sinatra" (Gmail, Google Calendar, Outlook, Spotify) | Same |
 | Device permissions | Settings → Device permissions: status, why, allow, how to turn on | Same |
 | Maps, email, web search | Yes | Yes |
 | Open Camera / Photos / Settings apps | No web app can; it explains how to find them | Same |
@@ -145,6 +146,7 @@ Everything is wired together in one place: [`src/integration/index.ts`](src/inte
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): module boundaries
 - [docs/UI.md](docs/UI.md): design system and accessibility rules
 - [docs/PRIVACY.md](docs/PRIVACY.md): what leaves the phone
+- [docs/ACCOUNTS.md](docs/ACCOUNTS.md): connecting Gmail, Google Calendar, Outlook and Spotify (setup steps and limits)
 - [docs/DEVICE.md](docs/DEVICE.md): camera, contacts, permissions, calls and coming back, reminders, quick access, native-app plan
 - [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md): what's done and what's next
 - [TEAM.md](TEAM.md): who owns what

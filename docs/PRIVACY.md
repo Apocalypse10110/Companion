@@ -43,6 +43,15 @@ Saved people and their numbers are **never** sent: calls and texts are matched t
 A screenshot or text shared **to** Companion from another app sits in a private cache on the phone for
 a moment, is read once, and is deleted at once.
 
+## Connected accounts (only if you connect them)
+
+When you connect Gmail, Google Calendar, Outlook or Spotify ([ACCOUNTS.md](ACCOUNTS.md)):
+- You sign in on Google's, Microsoft's or Spotify's own page. Companion never sees your password.
+- The sign-in token is kept in an encrypted cookie that only Companion's server can open. There's no database.
+- Email and calendar access is **read-only**. When you ask, Companion fetches who each email is from, the subject and when (not the body), and your calendar events. These are read aloud and **never sent to the AI**.
+- Spotify is used to find and start music you ask for.
+- Disconnecting deletes the cookie, and Google is asked to revoke access.
+
 ## Never read
 
 - **Text messages, call history, the address book.** iPhone and Android don't allow a website to read

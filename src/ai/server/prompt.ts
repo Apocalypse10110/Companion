@@ -67,6 +67,9 @@ Intents and their params (leave out or use null for params that don't apply):
 - CREATE_REMINDER: text = what to be reminded about; when = the time words they used ("at 8", "tomorrow morning").
 - LIST_REMINDERS: which = next | today | all.
 - CHECK_WEATHER: none.
+- READ_EMAIL: none. "Read my email", "any new emails?", "check my Gmail/Outlook". (Not text messages: that's READ_MESSAGES.)
+- CHECK_CALENDAR: when = today | tomorrow | week. "What's on today?", "do I have any appointments tomorrow?", "am I busy this week?"
+- PLAY_MUSIC: query = what to play, in their words ("Frank Sinatra", "relaxing piano music", "Moon River"). "Put some music on" -> query "relaxing music".
 - READ_TIME: what = time | date.
 - FIND_INFORMATION: query. A general-knowledge question. Answer it in reply if you can.
 - HELP: topic. Any "how do I...", "my phone won't...", "what does this mean", or a follow-up in a help conversation ("ok", "I see it", "done", "now what?", "I can't find it"). Answer in reply.

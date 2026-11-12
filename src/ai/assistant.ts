@@ -298,6 +298,28 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         };
       }
 
+      case "READ_EMAIL":
+        return {
+          text: "I can read you your latest emails.",
+          action: { intent, action: { kind: "read-email", title: "Read my latest emails", risk: "low", params: {} } },
+        };
+
+      case "CHECK_CALENDAR": {
+        const when = p.when === "tomorrow" ? "tomorrow" : p.when === "week" ? "this week" : "today";
+        return {
+          text: `I can check your calendar for ${when}.`,
+          action: { intent, action: { kind: "check-calendar", title: `Check my calendar for ${when}`, risk: "low", params: { when: p.when ?? "today" } } },
+        };
+      }
+
+      case "PLAY_MUSIC": {
+        const what = recoverCase(request.text, p.query ?? "relaxing music");
+        return {
+          text: `I can play ${what} on Spotify.`,
+          action: { intent, action: { kind: "play-music", title: `Play ${what}`, description: "On Spotify", risk: "low", params: { query: p.query } } },
+        };
+      }
+
       case "LIST_REMINDERS": {
         const which = p.which ?? "next";
         const title = which === "next" ? "Read my next reminder" : which === "today" ? "Read today's reminders" : "Read all my reminders";

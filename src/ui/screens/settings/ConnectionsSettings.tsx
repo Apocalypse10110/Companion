@@ -1,7 +1,8 @@
 "use client";
 
-import { CalendarDays, CircleCheck, CircleDashed, Link2, Loader2, Mail, TriangleAlert, type LucideIcon } from "lucide-react";
+import { CalendarDays, CircleCheck, CircleDashed, Inbox, Link2, Loader2, Mail, Music, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { signInOutcome } from "@/accounts/client";
 import type { ConnectionId, ConnectionInfo } from "@/contracts";
 import { useServices } from "@/integration/ServicesProvider";
 import { useAnnounce } from "../../a11y/LiveAnnouncer";
@@ -13,8 +14,10 @@ import { ScrollPage } from "../../components/ScrollPage";
 
 /** What each known account is for, in plain words. Unknown accounts get a generic row. */
 const KNOWN: Record<string, { icon: LucideIcon; about: string }> = {
-  "google-calendar": { icon: CalendarDays, about: "Your appointments and events." },
-  gmail: { icon: Mail, about: "Your email." },
+  gmail: { icon: Mail, about: "Say \"read my email\" and I'll read you who it's from and what it's about." },
+  "google-calendar": { icon: CalendarDays, about: "Say \"what's on today?\" and I'll read you your appointments." },
+  outlook: { icon: Inbox, about: "Outlook or Hotmail email and calendar: \"read my email\", \"what's on tomorrow?\"" },
+  spotify: { icon: Music, about: "Say \"play some Frank Sinatra\". With Spotify Premium, I can start it for you." },
 };
 
 type Feedback = { tone: "success" | "error" | "info"; text: string };
@@ -70,6 +73,18 @@ export function ConnectionsSettings() {
     void load();
   }, [load]);
 
+  // Back from a sign-in page (?connected=gmail or ?error=gmail:cancelled): say how it went.
+  useEffect(() => {
+    const outcome = signInOutcome(window.location.search);
+    if (!outcome) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    if (outcome.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- showing the result of the sign-in once
+      setFeedback((f) => ({ ...f, [outcome.id!]: { tone: outcome.tone, text: outcome.text } }));
+    }
+    announce(outcome.text, outcome.tone === "error" ? "assertive" : "polite");
+  }, [announce]);
+
   function replace(next: ConnectionInfo) {
     setList((old) => old?.map((c) => (c.id === next.id ? next : c)) ?? [next]);
   }
@@ -102,8 +117,9 @@ export function ConnectionsSettings() {
 
       <Card className="flex flex-col gap-2">
         <p className="text-lg text-ink">
-          Connect your calendar and email so I can help with them when you ask. You choose what to connect, and you can
-          disconnect at any time.
+          Connect your email, calendar and music so I can help with them when you ask. You sign in on Google&apos;s,
+          Microsoft&apos;s or Spotify&apos;s own page; I never see your password. Email and calendar are read-only: I never send or delete anything. You
+          can disconnect at any time.
         </p>
       </Card>
 
