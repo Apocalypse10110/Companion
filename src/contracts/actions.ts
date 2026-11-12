@@ -16,6 +16,10 @@ export type ActionKind =
   | "reminder"
   | "open-app"
   | "help"
+  /** Change one of Companion's own settings (text size, contrast...). See docs/ACTION_SCHEMA.md. */
+  | "accessibility"
+  /** Read stored reminders back. The result message is what gets shown and spoken. */
+  | "list-reminders"
   | (string & {});
 
 export interface ProposedAction {

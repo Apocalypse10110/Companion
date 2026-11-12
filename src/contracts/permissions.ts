@@ -7,7 +7,8 @@
  */
 
 /** Permissions the UI may ask for. Add new names here (and document them). */
-export type PermissionName = "microphone" | "notifications";
+/** "camera" is checked and requested by Developer C's service; nothing in the app needs it yet. */
+export type PermissionName = "microphone" | "notifications" | "camera";
 
 export type PermissionState =
   /** The user has allowed it. */
