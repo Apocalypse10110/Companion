@@ -7,6 +7,7 @@
  */
 
 import { AssistantError } from "@/contracts";
+import { cleanFamilyNote, cleanTarget } from "../target";
 import { redactPhoneNumbers } from "./redact";
 import type { AIProvider, AIUnavailableReason, InterpretRequest, InterpretResult } from "./types";
 
@@ -58,6 +59,8 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
         suggestions?: unknown;
         skill?: unknown;
         taskDone?: unknown;
+        target?: unknown;
+        familyNote?: unknown;
       } | null;
       if (!data || typeof data !== "object") throw new AssistantError("unknown", "Bad response");
       const suggestions = Array.isArray(data.suggestions) ? data.suggestions.filter((x): x is string => typeof x === "string") : [];
@@ -67,6 +70,9 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
         ...(suggestions.length ? { suggestions } : {}),
         ...(typeof data.skill === "string" && data.skill ? { skill: data.skill } : {}),
         ...(data.taskDone === true ? { taskDone: true } : {}),
+        // Checked again here: the phone trusts nothing it is sent.
+        ...(cleanTarget(data.target) ? { target: cleanTarget(data.target) } : {}),
+        ...(cleanFamilyNote(data.familyNote) ? { familyNote: cleanFamilyNote(data.familyNote)! } : {}),
       };
     },
   };

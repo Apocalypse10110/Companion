@@ -1,6 +1,7 @@
 import type {
   AssistantImage,
   PermissionName,
+  PointAt,
   ProposedAction,
   QuickActionId,
   RequestSource,
@@ -55,6 +56,12 @@ export interface ChatMessage {
   image?: string;
   /** On a notice: a permission this message offers to ask for. */
   permission?: PermissionName;
+  /** On a reply about a photo: the photo itself, in memory only (never saved to history). */
+  photo?: string;
+  /** "Tap here": where to tap in `photo`. */
+  pointAt?: PointAt;
+  /** A note the person may choose to send to family (Help Card). */
+  familyNote?: string;
 }
 
 export interface Conversation {

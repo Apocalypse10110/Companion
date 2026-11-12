@@ -22,6 +22,10 @@ export interface InterpretOutput {
   skill?: string;
   /** True on the reply that confirms the person finished the task. */
   taskDone?: boolean;
+  /** "Tap here": what to press in the photo, untrusted (see src/ai/target.ts). */
+  target?: unknown;
+  /** A note the person may send to family, untrusted. */
+  familyNote?: string;
 }
 
 /** A server-side AI adapter. Returns untrusted raw output; the client validates it. */

@@ -40,7 +40,7 @@ describe("handleAssistantRequest", () => {
   it("returns a validated intent and reply", async () => {
     const res = await handleAssistantRequest(post({ text: "ring the lad", history: [] }), fixed({ intent: { name: "CALL_CONTACT", params: { contact: "son", extra: "x" } }, reply: "ok" }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ intent: { name: "CALL_CONTACT", params: { contact: "son" } }, reply: "ok", suggestions: [], skill: null, taskDone: false });
+    expect(await res.json()).toEqual({ intent: { name: "CALL_CONTACT", params: { contact: "son" } }, reply: "ok", suggestions: [], skill: null, taskDone: false, target: null, familyNote: null });
   });
 
   it("turns invalid model output into UNKNOWN", async () => {

@@ -2,10 +2,13 @@
 
 import { Volume2, VolumeX } from "lucide-react";
 import type { PermissionName } from "@/contracts";
+import type { Person } from "@/people/store";
 import { Banner } from "../components/Card";
 import { Button } from "../components/Button";
 import { cn } from "../components/cn";
 import { ActionConfirmCard } from "./ActionConfirmCard";
+import { FamilyNote } from "./FamilyNote";
+import { TapHere } from "./TapHere";
 import type { ChatMessage } from "./types";
 
 export interface MessageBubbleProps {
@@ -21,6 +24,10 @@ export interface MessageBubbleProps {
   onAllowPermission: (permission: PermissionName, actionId?: string) => void;
   onRetry: () => void;
   onDismiss: () => void;
+  /** Help Card: offer to send the family note to this person. */
+  onSendFamilyNote?: (person: Person) => void;
+  /** A hidden "tap here" ring was revealed. */
+  onRevealTarget?: (label: string) => void;
 }
 
 /** One entry in the conversation. Always has a text label for who is speaking. */
@@ -102,6 +109,10 @@ export function MessageBubble(props: MessageBubbleProps) {
           {m.text}
         </p>
 
+        {m.photo && m.pointAt && (
+          <TapHere photo={m.photo} pointAt={m.pointAt} disabled={props.disabled} onReveal={props.onRevealTarget} />
+        )}
+
         {props.canReadAloud &&
           (props.speaking ? (
             <Button variant="secondary" icon={VolumeX} onClick={props.onStopSpeaking} fullWidth>
@@ -123,6 +134,10 @@ export function MessageBubble(props: MessageBubbleProps) {
           </div>
         )}
       </div>
+
+      {m.familyNote && props.onSendFamilyNote && (
+        <FamilyNote note={m.familyNote} photo={m.photo} disabled={props.disabled} onSend={props.onSendFamilyNote} />
+      )}
 
       {/* Anything Companion wants to do stands on its own, full width, not tucked inside the reply. */}
       {cards.map((card) => (

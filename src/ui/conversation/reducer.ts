@@ -28,6 +28,8 @@ export type Action =
   | { type: "add"; message: ChatMessage }
   | { type: "remove"; id: string }
   | { type: "card"; messageId: string; actionId: string; patch: Partial<ActionCard> }
+  | { type: "addCard"; messageId: string; card: ActionCard }
+  | { type: "patchMessage"; messageId: string; patch: Partial<ChatMessage> }
   | { type: "phase"; phase: Phase }
   | { type: "interim"; text: string }
   | { type: "level"; level: number }
@@ -105,6 +107,27 @@ export function reducer(state: State, action: Action): State {
                 ),
               },
         ),
+      }));
+    case "addCard":
+      return mapActive(state, (c) => ({
+        ...c,
+        messages: c.messages.map((m) =>
+          m.id !== action.messageId
+            ? m
+            : // One card at a time for the same thing: a new offer replaces an unanswered one of its kind.
+              {
+                ...m,
+                actions: [
+                  ...(m.actions ?? []).filter((x) => !(x.status === "proposed" && x.action.kind === action.card.action.kind)),
+                  action.card,
+                ],
+              },
+        ),
+      }));
+    case "patchMessage":
+      return mapActive(state, (c) => ({
+        ...c,
+        messages: c.messages.map((m) => (m.id === action.messageId ? { ...m, ...action.patch } : m)),
       }));
     case "phase":
       return { ...state, phase: action.phase };

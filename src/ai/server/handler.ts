@@ -6,6 +6,7 @@
 
 import type { AssistantImage, AssistantTurn } from "@/contracts";
 import { cleanString, validateIntent } from "../intents/schema";
+import { cleanFamilyNote, cleanTarget } from "../target";
 import { createAnthropicInterpreter } from "./anthropic";
 import { createGeminiInterpreter, parseModelList } from "./gemini";
 import { createOpenAICompatibleInterpreter } from "./openaiCompatible";
@@ -205,6 +206,9 @@ export async function handleAssistantRequest(
       suggestions,
       skill: cleanSkill(result?.skill),
       taskDone: result?.taskDone === true,
+      // "Tap here" only makes sense with a photo to draw on.
+      target: input.image ? cleanTarget(result?.target) : null,
+      familyNote: cleanFamilyNote(result?.familyNote),
     });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });

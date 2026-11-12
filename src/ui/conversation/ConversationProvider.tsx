@@ -21,6 +21,7 @@ import {
   type VoiceInputSession,
 } from "@/contracts";
 import { useServices } from "@/integration/ServicesProvider";
+import type { Person } from "@/people/store";
 import { useAnnounce } from "../a11y/LiveAnnouncer";
 import { buzz } from "../a11y/haptics";
 import { useSettings } from "../settings/SettingsProvider";
@@ -87,6 +88,10 @@ export interface ConversationApi {
   dismissMessage: (messageId: string) => void;
   /** Stop listening, speaking and waiting. Used when leaving the screen. */
   interrupt: () => void;
+  /** Help Card: offer to text a reply's family note to someone. They confirm, then press Send. */
+  offerFamilyNote: (messageId: string, person: Person) => void;
+  /** Say something to screen readers. */
+  announce: (text: string) => void;
 
   newConversation: () => void;
   openConversation: (id: string) => void;
@@ -301,6 +306,10 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             spokenText: reply.spokenText,
             actions: cards,
             suggestions: reply.suggestions?.slice(0, 3),
+            ...(reply.pointAt && photo ? { pointAt: reply.pointAt } : {}),
+            // Kept with the reply for "tap here" and for sending to family. Memory only.
+            ...(photo && (reply.pointAt || reply.familyNote) ? { photo: `data:${photo.image.mimeType};base64,${photo.image.data}` } : {}),
+            ...(reply.familyNote ? { familyNote: reply.familyNote } : {}),
             createdAt: Date.now(),
           },
         });
@@ -526,6 +535,29 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     readAloud(last.id);
   }, [readAloud]);
 
+  const offerFamilyNote = useCallback(
+    (messageId: string, person: Person) => {
+      const message = activeConversation(stateRef.current).messages.find((m) => m.id === messageId);
+      if (!message?.familyNote) return;
+      const body = message.familyNote;
+      const card: ActionCard = {
+        action: {
+          id: newId(),
+          kind: "message",
+          title: `Send a message to ${person.name}`,
+          description: `"${body}"`,
+          // Contacting someone is always confirmed.
+          risk: "high",
+          params: { contact: person.name, body },
+        },
+        status: servicesRef.current.actions.supports("message") ? "proposed" : "unsupported",
+      };
+      dispatch({ type: "addCard", messageId, card });
+      say(`Here is the message for ${person.name}. Check it, then tap Yes to open Messages.`);
+    },
+    [say],
+  );
+
   const eraseHistory = useCallback(() => {
     clearSavedConversations();
     dispatch({ type: "clear" });
@@ -563,6 +595,8 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       retry,
       dismissMessage: (id) => dispatch({ type: "remove", id }),
       interrupt,
+      offerFamilyNote,
+      announce: (text) => say(text),
 
       newConversation: () => {
         interrupt();
@@ -592,6 +626,8 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     allowPermission,
     retry,
     interrupt,
+    offerFamilyNote,
+    say,
     eraseHistory,
   ]);
 

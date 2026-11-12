@@ -55,6 +55,26 @@ export interface AssistantReply {
   proposedActions?: ProposedAction[];
   /** Short tappable suggestions shown under the reply. Max 3 are shown. */
   suggestions?: string[];
+  /** "Tap here": the thing to press in the photo the person just sent, drawn as a ring on it. */
+  pointAt?: PointAt;
+  /**
+   * A short note, in the person's own voice, that they can choose to send to a family member
+   * ("I got a text saying my parcel is on hold. Companion thinks it's a scam."). Offered when they
+   * seem stuck or after a scam warning. Never sent without the person confirming.
+   */
+  familyNote?: string;
+}
+
+/** Where to tap in a photo. Box is [ymin, xmin, ymax, xmax], in thousandths of the photo's height and width. */
+export interface PointAt {
+  /** What it is, in words ("Manage Storage", "the grey gear"). */
+  label: string;
+  box: [number, number, number, number];
+  /**
+   * The person has done this task before: the ring starts hidden and they are asked to find it
+   * themselves first, with a "Show me where" button. Help that fades.
+   */
+  hidden?: boolean;
 }
 
 export type AssistantErrorCode =

@@ -17,6 +17,7 @@ import {
   type AssistantRequest,
   type AssistantSendOptions,
   type AssistantService,
+  type PointAt,
   type ProposedAction,
 } from "@/contracts";
 import { speakable } from "@/voice/speakable";
@@ -26,6 +27,7 @@ import { cleanString, validateIntent, type Intent } from "./intents/schema";
 import { describeWhen, parseWhen } from "./intents/time";
 import { noProvider, type AIProvider } from "./providers/types";
 import { recordSkill, skillsForPrompt } from "./skills";
+import { cleanFamilyNote, cleanTarget } from "./target";
 import { APP_GUIDANCE, APP_LABELS, OPENABLE_APPS, SETTING_TITLES, capitalize, contactLabel, recoverCase, yourify } from "./words";
 
 export interface AssistantOptions {
@@ -60,6 +62,7 @@ interface Understood {
   intent: Intent | null;
   aiReply?: string;
   aiSuggestions?: string[];
+  familyNote?: string;
   ai: AIState;
 }
 
@@ -79,6 +82,8 @@ interface Draft {
   awaiting?: { intent: Intent; slot: Slot };
   /** The offered action is still waiting for the person's tap. */
   keepPending?: boolean;
+  pointAt?: PointAt;
+  familyNote?: string;
 }
 
 export function createAssistant(options: AssistantOptions = {}): AssistantService & { reset(): void } {
@@ -127,7 +132,13 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       .filter((x): x is string => Boolean(x))
       .slice(0, 3);
     // For actions we always use our own wording; the AI's sentence is only used for answers.
-    return { intent, aiReply: cleanString(result.reply, MAX_AI_REPLY), aiSuggestions, ai: "answered" };
+    return {
+      intent,
+      aiReply: cleanString(result.reply, MAX_AI_REPLY),
+      aiSuggestions,
+      ...(cleanFamilyNote(result.familyNote) ? { familyNote: cleanFamilyNote(result.familyNote)! } : {}),
+      ai: "answered",
+    };
   }
 
   function fillSlot(ctx: ConversationContext, text: string): Intent | "cancel" | null {
@@ -438,12 +449,24 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     if (!result) return { text: PHOTO_NO_AI };
     const reply = cleanString(result.reply, MAX_AI_REPLY);
     if (!reply) return { text: PHOTO_FAILED };
+    // Read before recording, so finishing a task now doesn't hide this ring.
+    const known = knowsSkill(skills.list(), result.skill);
     if (result.taskDone && result.skill) skills.record(result.skill);
-    const suggestions = (result.suggestions ?? [])
+    let suggestions = (result.suggestions ?? [])
       .map((x) => cleanString(x, 60))
       .filter((x): x is string => Boolean(x))
       .slice(0, 3);
-    return { text: reply, suggestions: suggestions.length ? suggestions : undefined };
+    const target = cleanTarget(result.target);
+    // Help that fades: a task they've done before starts with "can you find it?", ring hidden.
+    const pointAt: PointAt | undefined = target ? (known ? { ...target, hidden: true } : target) : undefined;
+    if (pointAt?.hidden) suggestions = suggestions.filter((x) => !/^(give me a hint|tell me exactly|show me where)$/i.test(x));
+    const familyNote = cleanFamilyNote(result.familyNote) ?? undefined;
+    return {
+      text: reply,
+      suggestions: suggestions.length ? suggestions : undefined,
+      ...(pointAt ? { pointAt } : {}),
+      ...(familyNote ? { familyNote } : {}),
+    };
   }
 
   return {
@@ -486,6 +509,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         // Someone asked "Who should I call?" and the person said "her": resolve from context.
         intent = resolvePronoun(intent, ctx);
         draft = respond(intent, request, ctx, understood);
+        if (understood?.familyNote && !draft.action) draft = { ...draft, familyNote: understood.familyNote };
       }
 
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
@@ -495,6 +519,8 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       const spoken = speakable(draft.spoken ?? draft.text);
       if (spoken !== draft.text) reply.spokenText = spoken;
       if (draft.suggestions?.length) reply.suggestions = draft.suggestions.slice(0, 3);
+      if (draft.pointAt) reply.pointAt = draft.pointAt;
+      if (!draft.action && draft.familyNote) reply.familyNote = draft.familyNote;
 
       const next: ConversationContext = { lastContact: ctx.lastContact, lastReplyText: reply.text };
       if (draft.action) {
@@ -512,6 +538,13 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       return reply;
     },
   };
+}
+
+/** Has the person done this task before? The list reads like "connect to wifi (2 times)". */
+export function knowsSkill(list: string[], skill: string | undefined): boolean {
+  const name = skill?.trim().toLowerCase();
+  if (!name) return false;
+  return list.some((s) => s.replace(/\s*\((?:once|\d+ times)\)$/, "").trim().toLowerCase() === name);
 }
 
 function PRONOUNS_ASKED(text: string): boolean {

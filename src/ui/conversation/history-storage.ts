@@ -10,7 +10,11 @@ export function toSavable(conversations: Conversation[]): Conversation[] {
   return conversations
     .map((c) => ({
       ...c,
-      messages: c.messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-MAX_MESSAGES),
+      messages: c.messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-MAX_MESSAGES)
+        // Full-size photos stay in memory: too big for the device's storage, and private.
+        .map((m) => (m.photo || m.pointAt ? { ...m, photo: undefined, pointAt: undefined } : m)),
     }))
     .filter((c) => c.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt)

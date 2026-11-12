@@ -33,6 +33,10 @@ export interface InterpretResult {
   skill?: string;
   /** True when the person has just finished that task. */
   taskDone?: boolean;
+  /** "Tap here": what to press in the photo. Untrusted; checked with cleanTarget. */
+  target?: unknown;
+  /** A note the person may choose to send to family. Untrusted; checked with cleanFamilyNote. */
+  familyNote?: string;
 }
 
 /** Why there is no AI: nothing set up, or the server's key was refused. */

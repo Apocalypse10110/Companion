@@ -27,6 +27,8 @@ export function Thread() {
           onAllowPermission={(permission, actionId) => c.allowPermission(permission, m.id, actionId)}
           onRetry={() => c.retry(m.id)}
           onDismiss={() => c.dismissMessage(m.id)}
+          onSendFamilyNote={(person) => c.offerFamilyNote(m.id, person)}
+          onRevealTarget={(label) => c.announce(`Tap here: ${label}`)}
         />
       ))}
 
