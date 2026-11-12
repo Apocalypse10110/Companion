@@ -17,3 +17,8 @@ next-env.d.ts
 .DS_Store
 .vscode/
 .idea/
+
+# Team notes kept on this machine only (prompts and handoff), not shared in the repo
+PROMPT-DEV-*.txt
+HANDOFF-DEV-*.md
+docs/HANDOFF-DEV-*.md

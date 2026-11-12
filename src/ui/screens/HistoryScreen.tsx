@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquarePlus, Trash2 } from "lucide-react";
+import { ChevronDown, MessageSquarePlus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Banner } from "../components/Card";
@@ -53,13 +53,20 @@ export function HistoryScreen() {
         <ul className="flex flex-col gap-3">
           {history.map((c) => (
             <li key={c.id}>
-              <details className="bw rounded-2xl bg-surface">
-                <summary className="flex min-h-[var(--target)] cursor-pointer flex-col justify-center gap-1 rounded-2xl p-4">
-                  <span className="text-xl font-bold text-ink">{titleOf(c)}</span>
-                  <span className="text-base text-muted">
-                    {whenOf(c.updatedAt)}
-                    {c.id === activeId ? " · Current conversation" : ""}
+              <details className="group bw rounded-2xl bg-surface">
+                <summary className="flex min-h-[var(--target)] cursor-pointer list-none items-center gap-3 rounded-2xl p-4 hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="text-xl font-bold text-ink">{titleOf(c)}</span>
+                    <span className="text-base text-muted">
+                      {whenOf(c.updatedAt)}
+                      {c.id === activeId ? " · Current conversation" : ""}
+                    </span>
                   </span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="size-7 shrink-0 text-accent-ink transition-transform duration-200 ease-out group-open:rotate-180"
+                    strokeWidth={2.5}
+                  />
                 </summary>
                 <div className="flex flex-col gap-4 px-4 pb-4">
                   <ol aria-label="Messages in this conversation" className="flex flex-col gap-3">

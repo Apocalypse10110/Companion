@@ -60,4 +60,3 @@ Until then the app shows honest "not connected yet" messages; it never fakes an 
 - [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md): what's done, blocked and next
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): module boundaries and how it fits together
 - [docs/UI.md](docs/UI.md): design system, components, accessibility rules, screens
-- [docs/HANDOFF-DEV-A.md](docs/HANDOFF-DEV-A.md): status, decisions, gotchas and next steps for the UI (read first in a new session)

@@ -1,6 +1,6 @@
 "use client";
 
-import { Keyboard, RotateCcw } from "lucide-react";
+import { Keyboard, Repeat, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Banner } from "../components/Card";
 import { Button } from "../components/Button";
@@ -35,6 +35,10 @@ export function HomeScreen() {
   // If talking is impossible here, typing is the only way, so open it straight away.
   const typing = wantsTyping || c.voiceInputSupported === false;
   const hasMessages = c.messages.length > 0;
+  // While Companion is waiting for a yes or no, keep the screen to that one question.
+  const awaitingAnswer = c.messages.some((m) => m.actions?.some((a) => a.status === "proposed"));
+  // "Repeat that": only offered when there is a reply to repeat and the device can speak it.
+  const canRepeat = c.voiceOutputSupported && c.messages.some((m) => m.role === "assistant");
 
   // Keep the thing the person needs to read in view, once there is a conversation.
   // While waiting, show their own question; when a reply arrives, show the TOP of that reply
@@ -50,7 +54,10 @@ export function HomeScreen() {
     // A question waiting for Yes/No matters most. If the whole reply is too tall to fit,
     // make sure that question (with its buttons) is what stays visible.
     const pending = !thinking ? target.querySelector<HTMLElement>('[data-status="proposed"]') : null;
-    if (pending && target.offsetHeight > el.clientHeight) pending.scrollIntoView({ block: "nearest", behavior });
+    // On a small screen with big text even the question can be taller than the view:
+    // then the Yes / No buttons are what must be on screen.
+    const answers = pending?.querySelector<HTMLElement>("[data-answers]") ?? pending;
+    if (pending && answers && target.offsetHeight > el.clientHeight) answers.scrollIntoView({ block: "nearest", behavior });
     else target.scrollIntoView({ block: "start", behavior });
   }, [hasMessages, c.messages.length, thinking, motionReduced]);
 
@@ -58,24 +65,31 @@ export function HomeScreen() {
     <div className="flex h-full min-h-0 flex-col">
       <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4 pt-1 *:shrink-0">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold leading-tight text-ink">{greeting}</h1>
+          <h1 className="display text-[2.375rem] text-ink">{greeting}</h1>
           <p className="text-xl text-muted">How can I help you today?</p>
         </div>
 
         {c.voiceInputSupported === false && (
-          <Banner tone="warning" title="Talking isn't available yet">
-            You can still type to me below.
+          <Banner tone="info" title="Typing for now">
+            Talking isn&apos;t available on this device yet, so type to me below.
           </Banner>
         )}
 
         {hasMessages ? (
           <>
             <Thread />
-            <div>
-              <Button variant="ghost" icon={RotateCcw} onClick={c.newConversation} disabled={c.phase === "thinking"}>
-                Start a new conversation
+            {canRepeat && (
+              <Button variant="secondary" icon={Repeat} fullWidth onClick={c.repeatLast} disabled={c.phase === "thinking"}>
+                Repeat that
               </Button>
-            </div>
+            )}
+            {!awaitingAnswer && (
+              <div>
+                <Button variant="ghost" icon={RotateCcw} onClick={c.newConversation} disabled={c.phase === "thinking"}>
+                  Start a new conversation
+                </Button>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-xl text-ink">
@@ -83,17 +97,24 @@ export function HomeScreen() {
           </p>
         )}
 
-        {settings.showQuickActions && (
+        {settings.showQuickActions && !awaitingAnswer && (
           <QuickActions compact={hasMessages} onSelect={c.sendQuickAction} disabled={c.phase === "thinking"} />
         )}
       </div>
 
-      <section aria-label="Talk or type" className="bw max-h-[55%] shrink-0 overflow-y-auto rounded-t-3xl border-b-0 bg-surface px-4 pb-3 pt-3 shadow-soft">
+      <section aria-label="Talk or type" className="relative shrink-0">
+        {/* What is being heard floats ABOVE the panel, so the panel (and the mic in it)
+            never changes height or position while someone is talking. */}
         {c.phase === "listening" && (
-          <p role="status" className="mb-3 min-h-[2lh] rounded-2xl bg-primary-soft px-4 py-3 text-xl text-ink" data-testid="interim">
+          <p
+            role="status"
+            className="bw absolute inset-x-4 bottom-full mb-3 max-h-[8lh] overflow-y-auto rounded-2xl bg-accent-soft px-4 py-3 text-xl text-ink shadow-soft"
+            data-testid="interim"
+          >
             {c.interim || "I'm listening…"}
           </p>
         )}
+        <div className="bw max-h-[55dvh] overflow-y-auto rounded-t-[1.75rem] border-b-0 bg-surface px-4 pb-4 pt-5">
 
         {typing ? (
           <Composer
@@ -107,13 +128,20 @@ export function HomeScreen() {
             onPress={c.pressMic}
             level={c.level}
             reduceMotion={motionReduced}
-            compact={hasMessages}
           >
-            <Button variant="ghost" icon={Keyboard} className="-ml-3 px-3! py-1!" onClick={() => setWantsTyping(true)}>
+            {/* The keyboard icon steps aside when the words would not otherwise fit (the threshold
+                is in rem, so it scales with the text size); the words always stay. */}
+            <Button
+              variant="ghost"
+              icon={Keyboard}
+              className="-ml-3 max-w-[calc(100%+0.75rem)] px-3! py-1! [&>svg]:hidden @[9.5rem]:[&>svg]:block"
+              onClick={() => setWantsTyping(true)}
+            >
               Type instead
             </Button>
           </MicButton>
         )}
+        </div>
       </section>
     </div>
   );

@@ -93,7 +93,7 @@ describe("talking to the assistant", () => {
     renderApp(<HomeScreen />, { voiceInput: false });
     expect(screen.getByLabelText("Type your message")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tap to talk" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Talking isn't available yet/)).toBeInTheDocument();
+    expect(screen.getByText(/Talking isn.t available on this device yet/)).toBeInTheDocument();
   });
 
   it("quick action sends a plain sentence tagged with its id", async () => {
@@ -234,5 +234,39 @@ describe("leaving the screen", () => {
     await user.click(screen.getByRole("button", { name: "Tap to talk" }));
     unmount();
     expect(controls.micAborts).toBe(1);
+  });
+});
+
+describe("repeat that", () => {
+  it("reads the latest reply aloud again, and is offered only once there is one", async () => {
+    const { controls } = renderApp(<HomeScreen />, { settings: { speakReplies: false } });
+    expect(screen.queryByRole("button", { name: "Repeat that" })).toBeNull();
+    const user = await typeAndSend("first");
+    await act(async () => controls.resolveAssistant({ id: "r1", text: "First answer." }));
+    await user.type(screen.getByLabelText("Type your message"), "second");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+    await act(async () => controls.resolveAssistant({ id: "r2", text: "Second answer.", spokenText: "Second, spoken." }));
+
+    await user.click(screen.getByRole("button", { name: "Repeat that" }));
+    await waitFor(() => expect(controls.spoken).toHaveLength(1));
+    expect(controls.spoken[0].text).toBe("Second, spoken.");
+  });
+
+  it("is still there while a yes/no question waits, so the question can be heard again", async () => {
+    const { controls } = renderApp(<HomeScreen />, { settings: { speakReplies: false } });
+    const user = await typeAndSend("call anna");
+    await act(async () =>
+      controls.resolveAssistant({ id: "r", text: "Shall I call Anna?", proposedActions: [{ id: "a", kind: "call", title: "Call Anna", risk: "high", params: {} }] }),
+    );
+    expect(screen.queryByRole("button", { name: "Start a new conversation" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Repeat that" }));
+    await waitFor(() => expect(controls.spoken.map((s) => s.text)).toEqual(["Shall I call Anna?"]));
+  });
+
+  it("is not offered when the device cannot speak", async () => {
+    const { controls } = renderApp(<HomeScreen />, { voiceOutput: false });
+    await typeAndSend("hello");
+    await act(async () => controls.resolveAssistant({ id: "r", text: "Hi." }));
+    expect(screen.queryByRole("button", { name: "Repeat that" })).toBeNull();
   });
 });

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource/atkinson-hyperlegible/400.css";
-import "@fontsource/atkinson-hyperlegible/700.css";
+import "@fontsource-variable/atkinson-hyperlegible-next/wght.css";
 import "./globals.css";
 import { BOOTSTRAP_SCRIPT } from "@/ui/settings/bootstrap-script";
 import { AppFrame } from "@/ui/shell/AppFrame";
@@ -21,8 +20,8 @@ export const viewport: Viewport = {
   // When the on-screen keyboard opens, shrink the page so the Send button stays visible.
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f2eb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d141b" },
+    { media: "(prefers-color-scheme: light)", color: "#fbf8f3" },
+    { media: "(prefers-color-scheme: dark)", color: "#161210" },
   ],
 };
 

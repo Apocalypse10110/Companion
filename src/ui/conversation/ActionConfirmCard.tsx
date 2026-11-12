@@ -3,6 +3,7 @@
 import { CircleCheck, Loader2, ShieldCheck } from "lucide-react";
 import type { PermissionName } from "@/contracts";
 import { Button } from "../components/Button";
+import { cn } from "../components/cn";
 import type { ActionCard } from "./types";
 
 export interface ActionConfirmCardProps {
@@ -25,22 +26,31 @@ export function ActionConfirmCard({ card, onConfirm, onDecline, onAllow }: Actio
   const { action, status, resultMessage, needsPermission } = card;
 
   return (
-    <div className="bw flex flex-col gap-3 rounded-2xl bg-surface-2 p-4" data-status={status}>
+    <div
+      className={cn(
+        "flex flex-col gap-4 rounded-3xl p-5",
+        status === "proposed" && "border-[max(2px,var(--bw))] border-accent bg-surface shadow-soft",
+        status === "done" && "bw bg-success-soft",
+        status === "failed" && "bw bg-danger-soft",
+        (status === "running" || status === "dismissed" || status === "unsupported") && "bw bg-surface-2",
+      )}
+      data-status={status}
+    >
       <div className="flex flex-col gap-1">
-        <p className="text-xl font-bold text-ink">{action.title}</p>
-        {action.description && <p className="text-base text-muted">{action.description}</p>}
+        <p className="display text-2xl text-ink">{action.title}</p>
+        {action.description && <p className="text-lg text-ink">{action.description}</p>}
       </div>
 
       {status === "proposed" && (
         <>
-          <p className="text-lg font-bold text-ink">Should I do this?</p>
+          <p className="text-xl font-bold text-ink">Should I do this?</p>
           {action.risk === "high" && (
-            <p className="flex items-center gap-2 text-base text-muted">
-              <ShieldCheck aria-hidden="true" className="size-5 shrink-0" />
+            <p className="flex items-start gap-2 text-lg text-ink">
+              <ShieldCheck aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-accent-ink" strokeWidth={2.25} />
               I always check with you before this.
             </p>
           )}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" data-answers>
             <Button fullWidth onClick={onConfirm} aria-label={`Yes, do it: ${action.title}`}>
               Yes, do it
             </Button>
@@ -58,9 +68,9 @@ export function ActionConfirmCard({ card, onConfirm, onDecline, onAllow }: Actio
       )}
 
       {status === "done" && (
-        <p className="flex items-center gap-3 text-lg font-bold text-ink">
-          <CircleCheck aria-hidden="true" className="size-6 shrink-0" />
-          <span>Done. {resultMessage}</span>
+        <p className="flex items-start gap-3 text-xl text-ink">
+          <CircleCheck aria-hidden="true" className="mt-0.5 size-7 shrink-0 text-success" strokeWidth={2.5} />
+          <span className="font-bold">Done. {resultMessage}</span>
         </p>
       )}
 

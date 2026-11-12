@@ -36,13 +36,15 @@ export function QuickActions({ onSelect, compact, disabled }: QuickActionsProps)
                 disabled={disabled}
                 onClick={() => onSelect(id)}
                 className={cn(
-                  "bw flex w-full items-center rounded-2xl bg-surface text-ink shadow-soft transition active:scale-[0.97] disabled:opacity-60",
+                  "bw flex w-full items-center rounded-2xl bg-surface text-ink transition-[transform,background-color] duration-150 ease-out hover:bg-surface-2 active:scale-[0.97] disabled:opacity-60",
+                  // Under a conversation the tiles are shorter, but keep the icon above the word
+                  // so long words ("Reminders") never run out of room on a narrow phone.
                   compact
-                    ? "min-h-[var(--target)] flex-row justify-start gap-3 px-4 py-3"
+                    ? "min-h-[calc(var(--target)*1.15)] flex-col justify-center gap-1 px-2 py-2"
                     : "min-h-[calc(var(--target)*1.45)] flex-col justify-center gap-1.5 px-3 py-3",
                 )}
               >
-                <Icon aria-hidden="true" className={cn("shrink-0", compact ? "size-7" : "size-9")} strokeWidth={2.25} />
+                <Icon aria-hidden="true" className={cn("shrink-0 text-accent-ink", compact ? "size-6" : "size-9")} strokeWidth={2.25} />
                 <span className="text-lg font-bold leading-tight">{label}</span>
               </button>
             </li>

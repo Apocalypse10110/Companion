@@ -15,6 +15,7 @@ export function PrivacySettings() {
   const { settings, update } = useSettings();
   const { history, eraseHistory } = useConversation();
   const [dialog, setDialog] = useState<"none" | "erase" | "stop-saving">("none");
+  const [justErased, setJustErased] = useState(false);
   const saved = history.length;
 
   return (
@@ -50,38 +51,42 @@ export function PrivacySettings() {
         Erase saved conversations
       </Button>
       <p className="-mt-3 text-base text-muted" aria-live="polite">
-        {saved === 0 ? "Nothing is saved right now." : `${saved} ${saved === 1 ? "conversation is" : "conversations are"} saved on this phone.`}
+        {saved === 0 ? (justErased ? "Erased. Nothing is saved on this phone now." : "Nothing is saved right now.") : `${saved} ${saved === 1 ? "conversation is" : "conversations are"} saved on this phone.`}
       </p>
 
       <ConfirmDialog
         open={dialog === "erase"}
         tone="danger"
-        title="Erase everything?"
+        title="Erase saved conversations?"
         description="All your saved conversations will be deleted from this phone. This cannot be undone."
         confirmLabel="Yes, erase them"
         cancelLabel="No, keep them"
         onConfirm={() => {
           eraseHistory();
+          setJustErased(true);
           setDialog("none");
         }}
         onCancel={() => setDialog("none")}
       />
       <ConfirmDialog
         open={dialog === "stop-saving"}
-        title="Also erase what is saved?"
-        description="I will stop remembering new conversations. Do you want me to erase the ones already saved?"
+        title="Stop remembering conversations?"
+        description="I won't save new conversations. What should I do with the ones already saved?"
         confirmLabel="Stop remembering and erase"
         cancelLabel="Stop remembering, keep old ones"
         tone="danger"
         onConfirm={() => {
           update({ saveHistory: false });
           eraseHistory();
+          setJustErased(true);
           setDialog("none");
         }}
         onCancel={() => {
           update({ saveHistory: false });
           setDialog("none");
         }}
+        dismissLabel="Cancel, keep remembering"
+        onDismiss={() => setDialog("none")}
       />
     </ScrollPage>
   );

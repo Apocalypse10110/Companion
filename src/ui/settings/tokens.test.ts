@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 /** Reads the real colour tokens out of globals.css and checks WCAG contrast for each theme. */
 
-const css = readFileSync(path.resolve(__dirname, "../../app/globals.css"), "utf8");
+// Normalise line endings so the block lookup works on Windows checkouts (CRLF) too.
+const css = readFileSync(path.resolve(__dirname, "../../app/globals.css"), "utf8").replace(/\r\n/g, "\n");
 
 function block(selector: string): Record<string, string> {
   const start = css.indexOf(selector + " {");
@@ -50,12 +51,18 @@ const TEXT: Array<[string, string, number]> = [
   ["primary", "bg", 4.5],
   ["primary", "surface", 4.5],
   ["on-accent", "accent", 4.5],
+  ["accent-ink", "bg", 4.5],
+  ["accent-ink", "surface", 4.5],
+  ["accent-ink", "accent-soft", 4.5],
+  ["success", "success-soft", 4.5],
   ["on-danger", "danger", 4.5],
 ];
 // Non-text parts a person must see: focus ring and form-control borders (WCAG 1.4.11, 3:1).
 const UI: Array<[string, string, number]> = [
   ["focus", "bg", 3],
   ["focus", "surface", 3],
+  // The microphone disc must stand out from the page around it.
+  ["accent", "bg", 3],
   ["control", "bg", 3],
   ["control", "surface", 3],
   ["control", "surface-2", 3],
@@ -65,7 +72,7 @@ describe("colour tokens meet WCAG", () => {
   for (const [theme, t] of Object.entries(themes)) {
     describe(theme, () => {
       it("defines every token", () => {
-        for (const k of ["bg", "surface", "surface-2", "ink", "muted", "line", "control", "primary", "on-primary", "primary-soft", "accent", "on-accent", "accent-soft", "danger", "on-danger", "danger-soft", "success", "success-soft", "focus"]) {
+        for (const k of ["bg", "surface", "surface-2", "ink", "muted", "line", "control", "primary", "on-primary", "primary-soft", "accent", "on-accent", "accent-soft", "accent-ink", "danger", "on-danger", "danger-soft", "success", "success-soft", "focus"]) {
           expect(t[k], `--c-${k}`).toMatch(/^#[0-9a-f]{6}$/i);
         }
       });

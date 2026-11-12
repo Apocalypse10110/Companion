@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useId, type ReactNode } from "react";
 import { cn } from "./cn";
 
@@ -57,7 +58,7 @@ export function ChoiceGroup<T extends string>({
                 className={cn(
                   "bw flex min-h-[var(--target)] cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl px-4 py-3 text-lg font-bold",
                   "peer-focus-visible:outline-4 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-focus",
-                  selected ? "border-primary bg-primary text-on-primary" : "bg-surface text-ink",
+                  selected ? "border-primary bg-primary text-on-primary" : "bg-surface text-ink hover:bg-surface-2",
                 )}
               >
                 {choice.preview && (
@@ -74,7 +75,8 @@ export function ChoiceGroup<T extends string>({
                   )}
                 </span>
                 {selected && (
-                  <span className="ml-auto text-base" aria-hidden="true">
+                  <span className="ml-auto flex items-center gap-1.5 text-base" aria-hidden="true">
+                    <Check className="size-5 shrink-0" strokeWidth={3} />
                     Selected
                   </span>
                 )}

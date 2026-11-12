@@ -4,7 +4,7 @@ import { CircleAlert, CircleCheck, Info, TriangleAlert } from "lucide-react";
 import { cn } from "./cn";
 
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("bw rounded-3xl bg-surface p-4 shadow-soft", className)} {...rest} />;
+  return <div className={cn("bw rounded-3xl bg-surface p-4", className)} {...rest} />;
 }
 
 type Tone = "info" | "warning" | "error" | "success";

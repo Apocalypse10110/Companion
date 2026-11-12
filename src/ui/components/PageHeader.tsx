@@ -17,13 +17,13 @@ export function PageHeader({ title, backHref, backLabel = "Back", children }: Pa
       {backHref && (
         <Link
           href={backHref}
-          className="-ml-2 inline-flex min-h-[var(--target)] w-fit items-center gap-2 rounded-2xl px-3 text-lg font-bold text-primary"
+          className="-ml-2 inline-flex min-h-[var(--target)] w-fit items-center gap-1.5 rounded-2xl px-3 text-lg font-bold text-ink hover:bg-surface-2"
         >
-          <ChevronLeft aria-hidden="true" className="size-7" strokeWidth={2.5} />
+          <ChevronLeft aria-hidden="true" className="size-7 text-accent-ink" strokeWidth={2.5} />
           {backLabel}
         </Link>
       )}
-      <h1 className="text-3xl font-bold leading-tight text-ink">{title}</h1>
+      <h1 className="display text-[2.125rem] text-ink">{title}</h1>
       {children}
     </header>
   );

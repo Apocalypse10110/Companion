@@ -3,7 +3,7 @@ export { Button, type ButtonProps } from "./Button";
 export { Banner, Card, type BannerProps } from "./Card";
 export { ChoiceGroup, type Choice, type ChoiceGroupProps } from "./ChoiceGroup";
 export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
-export { ListLink, type ListLinkProps } from "./ListLink";
+export { ListGroup, ListLink, type ListLinkProps } from "./ListLink";
 export { MicButton, micLabel, type MicButtonProps, type MicPhase } from "./MicButton";
 export { PageHeader, type PageHeaderProps } from "./PageHeader";
 export { Stepper, type StepperProps } from "./Stepper";

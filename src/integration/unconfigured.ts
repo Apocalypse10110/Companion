@@ -9,6 +9,8 @@ import {
   AssistantError,
   type ActionService,
   type AssistantService,
+  type ConnectionInfo,
+  type ConnectionsService,
   type PermissionsService,
   type Services,
   type VoiceInputService,
@@ -55,10 +57,32 @@ const permissions: PermissionsService = {
   },
 };
 
+// Calendar and Gmail are listed so the person can see what is coming, but nothing can be
+// connected until Developer C provides the real sign-in. No fake logins.
+const KNOWN: ConnectionInfo[] = [
+  { id: "google-calendar", name: "Google Calendar", state: "unavailable" },
+  { id: "gmail", name: "Gmail", state: "unavailable" },
+];
+
+const connections: ConnectionsService = {
+  async list() {
+    return KNOWN.map((c) => ({ ...c }));
+  },
+  async connect(id) {
+    const connection = KNOWN.find((c) => c.id === id) ?? { id, name: "This account", state: "unavailable" as const };
+    return { ok: false, connection: { ...connection }, message: "Connecting accounts isn't available yet." };
+  },
+  async disconnect(id) {
+    const connection = KNOWN.find((c) => c.id === id) ?? { id, name: "This account", state: "unavailable" as const };
+    return { ok: false, connection: { ...connection }, message: "Connecting accounts isn't available yet." };
+  },
+};
+
 export const unconfiguredServices: Services = {
   assistant,
   voiceInput,
   voiceOutput,
   actions,
   permissions,
+  connections,
 };
