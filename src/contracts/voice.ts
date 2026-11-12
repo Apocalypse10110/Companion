@@ -9,7 +9,10 @@
 export interface VoiceInputHandlers {
   /** Live guess while the person is still talking. Shown on screen. */
   onInterim?: (text: string) => void;
-  /** The finished sentence. The UI sends this to the assistant. */
+  /**
+   * The finished sentence. The UI sends this to the assistant.
+   * Called at most once per `start()`, and always BEFORE `onEnd`.
+   */
   onFinal: (text: string) => void;
   /** Optional microphone loudness, 0 to 1. Drives the listening indicator. */
   onLevel?: (level: number) => void;

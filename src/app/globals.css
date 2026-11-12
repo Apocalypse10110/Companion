@@ -1,26 +1,246 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------
+   Design tokens. Four colour sets: light, dark, and a high-contrast
+   version of each. <html> gets data-theme / data-contrast / data-motion /
+   data-bold / data-buttons / data-spacing from src/ui/settings.
+   Contrast of every pair below is checked by a test (tokens.test.ts).
+   ------------------------------------------------------------------ */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c-bg: #f5f2eb;
+  --c-surface: #ffffff;
+  --c-surface-2: #ece7db;
+  --c-ink: #16212b;
+  --c-muted: #4a5560;
+  --c-line: #cfc8b8;
+  --c-primary: #0b5cab;
+  --c-on-primary: #ffffff;
+  --c-primary-soft: #dcebfa;
+  --c-accent: #ff7a1a;
+  --c-on-accent: #1c1000;
+  --c-accent-soft: #ffe7d1;
+  --c-danger: #b3261e;
+  --c-on-danger: #ffffff;
+  --c-danger-soft: #fbe3e0;
+  --c-success: #1d6b3b;
+  --c-success-soft: #ddf1e4;
+  --c-focus: #0b5cab;
+  --c-shadow: 0 1px 2px rgb(22 33 43 / 0.06), 0 8px 24px rgb(22 33 43 / 0.08);
+  --bw: 1px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #0d141b;
+  --c-surface: #16202a;
+  --c-surface-2: #1e2b37;
+  --c-ink: #f1f4f7;
+  --c-muted: #b4c0cc;
+  --c-line: #384757;
+  --c-primary: #8cc2ff;
+  --c-on-primary: #04203f;
+  --c-primary-soft: #1b3550;
+  --c-accent: #ff9547;
+  --c-on-accent: #1c1000;
+  --c-accent-soft: #4a2a10;
+  --c-danger: #ffb4ab;
+  --c-on-danger: #3b0a07;
+  --c-danger-soft: #4a1d19;
+  --c-success: #8edba6;
+  --c-success-soft: #173a26;
+  --c-focus: #8cc2ff;
+  --c-shadow: none;
+}
+
+:root[data-theme="light"][data-contrast="high"] {
+  --c-bg: #ffffff;
+  --c-surface: #ffffff;
+  --c-surface-2: #f0f0f0;
+  --c-ink: #000000;
+  --c-muted: #1a1a1a;
+  --c-line: #000000;
+  --c-primary: #003f87;
+  --c-on-primary: #ffffff;
+  --c-primary-soft: #e6f0ff;
+  --c-accent: #ff9a1f;
+  --c-on-accent: #000000;
+  --c-accent-soft: #fff0d9;
+  --c-danger: #8c0000;
+  --c-on-danger: #ffffff;
+  --c-danger-soft: #ffe5e5;
+  --c-success: #004d1f;
+  --c-success-soft: #e3f7ea;
+  --c-focus: #0030a0;
+  --c-shadow: none;
+  --bw: 2px;
+}
+
+:root[data-theme="dark"][data-contrast="high"] {
+  --c-bg: #000000;
+  --c-surface: #000000;
+  --c-surface-2: #1a1a1a;
+  --c-ink: #ffffff;
+  --c-muted: #e6e6e6;
+  --c-line: #ffffff;
+  --c-primary: #ffe14d;
+  --c-on-primary: #000000;
+  --c-primary-soft: #2a2600;
+  --c-accent: #ffb74d;
+  --c-on-accent: #000000;
+  --c-accent-soft: #3a2400;
+  --c-danger: #ff9e9e;
+  --c-on-danger: #000000;
+  --c-danger-soft: #3a0000;
+  --c-success: #7cffa4;
+  --c-success-soft: #00381a;
+  --c-focus: #ffe14d;
+  --c-shadow: none;
+  --bw: 2px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Set by the settings system. 1.2 is the default ("Large"). */
+  --text-scale: 1.2;
+  /* Minimum size of anything tappable. Grows with text size because it is in rem. */
+  --target: 3.5rem;
+  --space-scale: 1.15;
+}
+:root[data-buttons="xl"] {
+  --target: 4.5rem;
+}
+:root[data-spacing="normal"] {
+  --space-scale: 1;
+}
+:root[data-spacing="roomy"] {
+  --space-scale: 1.15;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-line: var(--c-line);
+  --color-primary: var(--c-primary);
+  --color-on-primary: var(--c-on-primary);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-accent: var(--c-accent);
+  --color-on-accent: var(--c-on-accent);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-danger: var(--c-danger);
+  --color-on-danger: var(--c-on-danger);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-success: var(--c-success);
+  --color-success-soft: var(--c-success-soft);
+  --color-focus: var(--c-focus);
+  --shadow-soft: var(--c-shadow);
+  --font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* "Generous spacing": every Tailwind spacing step scales together. */
+:root {
+  --spacing: calc(0.25rem * var(--space-scale));
+}
+
+html {
+  /* Respects the browser's own font size, then applies the person's choice. */
+  font-size: calc(100% * var(--text-scale));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Bold text setting: Atkinson Hyperlegible has regular and bold, so bold means bold. */
+:root[data-bold="true"] body,
+:root[data-bold="true"] body * {
+  font-weight: 700;
+}
+
+/* Big, unmissable keyboard/switch focus. */
+:focus-visible {
+  outline: 4px solid var(--c-focus);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* Shared bordered surface: 1px normally, 2px in high contrast. */
+.bw {
+  border: var(--bw) solid var(--c-line);
+}
+
+/* Motion: the mic "listening" ring, and the fade for new messages. */
+@keyframes listening-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.anim-ring {
+  animation: listening-ring 1.8s ease-out infinite;
+}
+.anim-rise {
+  animation: rise-in 0.28s ease-out both;
+}
+
+/* Reduce motion: setting or device preference. Nothing relies on animation to be understood. */
+:root[data-motion="reduce"] {
+  scroll-behavior: auto;
+}
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+:root[data-motion="reduce"] .anim-ring {
+  display: none;
+}
+
+/* Skip link for keyboard and screen-reader users. */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--c-primary);
+  color: var(--c-on-primary);
+  border-radius: 0.75rem;
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
 }
