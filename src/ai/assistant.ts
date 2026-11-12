@@ -25,10 +25,13 @@ import { PRONOUNS, classify, cleanContact, looksLikeQuestion, normalize, stripPo
 import { cleanString, validateIntent, type Intent } from "./intents/schema";
 import { describeWhen, parseWhen } from "./intents/time";
 import { noProvider, type AIProvider } from "./providers/types";
+import { recordSkill, skillsForPrompt } from "./skills";
 import { APP_GUIDANCE, APP_LABELS, OPENABLE_APPS, SETTING_TITLES, capitalize, contactLabel, recoverCase, yourify } from "./words";
 
 export interface AssistantOptions {
   provider?: AIProvider;
+  /** What the person has learned before, for help that fades. Defaults to the on-device record. */
+  skills?: { list(): string[]; record(name: string): void };
   /** For tests. */
   now?: () => Date;
   newId?: () => string;
@@ -60,6 +63,11 @@ interface Understood {
   ai: AIState;
 }
 
+const PHOTO_NO_AI =
+  "I'm sorry, I can't look at photos right now because my online helper isn't connected. You can tell me in words what you see, and I'll do my best.";
+const PHOTO_FAILED =
+  "I'm sorry, I couldn't look at that photo just now. Please try again, or tell me in words what you see.";
+
 const AI_DOWN =
   "I'm sorry, I can't reach my online helper right now, so I can't answer that. Please try again in a minute. I can still call someone, send a message, set a reminder, or make the text bigger.";
 
@@ -78,6 +86,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
   const now = options.now ?? (() => new Date());
   const newId = options.newId ?? defaultId;
   const store = new ContextStore();
+  const skills = options.skills ?? { list: () => skillsForPrompt(), record: (n: string) => void recordSkill(n) };
 
   async function understand(request: AssistantRequest, ctx: ConversationContext, signal?: AbortSignal): Promise<Understood> {
     const raw = classify(request.text, now());
@@ -90,10 +99,17 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     if (local && !isConversation) return { intent: local, ai: "none" };
 
     const lastAssistant = [...request.history].reverse().find((t) => t.role === "assistant")?.text;
-    let result;
+    let result: Awaited<ReturnType<AIProvider["interpret"]>>;
     try {
       result = await provider.interpret(
-        { text: request.text, history: request.history, language: request.language, now: now().toISOString(), lastAssistantText: lastAssistant },
+        {
+          text: request.text,
+          history: request.history,
+          language: request.language,
+          now: now().toISOString(),
+          lastAssistantText: lastAssistant,
+          skills: skills.list(),
+        },
         signal,
       );
     } catch (err) {
@@ -105,6 +121,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     // No AI. If it's set up but its key was refused, say so honestly instead of acting as if it isn't there.
     if (!result) return { intent: local, ai: provider.unavailableReason?.() === "ai-auth" ? "failed" : "none" };
     const intent = validateIntent(result.intent) ?? local;
+    if (result.taskDone && result.skill) skills.record(result.skill);
     const aiSuggestions = (result.suggestions ?? [])
       .map((x) => cleanString(x, 60))
       .filter((x): x is string => Boolean(x))
@@ -366,6 +383,38 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     }
   }
 
+  async function lookAtPhoto(request: AssistantRequest, signal?: AbortSignal): Promise<Draft> {
+    const lastAssistant = [...request.history].reverse().find((t) => t.role === "assistant")?.text;
+    let result: Awaited<ReturnType<AIProvider["interpret"]>>;
+    try {
+      result = await provider.interpret(
+        {
+          text: request.text,
+          history: request.history,
+          language: request.language,
+          now: now().toISOString(),
+          lastAssistantText: lastAssistant,
+          image: request.image,
+          skills: skills.list(),
+        },
+        signal,
+      );
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      if (err instanceof AssistantError && err.code !== "unknown") throw err;
+      return { text: PHOTO_FAILED };
+    }
+    if (!result) return { text: PHOTO_NO_AI };
+    const reply = cleanString(result.reply, MAX_AI_REPLY);
+    if (!reply) return { text: PHOTO_FAILED };
+    if (result.taskDone && result.skill) skills.record(result.skill);
+    const suggestions = (result.suggestions ?? [])
+      .map((x) => cleanString(x, 60))
+      .filter((x): x is string => Boolean(x))
+      .slice(0, 3);
+    return { text: reply, suggestions: suggestions.length ? suggestions : undefined };
+  }
+
   return {
     reset: () => store.reset(),
 
@@ -377,6 +426,9 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
 
       const ctx = store.restore(request.history ?? []);
       let draft: Draft | null = request.source === "quick-action" ? quickAction(request) : null;
+
+      // "Show me": a photo always goes to the AI, which can see it. The rules can't.
+      if (!draft && request.image) draft = await lookAtPhoto(request, signal);
 
       if (!draft) {
         let intent: Intent | null = null;

@@ -13,6 +13,7 @@ import {
 } from "react";
 import {
   AssistantError,
+  type AssistantImage,
   type AssistantReply,
   type PermissionName,
   type QuickActionId,
@@ -31,6 +32,7 @@ import {
   VOICE_ERRORS,
   VOICE_UNSUPPORTED,
 } from "./copy";
+import { preparePhoto } from "./photo";
 import { clearSavedConversations, loadConversations, saveConversations } from "./history-storage";
 import { INITIAL_ID, activeConversation, initState, reducer } from "./reducer";
 import {
@@ -41,6 +43,9 @@ import {
   type Conversation,
   type Phase,
 } from "./types";
+
+/** What a photo says when the person doesn't add their own question. */
+export const PHOTO_DEFAULT_QUESTION = "Can you look at this photo and help me with it?";
 
 /** How long to wait for the assistant before giving up. */
 export const REQUEST_TIMEOUT_MS = 45_000;
@@ -66,6 +71,8 @@ export interface ConversationApi {
   pressMic: () => void;
   sendText: (text: string) => void;
   sendQuickAction: (id: QuickActionId) => void;
+  /** "Show me": send a photo from the camera or Photos, with an optional question. */
+  sendPhoto: (file: Blob, question?: string) => void;
   cancel: () => void;
   readAloud: (messageId: string) => void;
   /** Read Companion's latest reply aloud again, stopping anything being spoken now. */
@@ -226,7 +233,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   // ---------- asking the assistant ----------
 
   const submit = useCallback(
-    async (text: string, source: RequestSource, quickActionId?: QuickActionId) => {
+    async (text: string, source: RequestSource, quickActionId?: QuickActionId, photo?: { image: AssistantImage; thumb: string }) => {
       const clean = text.trim();
       if (!clean || stateRef.current.phase === "thinking") return;
 
@@ -241,7 +248,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       if (stateRef.current.activeId === INITIAL_ID) dispatch({ type: "claim", id: newId(), now: Date.now() });
       dispatch({
         type: "add",
-        message: { id: newId(), role: "user", text: clean, createdAt: Date.now(), source },
+        message: { id: newId(), role: "user", text: clean, createdAt: Date.now(), source, ...(photo ? { image: photo.thumb } : {}) },
       });
       dispatch({ type: "phase", phase: "thinking" });
       dispatch({ type: "partial", text: "" });
@@ -264,6 +271,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             text: clean,
             source,
             quickActionId,
+            ...(photo ? { image: photo.image } : {}),
             history,
             language: languageTag(),
             hints: { plainLanguage: true, willBeSpoken: willSpeak },
@@ -323,7 +331,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             role: "error",
             text: message,
             createdAt: Date.now(),
-            retry: { text: clean, source, quickActionId },
+            retry: { text: clean, source, quickActionId, ...(photo ? { image: photo.image, thumb: photo.thumb } : {}) },
           },
         });
         dispatch({ type: "phase", phase: "idle" });
@@ -469,11 +477,28 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     (messageId: string) => {
       const message = activeConversation(stateRef.current).messages.find((m) => m.id === messageId);
       if (!message?.retry) return;
-      const { text, source, quickActionId } = message.retry;
+      const { text, source, quickActionId, image, thumb } = message.retry;
       dispatch({ type: "remove", id: messageId });
-      void submit(text, source, quickActionId);
+      void submit(text, source, quickActionId, image && thumb ? { image, thumb } : undefined);
     },
     [submit],
+  );
+
+  const sendPhoto = useCallback(
+    (file: Blob, question?: string) => {
+      void (async () => {
+        let photo;
+        try {
+          photo = await preparePhoto(file);
+        } catch {
+          addNotice("I couldn't open that photo. Please try taking it again.");
+          return;
+        }
+        const q = question?.trim();
+        void submit(q ? q : PHOTO_DEFAULT_QUESTION, "photo", undefined, photo);
+      })();
+    },
+    [addNotice, submit],
   );
 
   const sendQuickAction = useCallback(
@@ -524,6 +549,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       pressMic,
       sendText: (text) => void submit(text, "text"),
       sendQuickAction,
+      sendPhoto,
       cancel: () => requestAbort.current?.abort(),
       readAloud,
       repeatLast,
@@ -553,6 +579,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     pressMic,
     submit,
     sendQuickAction,
+    sendPhoto,
     readAloud,
     repeatLast,
     cancelSpeech,

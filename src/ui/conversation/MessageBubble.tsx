@@ -77,7 +77,12 @@ export function MessageBubble(props: MessageBubbleProps) {
   if (m.role === "user") {
     return (
       <li className="anim-rise flex justify-end">
-        <div className="max-w-[88%] rounded-3xl rounded-br-md bg-accent-soft px-4 py-3">
+        <div className="flex max-w-[88%] flex-col gap-3 rounded-3xl rounded-br-md bg-accent-soft px-4 py-3">
+          {/* Only our own small JPEG previews are shown. */}
+          {m.image?.startsWith("data:image/jpeg;base64,") && (
+            // eslint-disable-next-line @next/next/no-img-element -- a small local preview, not a remote image
+            <img src={m.image} alt="The photo you sent" className="max-h-48 w-auto self-end rounded-2xl" />
+          )}
           <p className="text-xl text-ink">
             <span className="sr-only">You said: </span>
             {m.text}

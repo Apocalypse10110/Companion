@@ -6,7 +6,7 @@
  * Owner: Developer B.
  */
 
-import type { AssistantTurn } from "@/contracts";
+import type { AssistantImage, AssistantTurn } from "@/contracts";
 
 export interface InterpretRequest {
   text: string;
@@ -16,6 +16,10 @@ export interface InterpretRequest {
   now: string;
   /** What the assistant just asked, if anything ("Who would you like to call?"). */
   lastAssistantText?: string;
+  /** A photo to look at ("Show me"). */
+  image?: AssistantImage;
+  /** Tasks they've finished before, so the AI can let them try first. */
+  skills?: string[];
 }
 
 export interface InterpretResult {
@@ -25,6 +29,10 @@ export interface InterpretResult {
   reply?: string;
   /** Short things the person might say next. Untrusted; the assistant caps them. */
   suggestions?: string[];
+  /** The task being taught, if any ("connect to wifi"). */
+  skill?: string;
+  /** True when the person has just finished that task. */
+  taskDone?: boolean;
 }
 
 /** Why there is no AI: nothing set up, or the server's key was refused. */

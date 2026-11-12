@@ -184,3 +184,47 @@ describe("assistant with an AI: tech support", () => {
     expect(r.text).toContain("Camera");
   });
 });
+
+describe("Show me (photos) and help that fades", () => {
+  const photo = { mimeType: "image/jpeg" as const, data: "A".repeat(200) };
+
+  it("sends a photo to the AI, never to the rules, with what they've learned", async () => {
+    const interpret = vi.fn(async () => ({ intent: { name: "HELP", params: {} }, reply: "This says your storage is full. First, open Settings.", suggestions: ["Give me a hint"] }));
+    const assistant = createAssistant({ provider: { interpret }, skills: { list: () => ["connect to wifi (once)"], record: vi.fn() } });
+    const r = await assistant.send({ text: "Call my daughter", source: "photo", image: photo, history: [], language: "en-US", hints: { plainLanguage: true, willBeSpoken: false } });
+    expect(r.text).toContain("storage is full");
+    expect(r.proposedActions).toBeUndefined();
+    expect((interpret.mock.calls[0] as unknown[])[0]).toMatchObject({ image: photo, skills: ["connect to wifi (once)"] });
+  });
+
+  it("is honest when no AI can look at the photo", async () => {
+    const assistant = createAssistant({ provider: { interpret: async () => null }, skills: { list: () => [], record: vi.fn() } });
+    const r = await assistant.send({ text: "help", source: "photo", image: photo, history: [], language: "en-US", hints: { plainLanguage: true, willBeSpoken: false } });
+    expect(r.text).toContain("can't look at photos");
+  });
+
+  it("records a finished task so next time it can let them try first", async () => {
+    const record = vi.fn();
+    const interpret = vi.fn(async () => ({ intent: { name: "HELP", params: {} }, reply: "You did it!", skill: "connect to wifi", taskDone: true }));
+    const assistant = createAssistant({ provider: { interpret }, skills: { list: () => [], record } });
+    await assistant.send({ text: "done, it works", source: "text", history: [], language: "en-US", hints: { plainLanguage: true, willBeSpoken: false } });
+    expect(record).toHaveBeenCalledWith("connect to wifi");
+  });
+
+  it("the server only accepts real, small images", async () => {
+    const { parseImage } = await import("./server/handler");
+    expect(parseImage(photo)).toEqual(photo);
+    expect(parseImage({ mimeType: "image/gif", data: photo.data })).toBeUndefined();
+    expect(parseImage({ mimeType: "image/jpeg", data: "not base64!" + "A".repeat(200) })).toBeUndefined();
+  });
+
+  it("the skill record keeps plain names and counts", async () => {
+    const { recordSkill, loadSkills, skillsForPrompt, forgetAllSkills } = await import("./skills");
+    forgetAllSkills();
+    recordSkill("Connect to WiFi");
+    recordSkill("connect to wifi");
+    expect(recordSkill("<script>")).toBeNull();
+    expect(loadSkills()[0]).toMatchObject({ name: "connect to wifi", times: 2 });
+    expect(skillsForPrompt()).toEqual(["connect to wifi (2 times)"]);
+  });
+});

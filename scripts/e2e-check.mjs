@@ -10,6 +10,8 @@
  * Env: BASE_URL (default http://localhost:3000), CHROME_PATH (default: Playwright's Chromium).
  */
 import { chromium } from "playwright-core";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const browser = await chromium.launch({
@@ -170,6 +172,53 @@ await step("Workflow 4: reminder asks for notifications, then is set", async () 
   await waitForReplyContaining(/I'll remind you to take your pills/);
   await page.goto(BASE + "/settings/reminders", { waitUntil: "networkidle" });
   await waitForReplyContaining(/take my pills/);
+});
+
+/** Draw a realistic picture (a pop-up, a text message) and save it as a photo to "take". */
+async function makePhoto(name, html) {
+  const p = await ctx.newPage();
+  await p.setViewportSize({ width: 600, height: 420 });
+  await p.setContent(`<body style="margin:0;font:22px system-ui;background:#2b2b2b;display:grid;place-items:center;height:100vh">${html}</body>`);
+  const file = join(tmpdir(), `companion-e2e-${name}.jpg`);
+  await p.screenshot({ path: file, type: "jpeg", quality: 85 });
+  await p.close();
+  return file;
+}
+const lastCompanionReply = () => page.evaluate(() => document.body.innerText.split("Companion said:").pop() ?? "");
+async function sendPhotoAndWait(file) {
+  const before = await page.evaluate(() => document.body.innerText.split("Companion said:").length);
+  await page.locator('input[type="file"]').first().setInputFiles(file);
+  await page.waitForFunction(
+    (n) => document.body.innerText.split("Companion said:").length > n && !/Thinking…/.test(document.body.innerText),
+    before,
+    { timeout: 40_000 },
+  );
+  const reply = (await lastCompanionReply()).trim().split("\n")[0];
+  console.log(`      reply: ${reply.slice(0, 200)}`);
+  return reply;
+}
+
+await step("Show me: a photo of a confusing pop-up gets explained, one step", async () => {
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  const file = await makePhoto(
+    "storage",
+    `<div style="background:#fff;border-radius:16px;padding:28px;width:440px"><b style="font-size:26px">Storage Almost Full</b>
+     <p>You can manage your storage in Settings.</p><div style="display:flex;justify-content:space-between;color:#0a64d8">
+     <span>Close</span><b>Settings</b></div></div>`,
+  );
+  const reply = await sendPhotoAndWait(file);
+  if (!/storage|space|full/i.test(reply)) throw new Error("Didn't describe the pop-up");
+  if (!(await page.locator('img[alt="The photo you sent"]').count())) throw new Error("No photo preview in the conversation");
+});
+
+await step("Show me: a scam text is called out", async () => {
+  const file = await makePhoto(
+    "scam",
+    `<div style="background:#e9e9eb;border-radius:20px;padding:22px;width:460px">Royal Mail: your parcel is on hold due to an unpaid
+     shipping fee of £1.45. Pay now to avoid return: http://rmail-redelivery-uk.info</div>`,
+  );
+  const reply = await sendPhotoAndWait(file);
+  if (!/scam|don't|do not|fake|trick/i.test(reply)) throw new Error("Didn't warn about the scam");
 });
 
 await step("Phone and permissions screen loads and reports AI", async () => {

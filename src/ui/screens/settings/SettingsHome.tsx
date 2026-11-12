@@ -1,6 +1,6 @@
 "use client";
 
-import { Accessibility, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
+import { Accessibility, Award, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
 import { BRAND } from "../../components/BrandMark";
 import { ListGroup, ListLink } from "../../components/ListLink";
 import { PageHeader } from "../../components/PageHeader";
@@ -20,6 +20,9 @@ export function SettingsHome() {
           </li>
           <li>
             <ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" description="Motion, screen reader, vibration" />
+          </li>
+          <li>
+            <ListLink href="/settings/learned" icon={Award} title="Things you can do" description="What you've learned with my help" />
           </li>
           <li>
             <ListLink href="/settings/people" icon={Users} title="People" description="Who I can call or text for you" />

@@ -43,7 +43,8 @@ export function classifyGeminiError(err: unknown): ProviderError {
     return new ProviderError("failed", `Gemini returned HTTP ${status}`);
   }
   if (err instanceof Error && err.name === "AbortError") return new ProviderError("unavailable", "Gemini timed out");
-  return new ProviderError("unavailable", "Could not reach Gemini");
+  const what = err instanceof Error ? `${err.name}: ${err.message.slice(0, 120)}` : String(err).slice(0, 120);
+  return new ProviderError("unavailable", `Could not reach Gemini (${what})`);
 }
 
 /** Worth trying the next model? (Not for a bad key: every model would refuse it.) */
@@ -67,7 +68,13 @@ export function createGeminiInterpreter(config: GeminiConfig): ServerInterpreter
     async interpret(input, signal) {
       const contents = [
         ...input.history.map((t) => ({ role: t.role === "assistant" ? "model" : "user", parts: [{ text: t.text }] })),
-        { role: "user", parts: [{ text: userPrompt(input) }] },
+        {
+          role: "user",
+          parts: [
+            ...(input.image ? [{ inlineData: { mimeType: input.image.mimeType, data: input.image.data } }] : []),
+            { text: userPrompt(input) },
+          ],
+        },
       ];
 
       let lastError: ProviderError = new ProviderError("unavailable", "No Gemini model configured");
@@ -103,7 +110,7 @@ export function createGeminiInterpreter(config: GeminiConfig): ServerInterpreter
           if (signal?.aborted) throw err;
           lastError = classifyGeminiError(err);
           if (!tryNext(lastError)) throw lastError;
-          console.warn(`[assistant] gemini model ${model} failed (${lastError.code}), trying the next one`);
+          console.warn(`[assistant] gemini model ${model} failed (${lastError.code}: ${lastError.message}), trying the next one`);
         } finally {
           clearTimeout(timer);
           signal?.removeEventListener("abort", onAbort);

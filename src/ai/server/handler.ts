@@ -4,7 +4,7 @@
  * a validated intent. Server-only. Owner: Developer B.
  */
 
-import type { AssistantTurn } from "@/contracts";
+import type { AssistantImage, AssistantTurn } from "@/contracts";
 import { cleanString, validateIntent } from "../intents/schema";
 import { createAnthropicInterpreter } from "./anthropic";
 import { createGeminiInterpreter, parseModelList } from "./gemini";
@@ -61,6 +61,20 @@ function buildInterpreter(env: AIEnv): ServerInterpreter | null {
 }
 
 const MAX_BODY = 16_000;
+/** A photo is shrunk on the phone first (about 150 KB). This leaves room, under Vercel's 4.5 MB limit. */
+const MAX_IMAGE_CHARS = 1_400_000;
+const MAX_BODY_WITH_IMAGE = MAX_IMAGE_CHARS + MAX_BODY;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+/** A photo, if the body has a usable one. Checks the type and that the data really is base64. */
+export function parseImage(value: unknown): AssistantImage | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const v = value as { mimeType?: unknown; data?: unknown };
+  const mimeType = IMAGE_TYPES.find((t) => t === v.mimeType);
+  if (!mimeType || typeof v.data !== "string") return undefined;
+  if (v.data.length < 100 || v.data.length > MAX_IMAGE_CHARS || !/^[A-Za-z0-9+/]+={0,2}$/.test(v.data)) return undefined;
+  return { mimeType, data: v.data };
+}
 const MAX_HISTORY = 12;
 const TIMEOUT_MS = 20_000;
 const RATE_LIMIT = 30; // requests per minute per caller
@@ -93,7 +107,28 @@ export function parseInput(body: unknown): InterpretInput | null {
   while (history.length && history[0].role !== "user") history.shift();
   const now = typeof b.now === "string" && !Number.isNaN(Date.parse(b.now)) ? b.now.slice(0, 40) : new Date().toISOString();
   const language = typeof b.language === "string" && /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/.test(b.language) ? b.language : "en-US";
-  return { text, history, language, now, lastAssistantText: cleanString(b.lastAssistantText, 1_000) };
+  const skills = Array.isArray(b.skills)
+    ? b.skills
+        .map((s) => cleanString(s, 60))
+        .filter((s): s is string => Boolean(s))
+        .slice(0, 20)
+    : [];
+  const image = parseImage(b.image);
+  return {
+    text,
+    history,
+    language,
+    now,
+    lastAssistantText: cleanString(b.lastAssistantText, 1_000),
+    ...(image ? { image } : {}),
+    ...(skills.length ? { skills } : {}),
+  };
+}
+
+/** A task name is shown on screen and kept on the phone, so it must be short plain words. */
+function cleanSkill(value: unknown): string | null {
+  const s = cleanString(value, 40)?.toLowerCase();
+  return s && /^[\p{L} '-]+$/u.test(s) ? s : null;
 }
 
 const json = (status: number, data: unknown) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -142,7 +177,9 @@ export async function handleAssistantRequest(
   if (rateLimited(caller)) return json(429, { error: "too-many-requests" });
 
   const raw = await request.text();
-  if (raw.length > MAX_BODY) return json(413, { error: "too-large" });
+  if (raw.length > MAX_BODY_WITH_IMAGE || (raw.length > MAX_BODY && !raw.includes('"image"'))) {
+    return json(413, { error: "too-large" });
+  }
   let body: unknown;
   try {
     body = JSON.parse(raw);
@@ -166,6 +203,8 @@ export async function handleAssistantRequest(
       intent: intent ?? { name: "UNKNOWN", params: {} },
       reply: cleanString(result?.reply, 600) ?? null,
       suggestions,
+      skill: cleanSkill(result?.skill),
+      taskDone: result?.taskDone === true,
     });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });
