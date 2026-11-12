@@ -277,7 +277,7 @@ describe("history and privacy", () => {
     await user.click(screen.getByRole("button", { name: "Erase saved conversations" }));
     await user.click(screen.getByRole("button", { name: "Yes, erase them" }));
     expect(window.localStorage.getItem(HISTORY_KEY)).toBeNull();
-    expect(screen.getByText("Nothing is saved right now.")).toBeInTheDocument();
+    expect(screen.getByText("Erased. Nothing is saved on this phone now.")).toBeInTheDocument();
     expect(screen.queryByText("Okay, reminder noted.")).not.toBeInTheDocument();
   });
 

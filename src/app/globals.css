@@ -7,76 +7,83 @@
    Contrast of every pair below is checked by a test (tokens.test.ts).
    ------------------------------------------------------------------ */
 
+/* Warm paper by day, warm charcoal by night: the same family in both, so the two
+   modes read as one product. Orange is Companion's colour (the mic, "on", the current
+   place); actions are drawn in deep warm ink so orange never has to compete. */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  --c-bg: #f5f2eb;
+  --c-bg: #fbf8f3;
   --c-surface: #ffffff;
-  --c-surface-2: #ece7db;
-  --c-ink: #16212b;
-  --c-muted: #4a5560;
-  --c-line: #cfc8b8;
-  --c-control: #7c7462;
-  --c-primary: #0b5cab;
-  --c-on-primary: #ffffff;
-  --c-primary-soft: #dcebfa;
-  --c-accent: #ff7a1a;
-  --c-on-accent: #1c1000;
-  --c-accent-soft: #ffe7d1;
-  --c-danger: #b3261e;
+  --c-surface-2: #f3ede4;
+  --c-ink: #1d1813;
+  --c-muted: #584e45;
+  --c-line: #ddd3c5;
+  --c-control: #7d7064;
+  --c-primary: #2a201a;
+  --c-on-primary: #fffaf2;
+  --c-primary-soft: #f4ece1;
+  --c-accent: #d4580a;
+  --c-on-accent: #1f0e00;
+  --c-accent-soft: #fde6d3;
+  --c-accent-ink: #a8420a;
+  --c-danger: #b0261b;
   --c-on-danger: #ffffff;
-  --c-danger-soft: #fbe3e0;
-  --c-success: #1d6b3b;
-  --c-success-soft: #ddf1e4;
-  --c-focus: #0b5cab;
-  --c-shadow: 0 1px 2px rgb(22 33 43 / 0.06), 0 8px 24px rgb(22 33 43 / 0.08);
+  --c-danger-soft: #fbe4df;
+  --c-success: #1f6b3a;
+  --c-success-soft: #e1f2e3;
+  --c-focus: #c2500a;
+  --c-shadow: 0 1px 2px rgb(60 40 20 / 0.06), 0 6px 18px -6px rgb(60 40 20 / 0.14);
   --bw: 1px;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --c-bg: #0d141b;
-  --c-surface: #16202a;
-  --c-surface-2: #1e2b37;
-  --c-ink: #f1f4f7;
-  --c-muted: #b4c0cc;
-  --c-line: #384757;
-  --c-control: #7f93a6;
-  --c-primary: #8cc2ff;
-  --c-on-primary: #04203f;
-  --c-primary-soft: #1b3550;
-  --c-accent: #ff9547;
-  --c-on-accent: #1c1000;
-  --c-accent-soft: #4a2a10;
-  --c-danger: #ffb4ab;
+  --c-bg: #161210;
+  --c-surface: #211b17;
+  --c-surface-2: #2c241e;
+  --c-ink: #f6efe6;
+  --c-muted: #c9bcae;
+  --c-line: #3e342c;
+  --c-control: #968676;
+  --c-primary: #f6ebdc;
+  --c-on-primary: #1d1813;
+  --c-primary-soft: #3a2f26;
+  --c-accent: #ff8a3d;
+  --c-on-accent: #1f0e00;
+  --c-accent-soft: #4a2b15;
+  --c-accent-ink: #ffa366;
+  --c-danger: #ffb3a8;
   --c-on-danger: #3b0a07;
-  --c-danger-soft: #4a1d19;
-  --c-success: #8edba6;
-  --c-success-soft: #173a26;
-  --c-focus: #8cc2ff;
-  --c-shadow: none;
+  --c-danger-soft: #4a1f1a;
+  --c-success: #8fd9a5;
+  --c-success-soft: #1c3a26;
+  --c-focus: #ff9a52;
+  --c-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 20px -8px rgb(0 0 0 / 0.6);
+  --bw: 1px;
 }
 
 :root[data-theme="light"][data-contrast="high"] {
   --c-bg: #ffffff;
   --c-surface: #ffffff;
-  --c-surface-2: #f0f0f0;
+  --c-surface-2: #f2f0ed;
   --c-ink: #000000;
   --c-muted: #1a1a1a;
   --c-line: #000000;
   --c-control: #000000;
-  --c-primary: #003f87;
+  --c-primary: #000000;
   --c-on-primary: #ffffff;
-  --c-primary-soft: #e6f0ff;
-  --c-accent: #ff9a1f;
-  --c-on-accent: #000000;
+  --c-primary-soft: #f2f0ed;
+  --c-accent: #9a3a00;
+  --c-on-accent: #ffffff;
   --c-accent-soft: #fff0d9;
+  --c-accent-ink: #8a3300;
   --c-danger: #8c0000;
   --c-on-danger: #ffffff;
   --c-danger-soft: #ffe5e5;
   --c-success: #004d1f;
   --c-success-soft: #e3f7ea;
-  --c-focus: #0030a0;
+  --c-focus: #000000;
   --c-shadow: none;
   --bw: 2px;
 }
@@ -89,12 +96,13 @@
   --c-muted: #e6e6e6;
   --c-line: #ffffff;
   --c-control: #ffffff;
-  --c-primary: #ffe14d;
+  --c-primary: #ffffff;
   --c-on-primary: #000000;
-  --c-primary-soft: #2a2600;
+  --c-primary-soft: #1a1a1a;
   --c-accent: #ffb74d;
   --c-on-accent: #000000;
   --c-accent-soft: #3a2400;
+  --c-accent-ink: #ffc670;
   --c-danger: #ff9e9e;
   --c-on-danger: #000000;
   --c-danger-soft: #3a0000;
@@ -136,6 +144,7 @@
   --color-accent: var(--c-accent);
   --color-on-accent: var(--c-on-accent);
   --color-accent-soft: var(--c-accent-soft);
+  --color-accent-ink: var(--c-accent-ink);
   --color-danger: var(--c-danger);
   --color-on-danger: var(--c-on-danger);
   --color-danger-soft: var(--c-danger-soft);
@@ -143,7 +152,7 @@
   --color-success-soft: var(--c-success-soft);
   --color-focus: var(--c-focus);
   --shadow-soft: var(--c-shadow);
-  --font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next Variable", "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* "Generous spacing": every Tailwind spacing step scales together. */
@@ -166,11 +175,34 @@ body {
   font-size: 1.125rem;
   line-height: 1.5;
   overflow-x: hidden;
+  caret-color: var(--c-accent-ink);
+  -webkit-tap-highlight-color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--c-accent-soft);
+  color: var(--c-ink);
+}
+
+* {
+  scrollbar-color: var(--c-line) transparent;
+}
+
+/* Headings: heavier and a touch tighter than body text, so the page has a clear voice. */
+h1,
+h2 {
+  text-wrap: balance;
+}
+.display {
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  line-height: 1.1;
 }
 
 /* Bold text setting: Atkinson Hyperlegible has regular and bold, so bold means bold. */
 :root[data-bold="true"] body,
-:root[data-bold="true"] body * {
+:root[data-bold="true"] body *:not(.display) {
   font-weight: 700;
 }
 

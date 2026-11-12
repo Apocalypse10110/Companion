@@ -37,7 +37,7 @@ export function Stepper({
 }: StepperProps) {
   const id = useId();
   const btn =
-    "bw flex min-h-[var(--target)] min-w-0 items-center justify-center gap-2 rounded-2xl bg-surface px-3 py-2 text-lg font-bold text-ink disabled:opacity-40";
+    "bw flex min-h-[var(--target)] min-w-0 items-center justify-center gap-2 rounded-2xl bg-surface px-3 py-2 text-lg font-bold text-ink hover:bg-surface-2 disabled:opacity-40";
   return (
     <div role="group" aria-labelledby={`${id}-label`} className="bw flex flex-col gap-4 rounded-2xl bg-surface p-4">
       <div className="flex flex-col gap-1">
@@ -52,7 +52,7 @@ export function Stepper({
         </span>
         <span aria-hidden="true" className="bwc block h-3 w-full overflow-hidden rounded-full bg-surface-2">
           <span
-            className={cn("block h-full bg-primary")}
+            className={cn("block h-full bg-accent transition-[width] duration-200 ease-out")}
             style={{ width: `${Math.round(Math.min(1, Math.max(0, fraction)) * 100)}%` }}
           />
         </span>

@@ -2,7 +2,7 @@
 
 import { Accessibility, Eye, Lock, Volume2 } from "lucide-react";
 import { BRAND } from "../../components/BrandMark";
-import { ListLink } from "../../components/ListLink";
+import { ListGroup, ListLink } from "../../components/ListLink";
 import { PageHeader } from "../../components/PageHeader";
 import { ScrollPage } from "../../components/ScrollPage";
 
@@ -11,7 +11,7 @@ export function SettingsHome() {
     <ScrollPage>
       <PageHeader title="Settings" />
       <nav aria-label="Settings sections">
-        <ul className="flex flex-col gap-3">
+        <ListGroup>
           <li>
             <ListLink href="/settings/display" icon={Eye} title="Text and looks" description="Text size, colours, buttons" />
           </li>
@@ -24,7 +24,7 @@ export function SettingsHome() {
           <li>
             <ListLink href="/settings/privacy" icon={Lock} title="Privacy and safety" description="Saved conversations, asking first" />
           </li>
-        </ul>
+        </ListGroup>
       </nav>
       <p className="text-base text-muted">
         {BRAND.name}, built at {BRAND.event} 2026.

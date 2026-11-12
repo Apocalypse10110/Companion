@@ -77,9 +77,11 @@ export function MessageBubble(props: MessageBubbleProps) {
   if (m.role === "user") {
     return (
       <li className="anim-rise flex justify-end">
-        <div className="bw max-w-[90%] rounded-3xl rounded-br-lg bg-primary-soft px-4 py-3">
-          <p className="text-base font-bold text-muted">You</p>
-          <p className="text-xl text-ink">{m.text}</p>
+        <div className="max-w-[88%] rounded-3xl rounded-br-md bg-accent-soft px-4 py-3">
+          <p className="text-xl text-ink">
+            <span className="sr-only">You said: </span>
+            {m.text}
+          </p>
         </div>
       </li>
     );
@@ -87,20 +89,13 @@ export function MessageBubble(props: MessageBubbleProps) {
 
   const cards = m.actions ?? [];
   return (
-    <li className="anim-rise flex justify-start">
-      <div className={cn("bw flex w-full max-w-[96%] flex-col gap-4 rounded-3xl rounded-bl-lg bg-surface px-4 py-4 shadow-soft")}>
-        <p className="text-base font-bold text-muted">Companion</p>
-        <p className="text-xl text-ink">{m.text}</p>
-
-        {cards.map((card) => (
-          <ActionConfirmCard
-            key={card.action.id}
-            card={card}
-            onConfirm={() => props.onRunAction(card.action.id)}
-            onDecline={() => props.onDeclineAction(card.action.id)}
-            onAllow={(p) => props.onAllowPermission(p, card.action.id)}
-          />
-        ))}
+    <li className="anim-rise flex flex-col gap-3">
+      {/* The reply. Who is speaking is clear from the side and shape, and said in words to screen readers. */}
+      <div className={cn("bw flex w-full max-w-[96%] flex-col gap-4 rounded-3xl rounded-tl-md bg-surface px-4 py-4")}>
+        <p className="text-xl text-ink">
+          <span className="sr-only">Companion said: </span>
+          {m.text}
+        </p>
 
         {props.canReadAloud &&
           (props.speaking ? (
@@ -123,6 +118,17 @@ export function MessageBubble(props: MessageBubbleProps) {
           </div>
         )}
       </div>
+
+      {/* Anything Companion wants to do stands on its own, full width, not tucked inside the reply. */}
+      {cards.map((card) => (
+        <ActionConfirmCard
+          key={card.action.id}
+          card={card}
+          onConfirm={() => props.onRunAction(card.action.id)}
+          onDecline={() => props.onDeclineAction(card.action.id)}
+          onAllow={(p) => props.onAllowPermission(p, card.action.id)}
+        />
+      ))}
     </li>
   );
 }

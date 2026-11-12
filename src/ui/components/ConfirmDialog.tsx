@@ -12,6 +12,12 @@ export interface ConfirmDialogProps {
   tone?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
+  /**
+   * Optional third way out that changes nothing. When given, Escape and Back use it
+   * instead of onCancel, so a mistaken tap can always be undone.
+   */
+  dismissLabel?: string;
+  onDismiss?: () => void;
 }
 
 /**
@@ -27,6 +33,8 @@ export function ConfirmDialog({
   tone = "primary",
   onConfirm,
   onCancel,
+  dismissLabel,
+  onDismiss,
 }: ConfirmDialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -50,12 +58,12 @@ export function ConfirmDialog({
       aria-describedby={`${id}-desc`}
       onCancel={(e) => {
         e.preventDefault();
-        onCancel();
+        (onDismiss ?? onCancel)();
       }}
-      className="bw m-auto w-[min(92vw,34rem)] rounded-3xl bg-surface p-6 text-ink shadow-soft"
+      className="bw m-auto w-[min(92vw,34rem)] rounded-[1.75rem] bg-surface p-6 text-ink shadow-soft"
     >
       <div className="flex flex-col gap-4">
-        <h2 id={`${id}-title`} className="text-2xl font-bold">
+        <h2 id={`${id}-title`} className="display text-[1.75rem]">
           {title}
         </h2>
         <p id={`${id}-desc`} className="text-lg">
@@ -68,6 +76,11 @@ export function ConfirmDialog({
           <Button variant="secondary" fullWidth onClick={onCancel}>
             {cancelLabel}
           </Button>
+          {dismissLabel && onDismiss && (
+            <Button variant="ghost" fullWidth onClick={onDismiss}>
+              {dismissLabel}
+            </Button>
+          )}
         </div>
       </div>
     </dialog>

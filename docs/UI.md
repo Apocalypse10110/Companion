@@ -24,13 +24,14 @@ One button that does the obvious next thing. Its visible words and its screen-re
 | thinking | Thinking. Tap to cancel | cancels the request |
 | speaking | Speaking. Tap to stop | stops reading aloud |
 
-The button never moves or resizes (a moving target is hard to hit). Loudness is shown by a halo behind it,
+The button never moves or resizes (a moving target is hard to hit). The words beside it sit in fixed slots, and what is being heard floats above the panel,
+so the panel is the same height in every state. Loudness is shown by a halo behind it,
 which disappears with reduce motion.
 
 ## Design tokens
 
-All in [`src/app/globals.css`](../src/app/globals.css). Four colour sets: light, dark, and a high-contrast
-version of each. Every text/background pair and every control border is checked against WCAG by
+All in [`src/app/globals.css`](../src/app/globals.css). Four colour sets: warm light, warm dark, and a
+high-contrast version of each. Orange is the brand (mic, "on", current place); actions are deep warm ink. Every text/background pair and every control border is checked against WCAG by
 `tokens.test.ts`, which reads the real CSS (normal themes: AA; high-contrast: AAA for text).
 
 | Tailwind class | Meaning |
@@ -39,6 +40,7 @@ version of each. Every text/background pair and every control border is checked 
 | `text-ink`, `text-muted` | main text, secondary text |
 | `bg-primary` / `text-on-primary` | main action and selected state |
 | `bg-accent` / `text-on-accent` | the microphone and brand |
+| `text-accent-ink` | orange for words and icons (links, row icons, current tab); passes AA on every surface |
 | `*-soft` | tinted backgrounds for messages and banners |
 | `bw` | standard border (1px, 2px in high contrast) |
 | `bwc` | form-control border (always 3:1 contrast) |

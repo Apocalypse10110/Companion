@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { PermissionState } from "@/contracts";
 import { useServices } from "@/integration/ServicesProvider";
-import { BrandMark } from "../components/BrandMark";
 import { Button } from "../components/Button";
 import { Banner, Card } from "../components/Card";
 import { ChoiceGroup, type Choice } from "../components/ChoiceGroup";
-import { ListLink } from "../components/ListLink";
+import { ListGroup, ListLink } from "../components/ListLink";
 import { ScrollPage } from "../components/ScrollPage";
 import { Toggle } from "../components/Toggle";
 import { useSettings } from "../settings/SettingsProvider";
@@ -105,13 +104,12 @@ export function OnboardingScreen() {
       <p className="text-lg font-bold text-muted" data-testid="progress">
         Step {index + 1} of {STEPS.length}
       </p>
-      <h1 ref={heading} tabIndex={-1} className="text-3xl font-bold leading-tight text-ink outline-none">
+      <h1 ref={heading} tabIndex={-1} className="display text-[2.125rem] text-ink outline-none">
         {TITLES[step]}
       </h1>
 
       {step === "welcome" && (
         <>
-          <BrandMark showTagline />
           <p className="text-xl text-ink">
             I&apos;m a helper that listens. Tell me what you need, and I&apos;ll help your phone do it, like calling someone or setting a reminder.
           </p>
@@ -170,12 +168,12 @@ export function OnboardingScreen() {
       {step === "finish" && (
         <>
           <p className="text-xl text-ink">You can change any of these whenever you like:</p>
-          <ul className="flex flex-col gap-3">
+          <ListGroup>
             <li><ListLink href="/settings/display" icon={Eye} title="Text and looks" /></li>
             <li><ListLink href="/settings/voice" icon={Volume2} title="Voice" /></li>
             <li><ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" /></li>
             <li><ListLink href="/settings/privacy" icon={Lock} title="Privacy and safety" /></li>
-          </ul>
+          </ListGroup>
           <Card>
             <p className="text-lg text-ink">Find these any time with Settings at the bottom of the screen.</p>
           </Card>

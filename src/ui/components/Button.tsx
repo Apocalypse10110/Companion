@@ -12,10 +12,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-on-primary hover:brightness-110",
+  primary: "bg-primary text-on-primary hover:opacity-90",
   secondary: "bg-surface text-ink bw hover:bg-surface-2",
-  ghost: "text-primary hover:bg-surface-2 underline-offset-4",
-  danger: "bg-danger text-on-danger hover:brightness-110",
+  ghost: "text-accent-ink hover:bg-surface-2 underline-offset-4",
+  danger: "bg-danger text-on-danger hover:opacity-90",
 };
 
 /** A big, clearly labelled button. Always has visible text. */
@@ -32,7 +32,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex min-h-[var(--target)] items-center justify-center gap-3 rounded-2xl px-6 py-3 text-lg font-bold leading-tight transition active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100",
+        "inline-flex min-h-[var(--target)] items-center justify-center gap-3 rounded-2xl px-6 py-3 text-lg font-bold leading-tight transition-[transform,background-color,opacity] duration-150 ease-out active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted disabled:no-underline disabled:active:scale-100",
         variants[variant],
         fullWidth && "w-full",
         className,

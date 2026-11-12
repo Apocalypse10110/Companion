@@ -26,7 +26,7 @@ export function Toggle({ label, description, checked, onChange, disabled }: Togg
       aria-describedby={description ? `${id}-desc` : undefined}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="bw flex min-h-[var(--target)] w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl bg-surface px-4 py-4 text-left disabled:opacity-60"
+      className="bw flex min-h-[var(--target)] w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl bg-surface px-4 py-4 text-left hover:bg-surface-2 disabled:opacity-60"
     >
       <span className="flex min-w-[min(9rem,100%)] flex-1 flex-col gap-1">
         <span id={`${id}-label`} className="text-lg font-bold text-ink">
@@ -42,14 +42,14 @@ export function Toggle({ label, description, checked, onChange, disabled }: Togg
         <span className="min-w-[2.5ch] text-right text-lg font-bold text-ink">{checked ? "On" : "Off"}</span>
         <span
           className={cn(
-            "bwc relative h-9 w-16 rounded-full transition-colors",
-            checked ? "bg-primary" : "bg-surface-2",
+            "bwc relative h-9 w-16 rounded-full transition-colors duration-200 ease-out",
+            checked ? "bg-accent" : "bg-surface-2",
           )}
         >
           <span
             className={cn(
-              "absolute top-1/2 size-7 -translate-y-1/2 rounded-full transition-all",
-              checked ? "left-[calc(100%-2rem)] bg-on-primary" : "left-1 bg-ink",
+              "absolute top-1/2 size-7 -translate-y-1/2 rounded-full transition-[left] duration-200 ease-out",
+              checked ? "left-[calc(100%-2rem)] bg-on-accent" : "left-1 bg-ink",
             )}
           />
         </span>

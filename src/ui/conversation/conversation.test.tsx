@@ -93,7 +93,7 @@ describe("talking to the assistant", () => {
     renderApp(<HomeScreen />, { voiceInput: false });
     expect(screen.getByLabelText("Type your message")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tap to talk" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Talking isn't available yet/)).toBeInTheDocument();
+    expect(screen.getByText(/Talking isn.t available on this device yet/)).toBeInTheDocument();
   });
 
   it("quick action sends a plain sentence tagged with its id", async () => {
