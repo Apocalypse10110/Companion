@@ -129,7 +129,14 @@ export function HomeScreen() {
             level={c.level}
             reduceMotion={motionReduced}
           >
-            <Button variant="ghost" icon={Keyboard} className="-ml-3 px-3! py-1!" onClick={() => setWantsTyping(true)}>
+            {/* The keyboard icon steps aside when the words would not otherwise fit (the threshold
+                is in rem, so it scales with the text size); the words always stay. */}
+            <Button
+              variant="ghost"
+              icon={Keyboard}
+              className="-ml-3 max-w-[calc(100%+0.75rem)] px-3! py-1! [&>svg]:hidden @[9.5rem]:[&>svg]:block"
+              onClick={() => setWantsTyping(true)}
+            >
               Type instead
             </Button>
           </MicButton>

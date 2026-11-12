@@ -95,7 +95,9 @@ export function MicButton({ phase, onPress, level = 0, reduceMotion, disabled, c
           {what}
         </p>
         {/* One fixed-height slot: either what a tap does next, or the idle extras. */}
-        <div className="flex min-h-[var(--target)] items-center">
+        {/* A size container, so what sits in the slot can adapt when space is tight
+            (smallest phone with the largest text). */}
+        <div className="@container flex min-h-[var(--target)] w-full min-w-0 items-center">
           {next ? <p className="text-lg font-bold text-muted">{next}</p> : children}
         </div>
       </div>

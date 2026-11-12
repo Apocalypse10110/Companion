@@ -10,6 +10,7 @@ import { Banner } from "../components/Card";
 import { ChoiceGroup, type Choice } from "../components/ChoiceGroup";
 import { ScrollPage } from "../components/ScrollPage";
 import { Toggle } from "../components/Toggle";
+import { useConversation } from "../conversation/ConversationProvider";
 import { SAY_EXAMPLES } from "../conversation/types";
 import { useSettings } from "../settings/SettingsProvider";
 import { TEXT_SCALE, TEXT_SIZE_ORDER, type TextSize, type ThemeChoice } from "../settings/types";
@@ -44,7 +45,8 @@ function Numbered({ n, icon: Icon, children }: { n: number; icon: typeof Mic; ch
 export function OnboardingScreen() {
   const router = useRouter();
   const { settings, update } = useSettings();
-  const { permissions, voiceInput } = useServices();
+  const { permissions } = useServices();
+  const { voiceInputSupported } = useConversation();
   const [index, setIndex] = useState(0);
   const [mic, setMic] = useState<PermissionState | "unknown">("unknown");
   const heading = useRef<HTMLHeadingElement>(null);
@@ -53,7 +55,8 @@ export function OnboardingScreen() {
   const last = index === STEPS.length - 1;
   const current = TEXT_SCALE[settings.textSize];
   // Talking needs both a device that can listen and a microphone that wasn't refused.
-  const canTalk = voiceInput.isSupported() && mic !== "denied" && mic !== "unsupported";
+  // (Device support comes from the provider, checked after load, so server and browser agree.)
+  const canTalk = voiceInputSupported === true && mic !== "denied" && mic !== "unsupported";
 
   // Move focus to each new step's heading so screen readers start reading it.
   const mounted = useRef(false);

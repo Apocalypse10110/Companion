@@ -11,6 +11,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { ScrollPage } from "../../components/ScrollPage";
 import { Stepper } from "../../components/Stepper";
 import { Toggle } from "../../components/Toggle";
+import { useConversation } from "../../conversation/ConversationProvider";
 import { useSettings } from "../../settings/SettingsProvider";
 import {
   SPEECH_RATE_MAX,
@@ -40,7 +41,10 @@ const SAMPLE = "Hello, this is how I sound. I will read my answers to you like t
 export function VoiceSettings() {
   const { settings, update } = useSettings();
   const { voiceOutput } = useServices();
-  const supported = voiceOutput.isSupported();
+  // Read from the provider, which checks the device after the page has loaded. Asking the service
+  // here, while rendering, gives a different answer on the server (no speech engine) than in the
+  // browser, and React then throws away the server's page (a hydration mismatch).
+  const { voiceOutputSupported: supported } = useConversation();
   const [voices, setVoices] = useState<VoiceInfo[]>([]);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
