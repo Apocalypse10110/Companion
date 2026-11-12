@@ -13,7 +13,7 @@ export function ListLink({ href, icon: Icon, title, description }: ListLinkProps
   return (
     <Link
       href={href}
-      className="bw flex min-h-[var(--target)] items-center gap-4 rounded-2xl bg-surface p-5 hover:bg-surface-2"
+      className="bw flex min-h-[var(--target)] items-center gap-4 rounded-2xl bg-surface p-4 hover:bg-surface-2"
     >
       <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-ink">
         <Icon className="size-7" strokeWidth={2.25} />

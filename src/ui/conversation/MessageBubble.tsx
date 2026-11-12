@@ -77,7 +77,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   if (m.role === "user") {
     return (
       <li className="anim-rise flex justify-end">
-        <div className="bw max-w-[90%] rounded-3xl rounded-br-lg bg-primary-soft px-5 py-4">
+        <div className="bw max-w-[90%] rounded-3xl rounded-br-lg bg-primary-soft px-4 py-3">
           <p className="text-base font-bold text-muted">You</p>
           <p className="text-xl text-ink">{m.text}</p>
         </div>
@@ -88,7 +88,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   const cards = m.actions ?? [];
   return (
     <li className="anim-rise flex justify-start">
-      <div className={cn("bw flex w-full max-w-[96%] flex-col gap-4 rounded-3xl rounded-bl-lg bg-surface px-5 py-4 shadow-soft")}>
+      <div className={cn("bw flex w-full max-w-[96%] flex-col gap-4 rounded-3xl rounded-bl-lg bg-surface px-4 py-4 shadow-soft")}>
         <p className="text-base font-bold text-muted">Companion</p>
         <p className="text-xl text-ink">{m.text}</p>
 

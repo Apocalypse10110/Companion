@@ -55,7 +55,7 @@ export function ChoiceGroup<T extends string>({
               <label
                 htmlFor={id}
                 className={cn(
-                  "bw flex min-h-[var(--target)] cursor-pointer items-center gap-4 rounded-2xl px-5 py-3 text-lg font-bold",
+                  "bw flex min-h-[var(--target)] cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl px-4 py-3 text-lg font-bold",
                   "peer-focus-visible:outline-4 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-focus",
                   selected ? "border-primary bg-primary text-on-primary" : "bg-surface text-ink",
                 )}

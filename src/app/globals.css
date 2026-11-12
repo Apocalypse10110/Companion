@@ -106,16 +106,16 @@
   --text-scale: 1.2;
   /* Minimum size of anything tappable. Grows with text size because it is in rem. */
   --target: 3.5rem;
-  --space-scale: 1.15;
+  --space-scale: 1.1;
 }
 :root[data-buttons="xl"] {
   --target: 4.5rem;
 }
 :root[data-spacing="normal"] {
-  --space-scale: 1;
+  --space-scale: 0.9;
 }
 :root[data-spacing="roomy"] {
-  --space-scale: 1.15;
+  --space-scale: 1.1;
 }
 
 @theme inline {

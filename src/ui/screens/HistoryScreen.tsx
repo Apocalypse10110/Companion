@@ -54,14 +54,14 @@ export function HistoryScreen() {
           {history.map((c) => (
             <li key={c.id}>
               <details className="bw rounded-2xl bg-surface">
-                <summary className="flex min-h-[var(--target)] cursor-pointer flex-col justify-center gap-1 rounded-2xl p-5">
+                <summary className="flex min-h-[var(--target)] cursor-pointer flex-col justify-center gap-1 rounded-2xl p-4">
                   <span className="text-xl font-bold text-ink">{titleOf(c)}</span>
                   <span className="text-base text-muted">
                     {whenOf(c.updatedAt)}
                     {c.id === activeId ? " · Current conversation" : ""}
                   </span>
                 </summary>
-                <div className="flex flex-col gap-4 px-5 pb-5">
+                <div className="flex flex-col gap-4 px-4 pb-4">
                   <ol aria-label="Messages in this conversation" className="flex flex-col gap-3">
                     {c.messages.map((m) => (
                       <li key={m.id} className="text-lg text-ink">

@@ -18,6 +18,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // When the on-screen keyboard opens, shrink the page so the Send button stays visible.
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f5f2eb" },
     { media: "(prefers-color-scheme: dark)", color: "#0d141b" },

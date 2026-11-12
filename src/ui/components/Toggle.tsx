@@ -26,9 +26,9 @@ export function Toggle({ label, description, checked, onChange, disabled }: Togg
       aria-describedby={description ? `${id}-desc` : undefined}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="bw flex min-h-[var(--target)] w-full items-center justify-between gap-4 rounded-2xl bg-surface px-5 py-4 text-left disabled:opacity-60"
+      className="bw flex min-h-[var(--target)] w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl bg-surface px-4 py-4 text-left disabled:opacity-60"
     >
-      <span className="flex flex-col gap-1">
+      <span className="flex min-w-[min(12rem,100%)] flex-1 flex-col gap-1">
         <span id={`${id}-label`} className="text-lg font-bold text-ink">
           {label}
         </span>

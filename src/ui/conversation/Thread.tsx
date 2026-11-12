@@ -32,7 +32,7 @@ export function Thread() {
 
       {busy && (
         <li className="anim-rise flex justify-start">
-          <div className="bw flex w-full max-w-[96%] flex-col gap-3 rounded-3xl rounded-bl-lg bg-surface px-5 py-4">
+          <div className="bw flex w-full max-w-[96%] flex-col gap-3 rounded-3xl rounded-bl-lg bg-surface px-4 py-4">
             <p className="text-base font-bold text-muted">Companion</p>
             {c.partial ? (
               <p className="text-xl text-ink">{c.partial}</p>

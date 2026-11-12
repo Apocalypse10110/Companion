@@ -39,10 +39,10 @@ export function QuickActions({ onSelect, compact, disabled }: QuickActionsProps)
                   "bw flex w-full items-center rounded-2xl bg-surface text-ink shadow-soft transition active:scale-[0.97] disabled:opacity-60",
                   compact
                     ? "min-h-[var(--target)] flex-row justify-start gap-3 px-4 py-3"
-                    : "min-h-[calc(var(--target)*1.9)] flex-col justify-center gap-2 px-3 py-4",
+                    : "min-h-[calc(var(--target)*1.45)] flex-col justify-center gap-1.5 px-3 py-3",
                 )}
               >
-                <Icon aria-hidden="true" className={compact ? "size-7" : "size-9"} strokeWidth={2.25} />
+                <Icon aria-hidden="true" className={cn("shrink-0", compact ? "size-7" : "size-9")} strokeWidth={2.25} />
                 <span className="text-lg font-bold leading-tight">{label}</span>
               </button>
             </li>

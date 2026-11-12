@@ -29,7 +29,7 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-[calc(var(--target)*1.15)] flex-col items-center justify-center gap-1 px-2 py-2 text-base font-bold",
+                  "flex min-h-[var(--target)] flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-base font-bold",
                   active ? "bg-primary text-on-primary" : "text-ink",
                 )}
               >

@@ -35,29 +35,30 @@ export function AppFrame({ children }: { children: ReactNode }) {
     main.current?.focus({ preventScroll: true });
   }, [pathname, interrupt]);
 
-  if (!ready) {
-    return (
-      <div className="mx-auto grid h-dvh w-full max-w-[34rem] place-items-center" role="status">
-        <div className="flex flex-col items-center gap-4">
-          <BrandMark showTagline />
-          <p className="text-xl text-muted">Getting ready…</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto flex h-dvh w-full max-w-[34rem] flex-col bg-bg">
-      <a href="#main" className="skip-link">
-        Skip to main content
-      </a>
-      <header className="flex shrink-0 items-center justify-between px-5 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
-        <BrandMark />
-      </header>
-      <main id="main" ref={main} tabIndex={-1} className="min-h-0 flex-1 overflow-hidden outline-none">
-        {children}
-      </main>
-      {!onboarding && <BottomNav />}
+    <div className="relative mx-auto h-dvh w-full max-w-[34rem] bg-bg">
+      {/* The real page is always rendered (so the server sends real content). Until saved
+          settings are read, it is inert and hidden from screen readers, with a splash on top. */}
+      <div className="flex h-full flex-col" inert={!ready} aria-hidden={!ready || undefined}>
+        <a href="#main" className="skip-link">
+          Skip to main content
+        </a>
+        <header className="flex shrink-0 items-center justify-between px-4 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <BrandMark />
+        </header>
+        <main id="main" ref={main} tabIndex={-1} className="min-h-0 flex-1 overflow-hidden outline-none">
+          {children}
+        </main>
+        {!onboarding && <BottomNav />}
+      </div>
+      {!ready && (
+        <div role="status" className="absolute inset-0 z-50 grid place-items-center bg-bg">
+          <div className="flex flex-col items-center gap-4">
+            <BrandMark showTagline />
+            <p className="text-xl text-muted">Getting ready…</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
