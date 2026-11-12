@@ -1,7 +1,6 @@
 "use client";
 
 import { Accessibility, Activity, Award, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
-import { BRAND } from "../../components/BrandMark";
 import { ListGroup, ListLink } from "../../components/ListLink";
 import { PageHeader } from "../../components/PageHeader";
 import { ScrollPage } from "../../components/ScrollPage";
@@ -44,9 +43,6 @@ export function SettingsHome() {
           </li>
         </ListGroup>
       </nav>
-      <p className="text-base text-muted">
-        {BRAND.name}, built at {BRAND.event} 2026.
-      </p>
     </ScrollPage>
   );
 }
