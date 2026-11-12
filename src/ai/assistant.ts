@@ -194,7 +194,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       case "CHANGE_ACCESSIBILITY": {
         const title = SETTING_TITLES[`${p.setting}:${p.value}`] ?? "Change a setting";
         return {
-          text: `I can do that. ${title}?`,
+          text: `I can ${lowerFirst(title)} for you.`,
           action: { intent, action: { kind: "accessibility", title, risk: "low", params: { setting: p.setting, value: p.value } } },
         };
       }
