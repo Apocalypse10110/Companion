@@ -9,7 +9,7 @@ little as possible and say plainly what goes where. The same summary is shown in
 | What | Where in the code | How to remove it |
 | --- | --- | --- |
 | Saved conversations (text plus a small photo preview) | `src/ui/conversation/history-storage.ts` | Settings → Privacy → Erase saved conversations, or turn off "Remember my conversations" |
-| People you add (name, relationship, number) | `src/people/store.ts` | Settings → People → Remove |
+| People you add (name, relationship, number), typed, picked from contacts, or from a contact card | `src/people/store.ts` (key `companion.people.v1`) | Settings → People → Remove |
 | Reminders | `src/actions/reminders.ts` | Settings → Reminders → Remove |
 | Things you've learned (task names and counts, for help that fades) | `src/ai/skills.ts` | Settings → Things you can do, or Privacy → Forget what I've learned |
 | Settings | `src/ui/settings/storage.ts` | Settings → Text and looks → reset |
@@ -21,7 +21,7 @@ There are no accounts, no database, no analytics and no cookies of ours.
 When the question needs the AI (help, questions, photos), the phone sends our own server
 (`/api/assistant`):
 
-- what you said or typed,
+- what you said or typed, with **phone numbers replaced by "[phone number]"** first (`src/ai/providers/redact.ts`),
 - the last few messages of this conversation (at most 12),
 - the names of tasks you've already learned (for example "connect to wifi (2 times)"),
 - your device language and local time,
@@ -38,6 +38,10 @@ also needed for reliable quota; see the README.
 
 Clear requests ("call my daughter", "make the text bigger", "remind me at 8") are understood on the
 phone and don't go to the AI at all.
+
+Saved people and their numbers are **never** sent: calls and texts are matched to people on the phone.
+A screenshot or text shared **to** Companion from another app sits in a private cache on the phone for
+a moment, is read once, and is deleted at once.
 
 ## Never read
 

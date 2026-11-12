@@ -7,6 +7,7 @@
  */
 
 import { AssistantError } from "@/contracts";
+import { redactPhoneNumbers } from "./redact";
 import type { AIProvider, AIUnavailableReason, InterpretRequest, InterpretResult } from "./types";
 
 export const ASSISTANT_ENDPOINT = "/api/assistant";
@@ -25,7 +26,13 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
         res = await fetchImpl(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(request),
+          // Phone numbers stay on the phone (see ./redact.ts).
+          body: JSON.stringify({
+            ...request,
+            text: redactPhoneNumbers(request.text),
+            history: request.history.map((t) => ({ ...t, text: redactPhoneNumbers(t.text) })),
+            ...(request.lastAssistantText ? { lastAssistantText: redactPhoneNumbers(request.lastAssistantText) } : {}),
+          }),
           signal,
         });
       } catch (err) {

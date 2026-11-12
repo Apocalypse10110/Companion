@@ -31,7 +31,7 @@ export function SettingsHome() {
             <ListLink href="/settings/reminders" icon={BellRing} title="Reminders" description="See or remove your reminders" />
           </li>
           <li>
-            <ListLink href="/settings/phone" icon={Smartphone} title="Phone and permissions" description="Microphone, notifications, what works here" />
+            <ListLink href="/settings/phone" icon={Smartphone} title="Device permissions" description="Camera, microphone, contacts, notifications" />
           </li>
           <li>
             <ListLink href="/settings/connections" icon={Link2} title="Connected accounts" description="Calendar, Gmail and more" />

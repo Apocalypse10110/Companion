@@ -1,6 +1,6 @@
 # Development status
 
-Last updated: 2026-11-12 by Developer C (integration). Branch: `feature/full-integration`.
+Last updated: 2026-11-12 by Developers C and D. Branch: `main`.
 
 ## Done and working end to end
 
@@ -23,6 +23,17 @@ Last updated: 2026-11-12 by Developer C (integration). Branch: `feature/full-int
   - Microphone, notifications and camera permissions, asked only when needed.
   - "Phone and permissions" screen showing what works on this device.
 - **Privacy:** in-app summary and [PRIVACY.md](PRIVACY.md). There are no accounts and no database.
+- **Device (D):** details in [DEVICE.md](DEVICE.md).
+  - Live camera for Show Me: back and front, take, retake, send.
+  - On computers, "Show my screen".
+  - Sharing a screenshot or text to the installed Android app.
+  - Contacts: the Android picker, and contact-card import on iPhone.
+  - Phone numbers are removed before anything goes to the AI.
+  - Device permissions dashboard.
+  - Reminders management: add, edit, done, past, details, repeat, notification switch.
+  - Reminder times from Gemini are worked out on the phone.
+  - Coming back after a call reopens the conversation with a welcome back.
+  - Home-screen shortcuts.
 - **Tests:** about 390 unit and behaviour tests, a real-browser layout check of every screen, and a real-browser e2e run of every demo workflow against live Gemini.
 
 ## Before judging

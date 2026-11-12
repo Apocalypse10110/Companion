@@ -1,9 +1,10 @@
 "use client";
 
-import { Contact, Phone, Trash2, UserPlus } from "lucide-react";
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { Contact, FileUp, Phone, Trash2, UserPlus } from "lucide-react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { addPerson, isPhoneNumber, loadPeople, removePerson, subscribePeople, type Person } from "@/people/store";
-import { contactPicker } from "@/phone/platform";
+import { parseVCards, type CardContact } from "@/people/vcard";
+import { contactPicker, detectOS, type OS } from "@/phone/platform";
 import { useAnnounce } from "../../a11y/LiveAnnouncer";
 import { Button } from "../../components/Button";
 import { Banner, Card } from "../../components/Card";
@@ -25,12 +26,16 @@ export function PeopleSettings() {
   const [problem, setProblem] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [removing, setRemoving] = useState<Person | null>(null);
+  const [os, setOS] = useState<OS>("desktop");
+  const [cards, setCards] = useState<CardContact[]>([]);
+  const cardInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const refresh = () => setPeople(loadPeople());
     refresh();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading device capabilities after mount
     setCanPick(contactPicker() !== null);
+    setOS(detectOS());
     return subscribePeople(refresh);
   }, []);
 
@@ -56,6 +61,28 @@ export function PeopleSettings() {
     setProblem(text);
     setDone(null);
     announce(text, "assertive");
+  }
+
+  function choose(c: { name: string; phone: string }) {
+    setName(c.name);
+    setPhone(c.phone);
+    setCards([]);
+    setProblem(null);
+    announce(`${c.name} chosen. Add who they are to you if you like, then tap Save.`);
+  }
+
+  async function importCards(file: File) {
+    try {
+      if (file.size > 2_000_000) return fail("That file is too big. Please share one contact at a time.");
+      const found = parseVCards(await file.text());
+      if (!found.length) return fail("I couldn't find a name and phone number in that file.");
+      if (found.length === 1) return choose({ name: found[0].name, phone: found[0].phones[0] });
+      setCards(found.slice(0, 30));
+      setProblem(null);
+      announce(`I found ${found.length} people. Tap the one you want to add.`);
+    } catch {
+      fail("I couldn't read that file. You can type the details instead.");
+    }
   }
 
   async function pick() {
@@ -115,6 +142,42 @@ export function PeopleSettings() {
           <Button variant="secondary" icon={Contact} fullWidth onClick={() => void pick()}>
             Choose from my contacts
           </Button>
+        )}
+        {!canPick && (
+          <div className="flex flex-col gap-3">
+            <p className="text-lg text-ink">
+              {os === "ios"
+                ? "To add someone from your contacts: open the Contacts app, tap the person, tap Share Contact, then Save to Files. Come back here and tap the button below."
+                : "You can add someone from a contact card file (.vcf), or type their details below."}
+            </p>
+            <Button variant="secondary" icon={FileUp} fullWidth onClick={() => cardInput.current?.click()}>
+              Import a contact card
+            </Button>
+          </div>
+        )}
+        <input
+          ref={cardInput}
+          type="file"
+          accept=".vcf,text/vcard,text/x-vcard,text/directory"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (f) void importCards(f);
+          }}
+        />
+        {cards.length > 0 && (
+          <ul className="flex flex-col gap-2" aria-label="People in that file">
+            {cards.map((c, i) => (
+              <li key={`${c.name}-${i}`}>
+                <Button variant="secondary" fullWidth onClick={() => choose({ name: c.name, phone: c.phones[0] })}>
+                  {`${c.name}, ${c.phones[0]}`}
+                </Button>
+              </li>
+            ))}
+          </ul>
         )}
         <div className="flex flex-col gap-2">
           <label htmlFor={ids.name} className="text-lg font-bold text-ink">

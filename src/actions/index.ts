@@ -13,6 +13,7 @@ import { contactLabel, isRelationship, yourify } from "@/ai/words";
 import { addPerson, findPeople, isPhoneNumber, type Person } from "@/people/store";
 import { contactPicker as defaultPicker, defaultLauncher, detectOS, type ContactPicker, type Launcher, type OS } from "@/phone/platform";
 import { permissions as defaultPermissions } from "@/permissions";
+import { recordHandoff } from "@/phone/handoff";
 import { mapsUrl, searchUrl, smsUrl, telUrl } from "./links";
 import { addReminder, describeReminders } from "./reminders";
 import { planSetting, settingsBridge } from "./settingsBridge";
@@ -94,8 +95,10 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
     if (!contact) return { ok: false, message: "I don't know who to call. Please tell me their name." };
     const r = await resolve(contact);
     if (r.fail) return r.fail;
-    launch(telUrl(r.phone!));
     const name = who(contact, r.person);
+    // So Companion can pick up where it left off when the person comes back from the call.
+    recordHandoff("call", name);
+    launch(telUrl(r.phone!));
     const system = os();
     const next =
       system === "ios"
@@ -113,8 +116,9 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
     const r = await resolve(contact);
     if (r.fail) return r.fail;
     const system = os();
-    launch(smsUrl(r.phone!, body, system));
     const name = who(contact, r.person);
+    recordHandoff("message", name);
+    launch(smsUrl(r.phone!, body, system));
     const next = system === "desktop" ? "If nothing opened, this device can't send text messages. Try on your phone." : "Check it, then tap Send.";
     return { ok: true, message: `I've opened Messages with your message to ${name} ready. ${next}${savedNote(contact, r.person, r.picked)}` };
   }
