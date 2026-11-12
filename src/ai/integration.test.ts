@@ -228,3 +228,18 @@ describe("Show me (photos) and help that fades", () => {
     expect(skillsForPrompt()).toEqual(["connect to wifi (2 times)"]);
   });
 });
+
+describe("privacy: phone numbers never leave the phone", () => {
+  it("redacts numbers but keeps times and short numbers", async () => {
+    const { redactPhoneNumbers } = await import("./providers/redact");
+    expect(redactPhoneNumbers("call 07700 900123 or +44 (0)20 7946-0958 at 8:30")).toBe("call [phone number] or [phone number] at 8:30");
+    expect(redactPhoneNumbers("remind me in 20 minutes, in 2026")).toBe("remind me in 20 minutes, in 2026");
+  });
+  it("the remote provider sends redacted text and history", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ intent: { name: "HELP", params: {} }, reply: "ok" }));
+    const p = createRemoteProvider("/x", fetchImpl);
+    await p.interpret({ ...input, text: "my number is 0123 456 7890", history: [{ role: "user", text: "text 07700900123" }] });
+    const body = (fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body as string;
+    expect(body).not.toMatch(/0123 456 7890|07700900123/);
+  });
+});
