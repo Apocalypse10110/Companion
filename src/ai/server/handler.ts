@@ -7,8 +7,9 @@
 import type { AssistantTurn } from "@/contracts";
 import { cleanString, validateIntent } from "../intents/schema";
 import { createAnthropicInterpreter } from "./anthropic";
+import { createGeminiInterpreter, parseModelList } from "./gemini";
 import { createOpenAICompatibleInterpreter } from "./openaiCompatible";
-import type { InterpretInput, ServerInterpreter } from "./types";
+import { ProviderError, type InterpretInput, type ServerInterpreter } from "./types";
 
 export interface AIEnv {
   AI_PROVIDER?: string;
@@ -16,6 +17,7 @@ export interface AIEnv {
   AI_MODEL?: string;
   AI_BASE_URL?: string;
   ANTHROPIC_API_KEY?: string;
+  GEMINI_API_KEY?: string;
   [name: string]: string | undefined;
 }
 
@@ -28,8 +30,23 @@ export function interpreterFromEnv(env: AIEnv): ServerInterpreter | null {
   return cached.value;
 }
 
+/**
+ * Which provider the server will use. AI_PROVIDER picks one explicitly; with it empty, Gemini is
+ * used whenever GEMINI_API_KEY is set (Gemini is the default testing provider).
+ */
+export function providerName(env: AIEnv): string {
+  const explicit = (env.AI_PROVIDER ?? "").trim().toLowerCase();
+  if (explicit) return explicit;
+  return env.GEMINI_API_KEY ? "gemini" : "";
+}
+
 function buildInterpreter(env: AIEnv): ServerInterpreter | null {
-  const provider = (env.AI_PROVIDER ?? "").trim().toLowerCase();
+  const provider = providerName(env);
+  if (provider === "gemini" || provider === "google") {
+    const apiKey = env.GEMINI_API_KEY || env.AI_API_KEY;
+    if (!apiKey) return null;
+    return createGeminiInterpreter({ apiKey, models: parseModelList(env.AI_MODEL) });
+  }
   if (provider === "anthropic") {
     const apiKey = env.AI_API_KEY || env.ANTHROPIC_API_KEY;
     if (!apiKey) return null;
@@ -81,6 +98,29 @@ export function parseInput(body: unknown): InterpretInput | null {
 
 const json = (status: number, data: unknown) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
 
+/**
+ * GET /api/assistant: whether an AI is configured, for the app's status line and for deploy checks.
+ * Never returns the key or any part of it.
+ */
+export function assistantStatus(env: AIEnv): Response {
+  const interpreter = interpreterFromEnv(env);
+  const name = providerName(env);
+  return json(200, {
+    configured: Boolean(interpreter),
+    provider: interpreter?.name ?? null,
+    // Helpful when someone set AI_PROVIDER but forgot the key.
+    problem: interpreter ? null : name ? "missing-key" : "not-configured",
+  });
+}
+
+/** How each provider failure is answered. The client treats 503 as "no AI: work on the device". */
+const PROVIDER_FAILURES: Record<ProviderError["code"], [number, string]> = {
+  auth: [503, "ai-auth"],
+  "rate-limit": [429, "ai-busy"],
+  unavailable: [502, "ai-unavailable"],
+  failed: [502, "ai-failed"],
+};
+
 export async function handleAssistantRequest(
   request: Request,
   interpreter: ServerInterpreter | null,
@@ -118,10 +158,22 @@ export async function handleAssistantRequest(
   try {
     const result = await interpreter.interpret(input, controller.signal);
     const intent = result ? validateIntent(result.intent) : null;
-    return json(200, { intent: intent ?? { name: "UNKNOWN", params: {} }, reply: cleanString(result?.reply, 600) ?? null });
+    const suggestions = (result?.suggestions ?? [])
+      .map((x) => cleanString(x, 60))
+      .filter((x): x is string => Boolean(x))
+      .slice(0, 3);
+    return json(200, {
+      intent: intent ?? { name: "UNKNOWN", params: {} },
+      reply: cleanString(result?.reply, 600) ?? null,
+      suggestions,
+    });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });
     console.error(`[assistant] ${interpreter.name} failed:`, err instanceof Error ? err.message : err);
+    if (err instanceof ProviderError) {
+      const [status, code] = PROVIDER_FAILURES[err.code];
+      return json(status, { error: code });
+    }
     return json(502, { error: "ai-failed" });
   } finally {
     clearTimeout(timer);

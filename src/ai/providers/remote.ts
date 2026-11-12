@@ -7,15 +7,17 @@
  */
 
 import { AssistantError } from "@/contracts";
-import type { AIProvider, InterpretRequest, InterpretResult } from "./types";
+import type { AIProvider, AIUnavailableReason, InterpretRequest, InterpretResult } from "./types";
 
 export const ASSISTANT_ENDPOINT = "/api/assistant";
 
 export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: typeof fetch = (...a) => fetch(...a)): AIProvider {
   /** Once the server says it has no AI, stop asking until the page reloads. */
   let unconfigured = false;
+  let reason: AIUnavailableReason | null = null;
 
   return {
+    unavailableReason: () => reason,
     async interpret(request: InterpretRequest, signal?: AbortSignal): Promise<InterpretResult | null> {
       if (unconfigured) return null;
       let res: Response;
@@ -34,13 +36,22 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
       }
       if (res.status === 503 || res.status === 404) {
         unconfigured = true;
+        const body = (await res.json().catch(() => null)) as { error?: unknown } | null;
+        reason = body?.error === "ai-auth" ? "ai-auth" : "not-configured";
         return null;
       }
       if (res.status === 504) throw new AssistantError("timeout");
+      // The AI is busy or briefly down. "unknown" lets the assistant fall back to its own words.
+      if (res.status === 429) throw new AssistantError("unknown", "AI busy");
       if (!res.ok) throw new AssistantError("unknown", `HTTP ${res.status}`);
-      const data = (await res.json().catch(() => null)) as { intent?: unknown; reply?: unknown } | null;
+      const data = (await res.json().catch(() => null)) as { intent?: unknown; reply?: unknown; suggestions?: unknown } | null;
       if (!data || typeof data !== "object") throw new AssistantError("unknown", "Bad response");
-      return { intent: data.intent, reply: typeof data.reply === "string" ? data.reply : undefined };
+      const suggestions = Array.isArray(data.suggestions) ? data.suggestions.filter((x): x is string => typeof x === "string") : [];
+      return {
+        intent: data.intent,
+        reply: typeof data.reply === "string" ? data.reply : undefined,
+        ...(suggestions.length ? { suggestions } : {}),
+      };
     },
   };
 }

@@ -23,7 +23,12 @@ export interface InterpretResult {
   intent: unknown;
   /** For questions and help: a short plain-language answer. Ignored for actions. */
   reply?: string;
+  /** Short things the person might say next. Untrusted; the assistant caps them. */
+  suggestions?: string[];
 }
+
+/** Why there is no AI: nothing set up, or the server's key was refused. */
+export type AIUnavailableReason = "not-configured" | "ai-auth";
 
 export interface AIProvider {
   /**
@@ -31,6 +36,8 @@ export interface AIProvider {
    * Rejects with AssistantError ("network", "timeout", "unknown") on failure.
    */
   interpret(request: InterpretRequest, signal?: AbortSignal): Promise<InterpretResult | null>;
+  /** Optional: why `interpret` returned null, once known. */
+  unavailableReason?(): AIUnavailableReason | null;
 }
 
 /** Used when nothing is configured: the assistant runs fully on the device. */
