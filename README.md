@@ -77,11 +77,13 @@ More: [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md) · [docs/PRIVACY.md](do
 | Feature | iPhone (Safari) | Android (Chrome) |
 | --- | --- | --- |
 | Talk to it / read replies aloud | Yes | Yes |
-| Show me (photo or screenshot) | Yes: Take Photo or Photo Library | Yes: Camera or Files |
-| "Call my daughter" | Opens the dialer with the number; you tap Call | Same |
+| Show me: live camera (back or front), take, retake | Yes | Yes |
+| Show me: photo or screenshot from the phone | Yes | Yes, and you can share a screenshot to the installed app |
+| "Call my daughter" | Opens the dialer with the number; you tap Call. Coming back reopens the conversation | Same |
 | "Text Anna I'm late" | Opens Messages with the text ready; you tap Send | Same |
-| Who "my daughter" is | Settings → People | Settings → People, or pick from contacts when asked |
-| Reminders | On screen and spoken while Companion is open; notifications only once added to the Home Screen | Notifications while Companion is open or recently in the background |
+| Who "my daughter" is | Settings → People: type it, or import a contact card from Contacts | Settings → People, or pick from your contacts |
+| Reminders | By voice or in Settings (add, edit, done, repeat). On screen and spoken while Companion is open; notifications once added to the Home Screen | Same, with notifications while open or recently in the background |
+| Device permissions | Settings → Device permissions: status, why, allow, how to turn on | Same |
 | Maps, email, web search | Yes | Yes |
 | Open Camera / Photos / Settings apps | No web app can; it explains how to find them | Same |
 | Read SMS or call history | Phones never allow it; it offers to open Messages | Same |
@@ -132,6 +134,7 @@ npm run test:e2e       # real browser + real Gemini: conversation, voice, Show M
 | --- | --- | --- |
 | Mobile UI, accessibility, onboarding, settings, conversation screen | Developer A | `src/app`, `src/ui` |
 | Assistant (AI) and voice in/out | Developer B | `src/ai`, `src/voice` |
+| Camera, device permissions, contacts, call return, reminders management, quick access | Developer D | `src/phone`, `src/permissions/catalog.ts`, `src/people/vcard.ts`, `src/ui/conversation/CameraSheet.tsx` |
 | Integration, Gemini, Show Me, phone actions, permissions | Developer C | `src/ai/server`, `src/actions`, `src/permissions`, `src/people`, `src/phone`, `src/integration` |
 
 Everything is wired together in one place: [`src/integration/index.ts`](src/integration/index.ts). The shared interfaces are in `src/contracts`.
@@ -142,5 +145,6 @@ Everything is wired together in one place: [`src/integration/index.ts`](src/inte
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): module boundaries
 - [docs/UI.md](docs/UI.md): design system and accessibility rules
 - [docs/PRIVACY.md](docs/PRIVACY.md): what leaves the phone
+- [docs/DEVICE.md](docs/DEVICE.md): camera, contacts, permissions, calls and coming back, reminders, quick access, native-app plan
 - [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md): what's done and what's next
 - [TEAM.md](TEAM.md): who owns what

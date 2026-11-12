@@ -12,6 +12,7 @@
 import { chromium } from "playwright-core";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { writeFileSync } from "node:fs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const browser = await chromium.launch({
@@ -152,6 +153,10 @@ await step("Workflow 4: add a person, then call opens the dialer", async () => {
   await page.close();
   page = await openTab();
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  // The new tab counts as "back from the call" (tested on its own below). Clear it so later steps start fresh.
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => localStorage.removeItem("companion.handoff.v1"));
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
 });
 
 await step("Workflow 4: make the text bigger changes the screen", async () => {
@@ -221,10 +226,120 @@ await step("Show me: a scam text is called out", async () => {
   if (!/scam|don't|do not|fake|trick/i.test(reply)) throw new Error("Didn't warn about the scam");
 });
 
-await step("Phone and permissions screen loads and reports AI", async () => {
-  await page.goto(BASE + "/settings/phone", { waitUntil: "networkidle" });
-  await waitForReplyContaining(/online helper/);
+await step("Show me: live camera opens, takes a photo, retake, and sends it", async () => {
+  // Chrome's fake camera allows only one user per browser, so this runs in its own clean browser
+  // (a real phone camera doesn't have this limit).
+  const camBrowser = await chromium.launch({
+    executablePath: process.env.CHROME_PATH,
+    args: ["--no-sandbox", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
+  });
+  const camCtx = await camBrowser.newContext({ viewport: { width: 390, height: 844 } });
+  await camCtx.addInitScript(() => localStorage.setItem("companion.settings.v1", JSON.stringify({ version: 1, onboardingComplete: true, speakReplies: false })));
+  await camCtx.grantPermissions(["camera"], { origin: BASE });
+  const mainPage = page;
+  page = await camCtx.newPage();
+  try {
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  // Tap until the camera screen opens (a tap before React has loaded is lost), then wait for the camera.
+  for (let i = 0; i < 20 && !(await page.locator("dialog[open]").count()); i++) {
+    await page.getByRole("button", { name: "Show me with a photo" }).first().click({ timeout: 2000 }).catch(() => {});
+    await page.waitForTimeout(300);
+  }
+  await page.getByRole("button", { name: "Take photo" }).waitFor({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Take photo" }).click();
+  // "Take it again" is offered. (Headless Chrome's fake camera can't be reopened once it has played,
+  // so reopening after a retake is checked on a real phone, not here.)
+  await page.getByRole("button", { name: "Take it again" }).waitFor({ timeout: 5000 });
+  const before = await page.evaluate(() => document.body.innerText.split("Companion said:").length);
+  await page.getByRole("button", { name: "Use this photo" }).click();
+  await page.waitForFunction((n) => document.body.innerText.split("Companion said:").length > n && !/Thinking…/.test(document.body.innerText), before, { timeout: 40_000 });
+  // The camera must be off once the photo is taken.
+  const live = await page.evaluate(() => [...document.querySelectorAll("video")].some((v) => v.srcObject));
+  if (live) throw new Error("Camera still on after sending");
+  console.log(`      reply: ${(await lastCompanionReply()).trim().split("\n")[0].slice(0, 160)}`);
+  } finally {
+    page = mainPage;
+    await camBrowser.close();
+  }
 });
+
+await step("Contacts: import a contact card, save, then 'call my son' finds them", async () => {
+  await page.goto(BASE + "/settings/people", { waitUntil: "networkidle" });
+  const vcf = join(tmpdir(), "companion-e2e-contact.vcf");
+  writeFileSync(vcf, "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Brown;Tom;;;\r\nFN:Tom Brown\r\nTEL;type=CELL:07700 900456\r\nEND:VCARD\r\n");
+  for (let i = 0; i < 20 && !(await page.getByRole("button", { name: "Import a contact card" }).isVisible().catch(() => false)); i++) await page.waitForTimeout(250);
+  await page.locator('input[accept*=".vcf"]').setInputFiles(vcf);
+  await page.waitForFunction(() => (document.querySelector('input[type="tel"]')?.value ?? "") === "07700 900456", null, { timeout: 5000 });
+  await page.getByLabel(/who are they to you/i).fill("son");
+  await page.getByRole("button", { name: "Save this person" }).click();
+  await waitForReplyContaining(/Tom Brown is saved/);
+});
+
+await step("Reminders: add in Settings, change it, mark done -> Past", async () => {
+  await page.goto(BASE + "/settings/reminders", { waitUntil: "networkidle" });
+  for (let i = 0; i < 20 && !(await page.getByLabel("What to remember").isVisible().catch(() => false)); i++) {
+    await page.getByRole("button", { name: "Add a reminder" }).click().catch(() => {});
+    await page.waitForTimeout(250);
+  }
+  await page.getByLabel("What to remember").fill("Water the plants");
+  await page.getByLabel(/Details/).fill("The ones by the window");
+  const d = new Date(Date.now() + 2 * 864e5);
+  await page.getByLabel("Day", { exact: true }).fill(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  await page.getByLabel("Time", { exact: true }).fill("10:30");
+  await page.getByText("Every week, same day").click();
+  await page.getByRole("button", { name: "Save reminder" }).click();
+  await waitForReplyContaining(/Saved: Water the plants/);
+  const item = page.locator("li", { hasText: "Water the plants" }).first();
+  await item.getByRole("button", { name: "Change" }).click();
+  await page.getByLabel("What to remember").fill("Water the garden plants");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await waitForReplyContaining(/Changed: Water the garden plants/);
+  await page.reload({ waitUntil: "networkidle" });
+  await waitForReplyContaining(/Water the garden plants[\s\S]*every week/);
+  const pills = page.locator("li", { hasText: "take my pills" }).first();
+  await pills.getByRole("button", { name: "Mark as done" }).click();
+  await page.waitForFunction(() => /Past[\s\S]*take my pills[\s\S]*Done/i.test(document.body.innerText), null, { timeout: 5000 });
+});
+
+await step("Call return: conversation reopens with a welcome-back message", async () => {
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  await typeAndSend("How do I make the ringtone louder?");
+  await page.waitForFunction(() => /Companion said:/.test(document.body.innerText) && !/Thinking…/.test(document.body.innerText), null, { timeout: 40_000 });
+  // Simulate what the phone does: Companion opens the dialer, the page is hidden, then shown again.
+  await page.evaluate(() => {
+    localStorage.setItem("companion.handoff.v1", JSON.stringify({ kind: "call", name: "Anna", at: Date.now() }));
+    const set = (v) => Object.defineProperty(document, "visibilityState", { configurable: true, get: () => v });
+    set("hidden");
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await page.waitForTimeout(1800);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await waitForReplyContaining(/Welcome back\. I hope your call with Anna went well/);
+  await waitForReplyContaining(/ringtone louder/);
+});
+
+await step("Share to Companion: a shared text arrives and is explained", async () => {
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  const res = await page.request.post(BASE + "/share", {
+    multipart: { text: "HMRC: You are owed a tax refund of £326.18. Claim now at hmrc-refund-uk.com" },
+    maxRedirects: 0,
+  });
+  const to = res.headers()["location"];
+  if (!to || !to.includes("sharedText=")) throw new Error(`No redirect with the text: ${res.status()} ${to}`);
+  const before = await page.evaluate(() => document.body.innerText.split("Companion said:").length);
+  await page.goto(new URL(to, BASE).href, { waitUntil: "networkidle" });
+  await page.waitForFunction((n) => document.body.innerText.split("Companion said:").length > Math.min(n, 2) - 1 && /scam|don't|do not|fake/i.test(document.body.innerText.split("Companion said:").pop()), before, { timeout: 40_000 });
+  console.log(`      reply: ${(await lastCompanionReply()).trim().split("\n")[0].slice(0, 160)}`);
+});
+
+await step("Device permissions screen lists permissions and AI status", async () => {
+  await page.goto(BASE + "/settings/phone", { waitUntil: "networkidle" });
+  await waitForReplyContaining(/Device permissions[\s\S]*Microphone[\s\S]*Camera[\s\S]*Contacts[\s\S]*My online helper/);
+});
+
 
 await step("Workflow 5: offline -> friendly message, no crash", async () => {
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
