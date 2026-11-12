@@ -224,6 +224,16 @@ describe("onboarding", () => {
     expect(controls.permissionRequests).toHaveLength(0);
   });
 
+  it("opening a settings link on the last step finishes the walkthrough, so it does not restart", async () => {
+    const user = userEvent.setup();
+    renderApp(<OnboardingScreen />, { settings: { onboardingComplete: false } });
+    for (const n of ["Get started", "Next", "Next"]) await user.click(screen.getByRole("button", { name: n }));
+    await user.click(await screen.findByRole("button", { name: /Skip for now|Next/ }));
+    expect(screen.getByTestId("progress")).toHaveTextContent("Step 5 of 5");
+    await user.click(screen.getByRole("link", { name: "Voice" }));
+    expect(saved().onboardingComplete).toBe(true);
+  });
+
   it("a refused microphone is explained, and the step can be skipped", async () => {
     const user = userEvent.setup();
     const { controls } = renderApp(<OnboardingScreen />, { settings: { onboardingComplete: false } });

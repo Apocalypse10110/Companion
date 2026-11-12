@@ -77,6 +77,10 @@ export function OnboardingScreen() {
     router.replace("/");
   }
 
+  // The last step links to settings pages. Opening one counts as finishing the walkthrough;
+  // otherwise the app would send the person straight back to step 1.
+  const complete = () => update({ onboardingComplete: true });
+
   async function allowMicrophone() {
     try {
       setMic(await permissions.request("microphone"));
@@ -171,10 +175,10 @@ export function OnboardingScreen() {
         <>
           <p className="text-xl text-ink">You can change any of these whenever you like:</p>
           <ul className="flex flex-col gap-3">
-            <li><ListLink href="/settings/display" icon={Eye} title="Text and looks" /></li>
-            <li><ListLink href="/settings/voice" icon={Volume2} title="Voice" /></li>
-            <li><ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" /></li>
-            <li><ListLink href="/settings/privacy" icon={Lock} title="Privacy and safety" /></li>
+            <li><ListLink href="/settings/display" onClick={complete} icon={Eye} title="Text and looks" /></li>
+            <li><ListLink href="/settings/voice" onClick={complete} icon={Volume2} title="Voice" /></li>
+            <li><ListLink href="/settings/accessibility" onClick={complete} icon={Accessibility} title="Accessibility" /></li>
+            <li><ListLink href="/settings/privacy" onClick={complete} icon={Lock} title="Privacy and safety" /></li>
           </ul>
           <Card>
             <p className="text-lg text-ink">Find these any time with Settings at the bottom of the screen.</p>

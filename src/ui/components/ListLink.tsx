@@ -6,13 +6,16 @@ export interface ListLinkProps {
   icon: LucideIcon;
   title: string;
   description?: string;
+  /** Runs before navigating, e.g. to save something first. */
+  onClick?: () => void;
 }
 
 /** A big row that opens another page. Icon, words and an arrow, so it is obviously tappable. */
-export function ListLink({ href, icon: Icon, title, description }: ListLinkProps) {
+export function ListLink({ href, icon: Icon, title, description, onClick }: ListLinkProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="bw flex min-h-[var(--target)] items-center gap-4 rounded-2xl bg-surface p-4 hover:bg-surface-2"
     >
       <span aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-ink">
