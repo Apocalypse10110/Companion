@@ -2,8 +2,6 @@
 export const BRAND = {
   name: "Companion",
   tagline: "Your friendly helper",
-  /** The hackathon this was built for. Shown on the About screen only. */
-  event: "Ice Hacks",
 } as const;
 
 /**
