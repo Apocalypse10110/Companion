@@ -1,7 +1,7 @@
 /**
  * Google Gemini adapter (server-only), using the official Google Gen AI SDK (`@google/genai`).
  *
- * Gemini is the TEMPORARY testing provider for Companion. It plugs in behind the same
+ * Gemini is Companion's default AI provider. It plugs in behind the same
  * `ServerInterpreter` interface as the Anthropic and OpenAI-compatible adapters, so it can be
  * replaced by changing AI_PROVIDER without touching the rest of the app.
  *
