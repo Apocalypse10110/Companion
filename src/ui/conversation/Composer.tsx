@@ -43,7 +43,7 @@ export function Composer({ onSend, disabled, onUseMicrophone }: ComposerProps) {
         enterKeyHint="send"
         autoComplete="off"
         placeholder="For example: Call my daughter"
-        className="bw min-h-[calc(var(--target)*1.5)] w-full resize-none rounded-2xl bg-surface px-4 py-3 text-xl text-ink placeholder:text-muted"
+        className="bwc min-h-[calc(var(--target)*1.5)] w-full resize-none rounded-2xl bg-surface px-4 py-3 text-xl text-ink placeholder:text-muted"
       />
       <div className="flex flex-col gap-3">
         <Button type="submit" icon={SendHorizontal} fullWidth disabled={disabled || text.trim().length === 0}>

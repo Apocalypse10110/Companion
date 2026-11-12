@@ -188,9 +188,10 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   // ---------- actions ----------
 
   const runAction = useCallback(
-    async (messageId: string, actionId: string) => {
+    async (messageId: string, actionId: string, known?: ActionCard) => {
+      // `known` is passed when the reply was added in this same tick and is not in state yet.
       const message = activeConversation(stateRef.current).messages.find((m) => m.id === messageId);
-      const card = message?.actions?.find((c) => c.action.id === actionId);
+      const card = message?.actions?.find((c) => c.action.id === actionId) ?? known;
       if (!card || (card.status !== "proposed" && card.status !== "failed")) return;
 
       dispatch({ type: "card", messageId, actionId, patch: { status: "running", resultMessage: undefined, needsPermission: undefined } });
@@ -298,7 +299,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
         // Low-risk actions may run without asking, only if the person turned asking off.
         if (!s.confirmActions) {
           for (const card of cards) {
-            if (card.status === "proposed" && card.action.risk === "low") void runAction(messageId, card.action.id);
+            if (card.status === "proposed" && card.action.risk === "low") void runAction(messageId, card.action.id, card);
           }
         }
 

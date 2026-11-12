@@ -50,7 +50,7 @@ export function Stepper({
         <span aria-live="polite" className="text-xl font-bold text-ink">
           {valueText}
         </span>
-        <span aria-hidden="true" className="bw block h-3 w-full overflow-hidden rounded-full bg-surface-2">
+        <span aria-hidden="true" className="bwc block h-3 w-full overflow-hidden rounded-full bg-surface-2">
           <span
             className={cn("block h-full bg-primary")}
             style={{ width: `${Math.round(Math.min(1, Math.max(0, fraction)) * 100)}%` }}

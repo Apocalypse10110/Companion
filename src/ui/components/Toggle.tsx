@@ -42,7 +42,7 @@ export function Toggle({ label, description, checked, onChange, disabled }: Togg
         <span className="min-w-[2.5ch] text-right text-lg font-bold text-ink">{checked ? "On" : "Off"}</span>
         <span
           className={cn(
-            "bw relative h-9 w-16 rounded-full transition-colors",
+            "bwc relative h-9 w-16 rounded-full transition-colors",
             checked ? "bg-primary" : "bg-surface-2",
           )}
         >

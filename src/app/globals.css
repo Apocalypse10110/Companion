@@ -16,6 +16,7 @@
   --c-ink: #16212b;
   --c-muted: #4a5560;
   --c-line: #cfc8b8;
+  --c-control: #7c7462;
   --c-primary: #0b5cab;
   --c-on-primary: #ffffff;
   --c-primary-soft: #dcebfa;
@@ -40,6 +41,7 @@
   --c-ink: #f1f4f7;
   --c-muted: #b4c0cc;
   --c-line: #384757;
+  --c-control: #7f93a6;
   --c-primary: #8cc2ff;
   --c-on-primary: #04203f;
   --c-primary-soft: #1b3550;
@@ -62,6 +64,7 @@
   --c-ink: #000000;
   --c-muted: #1a1a1a;
   --c-line: #000000;
+  --c-control: #000000;
   --c-primary: #003f87;
   --c-on-primary: #ffffff;
   --c-primary-soft: #e6f0ff;
@@ -85,6 +88,7 @@
   --c-ink: #ffffff;
   --c-muted: #e6e6e6;
   --c-line: #ffffff;
+  --c-control: #ffffff;
   --c-primary: #ffe14d;
   --c-on-primary: #000000;
   --c-primary-soft: #2a2600;
@@ -125,6 +129,7 @@
   --color-ink: var(--c-ink);
   --color-muted: var(--c-muted);
   --color-line: var(--c-line);
+  --color-control: var(--c-control);
   --color-primary: var(--c-primary);
   --color-on-primary: var(--c-on-primary);
   --color-primary-soft: var(--c-primary-soft);
@@ -174,6 +179,11 @@ body {
   outline: 4px solid var(--c-focus);
   outline-offset: 3px;
   border-radius: 0.5rem;
+}
+
+/* Borders that identify a form control (text box, switch) need 3:1 contrast, so they use --c-control. */
+.bwc {
+  border: max(var(--bw), 2px) solid var(--c-control);
 }
 
 /* Shared bordered surface: 1px normally, 2px in high contrast. */

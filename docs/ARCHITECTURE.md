@@ -60,7 +60,18 @@ from Settings > Privacy.
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # component + accessibility tests (Vitest, Testing Library, axe)
+npm test             # 163 tests: logic, behaviour with scripted services, axe scans of every screen
+npm run typecheck
 npm run lint
 npm run build
+npm run test:ui      # with `npm start` running: real-browser layout check of every screen
 ```
+
+| Test file | Covers |
+| --- | --- |
+| `src/ui/settings/settings.test.ts` | Settings validation, storage, pre-paint script matches React |
+| `src/ui/settings/tokens.test.ts` | WCAG contrast of every colour pair in all four themes, read from the real CSS |
+| `src/ui/conversation/reducer.test.ts` | Conversation state |
+| `src/ui/conversation/history-storage.test.ts` | Saving, caps, old proposals can't be re-run, corrupted storage |
+| `src/ui/conversation/conversation.test.tsx` | Voice, typing, errors, cancel, confirmations, permissions, announcements |
+| `src/ui/screens/screens.test.tsx` | axe on every screen, settings change behaviour, navigation, onboarding, privacy |

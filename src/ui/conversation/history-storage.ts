@@ -67,10 +67,13 @@ export function loadConversations(storage: Pick<Storage, "getItem"> | undefined 
 
 export function saveConversations(
   conversations: Conversation[],
-  storage: Pick<Storage, "setItem"> | undefined = safeStorage(),
+  storage: Pick<Storage, "setItem" | "removeItem"> | undefined = safeStorage(),
 ): void {
   try {
-    storage?.setItem(HISTORY_KEY, JSON.stringify(toSavable(conversations)));
+    const savable = toSavable(conversations);
+    // Nothing to keep: leave no trace on the device at all.
+    if (savable.length === 0) storage?.removeItem(HISTORY_KEY);
+    else storage?.setItem(HISTORY_KEY, JSON.stringify(savable));
   } catch {
     /* Storage full or blocked. The conversation still works for this visit. */
   }
