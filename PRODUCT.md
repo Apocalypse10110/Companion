@@ -59,7 +59,7 @@ Companion is a Rabbit R1-style "speak and it acts" assistant built from the grou
 
 ## Evidence on Hand
 
-- **Documentation:** `HANDOFF-DEV-A.md`, `PROMPT-DEV-A.txt`, `PROMPT-DEV-B.txt` and `PROMPT-DEV-C.txt`. Docs on the branch: `docs/CONTRACTS.md`, `ARCHITECTURE.md` and `UI.md`.
+- **Documentation:** `HANDOFF-DEV-A.md` and `PROMPT-DEV-A/B/C.txt` sit in the project folder but are git-ignored (local team notes, not in the repo). Docs in the repo: `docs/CONTRACTS.md`, `ARCHITECTURE.md` and `UI.md`.
 - **Tests:** 163 Vitest tests and a real-browser layout check (`scripts/ui-check.mjs`), all passing on `feature/mobile-ui`.
 - **What doesn't exist yet:** user testing, testimonials, usage data or a recorded real-device demo. Future work must not invent them.
 
