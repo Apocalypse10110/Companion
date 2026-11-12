@@ -1,28 +1,30 @@
 "use client";
 
-import { Accessibility, Eye, Hand, Lock, Mic, Moon, Smartphone, Sun, Volume2 } from "lucide-react";
+import { Hand, Mic, Moon, Smartphone, Sun, Volume2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { PermissionState } from "@/contracts";
 import { useServices } from "@/integration/ServicesProvider";
 import { Button } from "../components/Button";
-import { Banner, Card } from "../components/Card";
+import { Banner } from "../components/Card";
 import { ChoiceGroup, type Choice } from "../components/ChoiceGroup";
-import { ListGroup, ListLink } from "../components/ListLink";
 import { ScrollPage } from "../components/ScrollPage";
 import { Toggle } from "../components/Toggle";
+import { SAY_EXAMPLES } from "../conversation/types";
 import { useSettings } from "../settings/SettingsProvider";
 import { TEXT_SCALE, TEXT_SIZE_ORDER, type TextSize, type ThemeChoice } from "../settings/types";
 
-const STEPS = ["welcome", "talking", "comfort", "microphone", "finish"] as const;
+// One decision per step: text size and colours used to share a step with three questions on it.
+const STEPS = ["welcome", "talking", "text", "colours", "microphone", "finish"] as const;
 type Step = (typeof STEPS)[number];
 
 const TITLES: Record<Step, string> = {
   welcome: "Hello, and welcome",
   talking: "How talking works",
-  comfort: "Make it comfortable",
+  text: "Make the words easy to read",
+  colours: "Pick your colours",
   microphone: "Letting me hear you",
-  finish: "You're all set",
+  finish: "Let's try it",
 };
 
 const SIZE_LABELS: Record<TextSize, string> = { standard: "Standard", large: "Large", larger: "Larger", largest: "Largest" };
@@ -42,7 +44,7 @@ function Numbered({ n, icon: Icon, children }: { n: number; icon: typeof Mic; ch
 export function OnboardingScreen() {
   const router = useRouter();
   const { settings, update } = useSettings();
-  const { permissions } = useServices();
+  const { permissions, voiceInput } = useServices();
   const [index, setIndex] = useState(0);
   const [mic, setMic] = useState<PermissionState | "unknown">("unknown");
   const heading = useRef<HTMLHeadingElement>(null);
@@ -50,6 +52,8 @@ export function OnboardingScreen() {
   const first = index === 0;
   const last = index === STEPS.length - 1;
   const current = TEXT_SCALE[settings.textSize];
+  // Talking needs both a device that can listen and a microphone that wasn't refused.
+  const canTalk = voiceInput.isSupported() && mic !== "denied" && mic !== "unsupported";
 
   // Move focus to each new step's heading so screen readers start reading it.
   const mounted = useRef(false);
@@ -128,10 +132,16 @@ export function OnboardingScreen() {
         </>
       )}
 
-      {step === "comfort" && (
+      {step === "text" && (
         <>
-          <p className="text-xl text-ink">Pick what is easiest to read. You can change this later in Settings.</p>
+          <p className="text-xl text-ink">Pick the size that is easiest to read. The screen changes as you choose.</p>
           <ChoiceGroup legend="Text size" value={settings.textSize} choices={sizeChoices} onChange={(textSize) => update({ textSize })} />
+        </>
+      )}
+
+      {step === "colours" && (
+        <>
+          <p className="text-xl text-ink">Light or dark, whichever is kinder to your eyes.</p>
           <ChoiceGroup legend="Colours" value={settings.theme} choices={themeChoices} onChange={(theme) => update({ theme })} />
           <Toggle label="High contrast" description="Stronger colours and thicker outlines." checked={settings.highContrast} onChange={(highContrast) => update({ highContrast })} />
         </>
@@ -167,16 +177,19 @@ export function OnboardingScreen() {
 
       {step === "finish" && (
         <>
-          <p className="text-xl text-ink">You can change any of these whenever you like:</p>
-          <ListGroup>
-            <li><ListLink href="/settings/display" icon={Eye} title="Text and looks" /></li>
-            <li><ListLink href="/settings/voice" icon={Volume2} title="Voice" /></li>
-            <li><ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" /></li>
-            <li><ListLink href="/settings/privacy" icon={Lock} title="Privacy and safety" /></li>
-          </ListGroup>
-          <Card>
-            <p className="text-lg text-ink">Find these any time with Settings at the bottom of the screen.</p>
-          </Card>
+          <p className="text-xl text-ink">
+            {canTalk
+              ? "You're ready. Tap the big orange button and say what you need, in your own words. For example:"
+              : "You're ready. Type what you need, in your own words. For example:"}
+          </p>
+          <ul className="flex flex-col gap-3" aria-label="Things you can say">
+            {SAY_EXAMPLES.map((example) => (
+              <li key={example} className="rounded-2xl rounded-tl-md bg-accent-soft px-4 py-3 text-xl text-ink">
+                “{example}”
+              </li>
+            ))}
+          </ul>
+          <p className="text-lg text-muted">You can change anything later in Settings, at the bottom of the screen.</p>
         </>
       )}
 

@@ -12,7 +12,7 @@
 | `/settings/accessibility` | Accessibility | Reduce motion, screen-reader announcements, vibration, reset all |
 | `/settings/connections` | Connected accounts | Google Calendar, Gmail and more: status in words, connect, disconnect (asks first) |
 | `/settings/privacy` | Privacy and safety | Ask before doing things, remember conversations, erase |
-| `/onboarding` | Welcome | 5 short steps; shown automatically on first visit; skippable |
+| `/onboarding` | Welcome | 6 short steps, one decision each, ending with "try it"; shown automatically on first visit; skippable |
 
 ## The microphone button
 

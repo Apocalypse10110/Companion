@@ -68,6 +68,8 @@ export interface ConversationApi {
   sendQuickAction: (id: QuickActionId) => void;
   cancel: () => void;
   readAloud: (messageId: string) => void;
+  /** Read Companion's latest reply aloud again, stopping anything being spoken now. */
+  repeatLast: () => void;
   stopSpeaking: () => void;
   runAction: (messageId: string, actionId: string) => void;
   dismissAction: (messageId: string, actionId: string) => void;
@@ -490,6 +492,13 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     [speak],
   );
 
+  const repeatLast = useCallback(() => {
+    const last = [...activeConversation(stateRef.current).messages].reverse().find((m) => m.role === "assistant");
+    if (!last) return;
+    servicesRef.current.voiceOutput.cancel();
+    readAloud(last.id);
+  }, [readAloud]);
+
   const eraseHistory = useCallback(() => {
     clearSavedConversations();
     dispatch({ type: "clear" });
@@ -517,6 +526,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       sendQuickAction,
       cancel: () => requestAbort.current?.abort(),
       readAloud,
+      repeatLast,
       stopSpeaking: cancelSpeech,
       runAction: (m, a) => void runAction(m, a),
       dismissAction,
@@ -544,6 +554,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     submit,
     sendQuickAction,
     readAloud,
+    repeatLast,
     cancelSpeech,
     runAction,
     dismissAction,

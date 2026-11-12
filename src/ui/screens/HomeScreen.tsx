@@ -1,6 +1,6 @@
 "use client";
 
-import { Keyboard, RotateCcw } from "lucide-react";
+import { Keyboard, Repeat, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Banner } from "../components/Card";
 import { Button } from "../components/Button";
@@ -37,6 +37,8 @@ export function HomeScreen() {
   const hasMessages = c.messages.length > 0;
   // While Companion is waiting for a yes or no, keep the screen to that one question.
   const awaitingAnswer = c.messages.some((m) => m.actions?.some((a) => a.status === "proposed"));
+  // "Repeat that": only offered when there is a reply to repeat and the device can speak it.
+  const canRepeat = c.voiceOutputSupported && c.messages.some((m) => m.role === "assistant");
 
   // Keep the thing the person needs to read in view, once there is a conversation.
   // While waiting, show their own question; when a reply arrives, show the TOP of that reply
@@ -76,6 +78,11 @@ export function HomeScreen() {
         {hasMessages ? (
           <>
             <Thread />
+            {canRepeat && (
+              <Button variant="secondary" icon={Repeat} fullWidth onClick={c.repeatLast} disabled={c.phase === "thinking"}>
+                Repeat that
+              </Button>
+            )}
             {!awaitingAnswer && (
               <div>
                 <Button variant="ghost" icon={RotateCcw} onClick={c.newConversation} disabled={c.phase === "thinking"}>

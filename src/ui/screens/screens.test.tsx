@@ -189,19 +189,23 @@ describe("navigation", () => {
 });
 
 describe("onboarding", () => {
-  it("walks through 5 steps, moves focus to each heading, and only asks for the microphone on its step when tapped", async () => {
+  it("walks through 6 steps, one decision each, moves focus to each heading, and only asks for the microphone on its step when tapped", async () => {
     const user = userEvent.setup();
     const { controls } = renderApp(<OnboardingScreen />, { settings: { onboardingComplete: false } });
     controls.setPermission("microphone", "prompt");
-    expect(screen.getByTestId("progress")).toHaveTextContent("Step 1 of 5");
+    expect(screen.getByTestId("progress")).toHaveTextContent("Step 1 of 6");
 
     await user.click(screen.getByRole("button", { name: "Get started" }));
     expect(screen.getByRole("heading", { name: "How talking works" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "Next" }));
-    expect(screen.getByRole("heading", { name: "Make it comfortable" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Make the words easy to read" })).toHaveFocus();
+    // Only the text size is asked here; colours get their own step.
+    expect(screen.queryByRole("radio", { name: /Dark/ })).toBeNull();
 
     await user.click(screen.getByRole("radio", { name: /Larger/ }));
     expect(root().style.getPropertyValue("--text-scale")).toBe("1.4");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByRole("heading", { name: "Pick your colours" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "Next" }));
 
     expect(controls.permissionRequests).toHaveLength(0);
@@ -210,6 +214,9 @@ describe("onboarding", () => {
     expect(await screen.findByText(/Microphone is on/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Next" }));
+    // The last step invites the person to try it, with real examples, instead of listing settings.
+    expect(screen.getByRole("heading", { name: "Let's try it" })).toHaveFocus();
+    expect(within(screen.getByRole("list", { name: "Things you can say" })).getByText(/Call my daughter/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Start using Companion" }));
     expect(saved()).toMatchObject({ onboardingComplete: true, textSize: "larger" });
     expect(nav.replace).toHaveBeenCalledWith("/");
@@ -220,7 +227,7 @@ describe("onboarding", () => {
     const { controls } = renderApp(<OnboardingScreen />, { settings: { onboardingComplete: false } });
     await user.click(screen.getByRole("button", { name: "Get started" }));
     await user.click(screen.getByRole("button", { name: "Back" }));
-    expect(screen.getByTestId("progress")).toHaveTextContent("Step 1 of 5");
+    expect(screen.getByTestId("progress")).toHaveTextContent("Step 1 of 6");
     await user.click(screen.getByRole("button", { name: "Skip the walkthrough" }));
     expect(saved().onboardingComplete).toBe(true);
     expect(controls.permissionRequests).toHaveLength(0);
@@ -231,10 +238,12 @@ describe("onboarding", () => {
     const { controls } = renderApp(<OnboardingScreen />, { settings: { onboardingComplete: false } });
     controls.setPermission("microphone", "prompt");
     controls.setNextPermissionResult("denied");
-    for (const n of ["Get started", "Next", "Next"]) await user.click(screen.getByRole("button", { name: n }));
+    for (const n of ["Get started", "Next", "Next", "Next"]) await user.click(screen.getByRole("button", { name: n }));
     await user.click(await screen.findByRole("button", { name: "Allow microphone" }));
     expect(await screen.findByText(/Microphone is off/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Skip for now" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Skip for now" }));
+    // With the microphone off, the last step invites typing, not talking.
+    expect(screen.getByText(/Type what you need, in your own words/)).toBeInTheDocument();
   });
 });
 
