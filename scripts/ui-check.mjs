@@ -1,7 +1,8 @@
 /**
  * Real-browser layout check. Opens every screen at a small phone size with the most extreme
  * settings (largest text, bold, dark high contrast, extra large buttons) and at normal settings,
- * then fails if anything spills sideways, any tappable thing is under 44px, or the console errors.
+ * then fails if anything spills sideways, content overflows its own box, any tappable thing is
+ * under 44px, or the console errors.
  *
  *   npm run build && npm start            # in one terminal (port 3000)
  *   npm run test:ui                       # in another
@@ -40,9 +41,11 @@ for (const [name, { viewport, settings }] of Object.entries(SCENARIOS)) {
       const visible = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && !e.closest("[inert]") && !e.classList.contains("sr-only") && !e.classList.contains("skip-link"); };
       const spill = [...document.querySelectorAll("body *")].filter((e) => visible(e) && (e.getBoundingClientRect().right > vw + 1 || e.getBoundingClientRect().left < -1)).map((e) => e.tagName.toLowerCase());
       const small = [...document.querySelectorAll("button, a[href], summary, textarea, input:not(.sr-only)")].filter(visible).filter((e) => { const b = e.getBoundingClientRect(); return b.height < 44 || b.width < 44; }).map((e) => `${(e.innerText || e.getAttribute("aria-label") || e.tagName).trim().slice(0, 30)} (${Math.round(e.getBoundingClientRect().width)}x${Math.round(e.getBoundingClientRect().height)})`);
-      return { pageScroll: document.documentElement.scrollWidth > vw, spill: spill.slice(0, 3), small: small.slice(0, 5) };
+      // Content poking out of its own box (e.g. a squashed row whose switch overlaps the next row).
+      const clipped = [...document.querySelectorAll("button, a[href], label, [role=group], [role=note], [role=alert], li")].filter(visible).filter((e) => e.scrollHeight > e.clientHeight + 2 && getComputedStyle(e).overflowY === "visible").map((e) => `${(e.innerText || e.tagName).trim().slice(0, 30)} (${e.clientHeight}px box, ${e.scrollHeight}px content)`);
+      return { pageScroll: document.documentElement.scrollWidth > vw, spill: spill.slice(0, 3), small: small.slice(0, 5), clipped: clipped.slice(0, 5) };
     });
-    const ok = !r.pageScroll && r.spill.length === 0 && r.small.length === 0;
+    const ok = !r.pageScroll && r.spill.length === 0 && r.small.length === 0 && r.clipped.length === 0;
     if (!ok) failures++;
     console.log(`${ok ? "PASS" : "FAIL"} ${name.padEnd(7)} ${route}${ok ? "" : "  " + JSON.stringify(r)}`);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}${route.replace(/\//g, "_") || "_home"}.png` });

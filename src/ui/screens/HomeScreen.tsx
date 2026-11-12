@@ -56,7 +56,7 @@ export function HomeScreen() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4 pt-1">
+      <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4 pt-1 *:shrink-0">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold leading-tight text-ink">{greeting}</h1>
           <p className="text-xl text-muted">How can I help you today?</p>
