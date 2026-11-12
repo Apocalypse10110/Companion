@@ -1,9 +1,26 @@
+<div align="center">
+
+<img src="public/icon.svg" alt="" width="88" />
+
 # Companion
 
-### A patient tech helper for older adults: it explains, then teaches, until you can do it yourself
+**A patient tech helper for older adults.**
+Talk to it, type to it, or *show* it a photo. It explains what's going on, then teaches you one step at a time until you can do it yourself.
 
-> **Try it:** `LIVE_URL_HERE` (works on iPhone Safari and Android Chrome, no install needed; "Add to Home Screen" makes it an app)
-> Built for **Ice Hacks 2026**.
+### ▶ Try it on your phone: **LIVE_URL_HERE**
+
+Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" makes it an app.
+
+Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini · ~390 automated tests + real-browser end-to-end checks
+
+</div>
+
+| Show me a photo | Spots scams | Help that fades | Big, calm, readable |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/2-show-me.png" alt="Companion explaining a Storage Almost Full pop-up from a photo, then giving the first step" width="190" /> | <img src="docs/screenshots/3-scam.png" alt="Companion warning that a photographed Royal Mail parcel-fee text is a scam" width="190" /> | <img src="docs/screenshots/4-fading-help.png" alt="Companion saying 'You have connected to Wi-Fi before. Can you try to find the grey gear?' with Give me a hint and Tell me exactly buttons" width="190" /> | <img src="docs/screenshots/1-home.png" alt="Companion home screen with a large talk button, quick actions and Show me with a photo" width="190" /> |
+| Photograph a confusing pop-up, letter or router. It says what it is in plain words, then gives the first step. | A suspicious text or pop-up? It says plainly when something is a scam and what not to tap. | The second time, it asks you to try first, with **Give me a hint** or **Tell me exactly**. | Large text, high contrast, read aloud. It always asks before calling or texting anyone. |
+
+> **"Siri answers your question. Companion stays until you can do it yourself."**
 
 Technology can be confusing, especially when you're not used to it. A pop-up you don't understand, Wi-Fi that won't connect, a text that might be a scam. The usual answer is "ask your grandchild" or wade through tutorials full of words like *toggle* and *app drawer*.
 
