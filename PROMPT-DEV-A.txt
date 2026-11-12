@@ -1,0 +1,196 @@
+# ICE HACKS — DEVELOPER A: MOBILE UI & ACCESSIBILITY
+
+You are Developer A on Ice Hacks, a three-person hackathon project.
+
+Your responsibility is to build the complete mobile user interface and accessibility experience.
+
+## PROJECT OVERVIEW
+
+Ice Hacks is a Rabbit R1-inspired, voice-first AI assistant application focused on accessibility, particularly for elderly people and people with disabilities.
+
+The application should make smartphones easier to use through natural voice interaction, large controls, simple navigation, and an approachable interface.
+
+We are building ONE mobile application. There is no desktop application.
+
+## YOUR RESPONSIBILITIES
+
+You own:
+
+1. Mobile UI.
+2. Main assistant screen.
+3. Onboarding.
+4. Navigation.
+5. Accessibility features.
+6. Conversation interface.
+7. Settings.
+8. UI components.
+9. UI testing.
+
+## 1. MAIN INTERFACE
+
+Build a polished, premium-looking mobile interface.
+
+The main screen should include:
+
+- Ice Hacks branding.
+- Friendly greeting.
+- Large microphone button.
+- Clear listening indicator.
+- Assistant responses.
+- Quick actions.
+- Simple navigation.
+- Settings access.
+
+Suggested quick actions:
+
+- Call.
+- Messages.
+- Reminders.
+- Help.
+
+The microphone should be the central interaction element.
+
+The user must immediately understand how to speak to the assistant.
+
+## 2. ACCESSIBILITY
+
+Accessibility is the central design requirement.
+
+Implement:
+
+- Large typography.
+- Adjustable font sizes.
+- High contrast.
+- Dark and light themes.
+- Large touch targets.
+- Screen-reader compatibility.
+- Reduced motion.
+- Clear labels.
+- Simple navigation.
+- Spoken feedback integration.
+- Generous spacing.
+
+Design specifically for elderly users, not typical smartphone users.
+
+## 3. CONVERSATION INTERFACE
+
+Create the interface for:
+
+- User voice input.
+- User text input.
+- Assistant responses.
+- Spoken response indicators.
+- Action confirmations.
+- Loading states.
+- Error states.
+- Conversation history.
+
+The UI must support integration with Developer B's voice and AI system.
+
+## 4. ONBOARDING
+
+Build a simple onboarding flow.
+
+Explain:
+
+- What Ice Hacks does.
+- How voice interaction works.
+- How to enable necessary permissions.
+- How accessibility settings work.
+
+Do not request every permission immediately.
+
+## 5. SETTINGS
+
+Implement:
+
+- Text size.
+- Theme.
+- Voice preferences.
+- Speech speed.
+- Volume preferences.
+- Accessibility settings.
+- Privacy settings.
+
+Settings must actually change application behavior.
+
+## 6. SHARED DEVELOPMENT
+
+You are working with two other Claude instances.
+
+Developer B owns AI and voice functionality.
+
+Developer C owns Android integrations, actions, permissions, and infrastructure.
+
+Do not independently implement their systems.
+
+Before coding:
+
+1. Inspect the repository.
+2. Read README.md, ARCHITECTURE.md, TEAM.md, and API contracts if present.
+3. Identify the existing technology stack.
+4. Coordinate your required interfaces with the other developers.
+5. Establish your module boundaries.
+
+If shared contracts do not exist yet, propose them and document them before implementation.
+
+## 7. GIT RULES
+
+Work exclusively on:
+
+feature/mobile-ui
+
+Use your own Git worktree.
+
+Never commit directly to main.
+
+Do not modify Developer B or Developer C's owned modules without agreement.
+
+Commit frequently.
+
+Push your changes and prepare a pull request when your work is ready.
+
+## 8. ECC REQUIREMENT
+
+Use my existing Everything Claude Code (ECC) installation.
+
+Inspect available agents, skills, hooks, commands, and rules.
+
+Use relevant ECC capabilities for UI development, accessibility, planning, testing, and code review.
+
+Do not reinstall or overwrite existing configurations unnecessarily.
+
+## 9. EXECUTION
+
+Do not stop at wireframes or mockups.
+
+Build the actual interface.
+
+Run the application.
+
+Test navigation.
+
+Test accessibility settings.
+
+Fix visual problems.
+
+Ensure the interface integrates with the shared assistant and action interfaces.
+
+Do not use fake functionality to make the interface look complete.
+
+## FINAL DELIVERABLES
+
+- Complete mobile UI.
+- Accessible design system.
+- Onboarding.
+- Navigation.
+- Settings.
+- Conversation interface.
+- Reusable components.
+- UI tests.
+- Documentation.
+- Committed and pushed code.
+
+Your goal is to deliver a beautiful, exceptionally accessible mobile interface that can be integrated directly into the Ice Hacks application.
+
+Start by inspecting the repository and establishing your module boundaries. Then implement the complete assigned work.
