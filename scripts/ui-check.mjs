@@ -17,7 +17,7 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const SHOTS = process.env.SHOTS_DIR;
 if (SHOTS) mkdirSync(SHOTS, { recursive: true });
 
-const ROUTES = ["/", "/history", "/settings", "/settings/display", "/settings/voice", "/settings/accessibility", "/settings/privacy", "/settings/connections", "/onboarding"];
+const ROUTES = ["/", "/history", "/settings", "/settings/display", "/settings/voice", "/settings/accessibility", "/settings/privacy", "/settings/connections", "/settings/people", "/settings/reminders", "/settings/phone", "/settings/learned", "/onboarding"];
 const SCENARIOS = {
   extreme: { viewport: { width: 360, height: 640 }, settings: { textSize: "largest", theme: "dark", highContrast: true, extraLargeButtons: true, boldText: true } },
   normal: { viewport: { width: 390, height: 844 }, settings: { textSize: "large", theme: "light" } },

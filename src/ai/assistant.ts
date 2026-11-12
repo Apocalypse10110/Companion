@@ -25,10 +25,13 @@ import { PRONOUNS, classify, cleanContact, looksLikeQuestion, normalize, stripPo
 import { cleanString, validateIntent, type Intent } from "./intents/schema";
 import { describeWhen, parseWhen } from "./intents/time";
 import { noProvider, type AIProvider } from "./providers/types";
-import { APP_LABELS, SETTING_TITLES, capitalize, contactLabel, recoverCase, yourify } from "./words";
+import { recordSkill, skillsForPrompt } from "./skills";
+import { APP_GUIDANCE, APP_LABELS, OPENABLE_APPS, SETTING_TITLES, capitalize, contactLabel, recoverCase, yourify } from "./words";
 
 export interface AssistantOptions {
   provider?: AIProvider;
+  /** What the person has learned before, for help that fades. Defaults to the on-device record. */
+  skills?: { list(): string[]; record(name: string): void };
   /** For tests. */
   now?: () => Date;
   newId?: () => string;
@@ -43,6 +46,30 @@ const EXAMPLES = ["Call my daughter", "Remind me to take my pills at 8", "Make t
 
 /** Longest answer we show from an AI model. Long answers are hard to follow when spoken. */
 const MAX_AI_REPLY = 600;
+
+/**
+ * Intents that are conversation rather than a request to do something. When an AI is available it
+ * answers these, so "how do I connect to Wi-Fi?" gets real step-by-step help, not fixed text.
+ */
+const CONVERSATIONAL = new Set<Intent["name"]>(["HELP", "FIND_INFORMATION", "UNKNOWN", "CHECK_WEATHER"]);
+
+/** How the AI did on this turn, so a fallback reply can be honest about it. */
+type AIState = "answered" | "none" | "failed";
+
+interface Understood {
+  intent: Intent | null;
+  aiReply?: string;
+  aiSuggestions?: string[];
+  ai: AIState;
+}
+
+const PHOTO_NO_AI =
+  "I'm sorry, I can't look at photos right now because my online helper isn't connected. You can tell me in words what you see, and I'll do my best.";
+const PHOTO_FAILED =
+  "I'm sorry, I couldn't look at that photo just now. Please try again, or tell me in words what you see.";
+
+const AI_DOWN =
+  "I'm sorry, I can't reach my online helper right now, so I can't answer that. Please try again in a minute. I can still call someone, send a message, set a reminder, or make the text bigger.";
 
 interface Draft {
   text: string;
@@ -59,24 +86,48 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
   const now = options.now ?? (() => new Date());
   const newId = options.newId ?? defaultId;
   const store = new ContextStore();
+  const skills = options.skills ?? { list: () => skillsForPrompt(), record: (n: string) => void recordSkill(n) };
 
-  async function understand(
-    request: AssistantRequest,
-    signal?: AbortSignal,
-  ): Promise<{ intent: Intent | null; aiReply?: string }> {
+  async function understand(request: AssistantRequest, ctx: ConversationContext, signal?: AbortSignal): Promise<Understood> {
     const raw = classify(request.text, now());
     const local = raw ? validateIntent(raw) : null;
-    if (local) return { intent: local };
+    // A clear request ("call my daughter") is handled on the device: fast, private and predictable.
+    // A "yes" or "no" with nothing to answer is conversation (for example during step-by-step help).
+    const answeringUs = Boolean(ctx.pending || ctx.awaiting);
+    const isConversation =
+      !local || CONVERSATIONAL.has(local.name) || ((local.name === "CONFIRM" || local.name === "DENY") && !answeringUs);
+    if (local && !isConversation) return { intent: local, ai: "none" };
 
     const lastAssistant = [...request.history].reverse().find((t) => t.role === "assistant")?.text;
-    const result = await provider.interpret(
-      { text: request.text, history: request.history, language: request.language, now: now().toISOString(), lastAssistantText: lastAssistant },
-      signal,
-    );
-    if (!result) return { intent: null };
-    const intent = validateIntent(result.intent);
+    let result: Awaited<ReturnType<AIProvider["interpret"]>>;
+    try {
+      result = await provider.interpret(
+        {
+          text: request.text,
+          history: request.history,
+          language: request.language,
+          now: now().toISOString(),
+          lastAssistantText: lastAssistant,
+          skills: skills.list(),
+        },
+        signal,
+      );
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      // The AI failed. If the rules understood something, use that; otherwise send() decides.
+      if (local) return { intent: local, ai: "failed" };
+      throw err;
+    }
+    // No AI. If it's set up but its key was refused, say so honestly instead of acting as if it isn't there.
+    if (!result) return { intent: local, ai: provider.unavailableReason?.() === "ai-auth" ? "failed" : "none" };
+    const intent = validateIntent(result.intent) ?? local;
+    if (result.taskDone && result.skill) skills.record(result.skill);
+    const aiSuggestions = (result.suggestions ?? [])
+      .map((x) => cleanString(x, 60))
+      .filter((x): x is string => Boolean(x))
+      .slice(0, 3);
     // For actions we always use our own wording; the AI's sentence is only used for answers.
-    return { intent, aiReply: cleanString(result.reply, MAX_AI_REPLY) };
+    return { intent, aiReply: cleanString(result.reply, MAX_AI_REPLY), aiSuggestions, ai: "answered" };
   }
 
   function fillSlot(ctx: ConversationContext, text: string): Intent | "cancel" | null {
@@ -133,8 +184,11 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     return { ...intent, params: { ...intent.params, contact: ctx.lastContact } };
   }
 
-  function respond(intent: Intent, request: AssistantRequest, ctx: ConversationContext, aiReply?: string): Draft {
+  function respond(intent: Intent, request: AssistantRequest, ctx: ConversationContext, ai?: Understood): Draft {
     const p = intent.params;
+    const aiReply = ai?.aiReply;
+    const aiSuggestions = ai?.aiSuggestions?.length ? ai.aiSuggestions : undefined;
+    const aiFailed = ai?.ai === "failed";
     const lang = request.language || "en-US";
 
     switch (intent.name) {
@@ -177,6 +231,10 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
 
       case "OPEN_APPLICATION": {
         const app = p.app!;
+        // A web app can only open some apps. For the rest, explain how to find it, honestly.
+        if (!OPENABLE_APPS.has(app)) {
+          return { text: APP_GUIDANCE[app] ?? `I can't open ${APP_LABELS[app]} from here. Look for it on your home screen and tap it once.` };
+        }
         if (app === "maps" && p.destination) {
           const dest = p.destination === "home" ? "home" : recoverCase(request.text, p.destination);
           const title = dest === "home" ? "Get directions home" : `Get directions to ${dest}`;
@@ -259,14 +317,15 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         };
 
       case "FIND_INFORMATION":
-        if (aiReply) return { text: aiReply };
+        if (aiReply) return { text: aiReply, suggestions: aiSuggestions };
+        if (aiFailed) return { text: AI_DOWN, suggestions: EXAMPLES };
         return {
           text: "I'm sorry, I can't look that up right now. I can help you call someone, send a message, set a reminder, or make the text bigger.",
           suggestions: EXAMPLES,
         };
 
       case "HELP": {
-        if (aiReply) return { text: aiReply, suggestions: EXAMPLES };
+        if (aiReply) return { text: aiReply, suggestions: aiSuggestions ?? (p.topic ? undefined : EXAMPLES) };
         if (p.topic === "notification") {
           return {
             text: "A notification is a short message from an app, like a new text or a reminder. To see them, slide your finger down from the very top of the screen. To clear one, slide it to the side. If you read it to me, I can explain what it means.",
@@ -286,15 +345,18 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
             keepPending: true,
           };
         }
+        if (aiReply) return { text: aiReply, suggestions: aiSuggestions };
         return { text: "I'm not sure what you'd like me to do. Could you tell me again?", suggestions: EXAMPLES };
       }
 
       case "DENY":
+        if (!ctx.pending && !ctx.awaiting && aiReply) return { text: aiReply, suggestions: aiSuggestions };
         return { text: ctx.pending || ctx.awaiting ? "Okay, I won't do that." : "Okay." };
 
       case "UNKNOWN":
       default:
-        if (aiReply) return { text: aiReply };
+        if (aiReply) return { text: aiReply, suggestions: aiSuggestions };
+        if (aiFailed && looksLikeQuestion(request.text)) return { text: AI_DOWN, suggestions: EXAMPLES };
         return {
           text: "Sorry, I didn't quite understand that. You can ask me to call someone, send a message, set a reminder, or make the text bigger.",
           suggestions: EXAMPLES,
@@ -321,6 +383,38 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     }
   }
 
+  async function lookAtPhoto(request: AssistantRequest, signal?: AbortSignal): Promise<Draft> {
+    const lastAssistant = [...request.history].reverse().find((t) => t.role === "assistant")?.text;
+    let result: Awaited<ReturnType<AIProvider["interpret"]>>;
+    try {
+      result = await provider.interpret(
+        {
+          text: request.text,
+          history: request.history,
+          language: request.language,
+          now: now().toISOString(),
+          lastAssistantText: lastAssistant,
+          image: request.image,
+          skills: skills.list(),
+        },
+        signal,
+      );
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      if (err instanceof AssistantError && err.code !== "unknown") throw err;
+      return { text: PHOTO_FAILED };
+    }
+    if (!result) return { text: PHOTO_NO_AI };
+    const reply = cleanString(result.reply, MAX_AI_REPLY);
+    if (!reply) return { text: PHOTO_FAILED };
+    if (result.taskDone && result.skill) skills.record(result.skill);
+    const suggestions = (result.suggestions ?? [])
+      .map((x) => cleanString(x, 60))
+      .filter((x): x is string => Boolean(x))
+      .slice(0, 3);
+    return { text: reply, suggestions: suggestions.length ? suggestions : undefined };
+  }
+
   return {
     reset: () => store.reset(),
 
@@ -333,9 +427,12 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       const ctx = store.restore(request.history ?? []);
       let draft: Draft | null = request.source === "quick-action" ? quickAction(request) : null;
 
+      // "Show me": a photo always goes to the AI, which can see it. The rules can't.
+      if (!draft && request.image) draft = await lookAtPhoto(request, signal);
+
       if (!draft) {
         let intent: Intent | null = null;
-        let aiReply: string | undefined;
+        let understood: Understood | undefined;
 
         const filled = fillSlot(ctx, text);
         if (filled === "cancel") intent = { name: "DENY", params: {} };
@@ -343,19 +440,21 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         else if (request.quickActionId === "help") intent = { name: "HELP", params: {} };
         else {
           try {
-            ({ intent, aiReply } = await understand(request, signal));
+            understood = await understand(request, ctx, signal);
+            intent = understood.intent;
           } catch (err) {
             if (signal?.aborted) throw err;
             // The AI failed, but a question we can't answer locally should still get a kind reply.
             if (err instanceof AssistantError && err.code !== "unknown") throw err;
             intent = null;
+            understood = { intent: null, ai: "failed" };
           }
           if (!intent) intent = { name: looksLikeQuestion(text) ? "FIND_INFORMATION" : "UNKNOWN", params: { query: cleanString(text, 500) } };
         }
 
         // Someone asked "Who should I call?" and the person said "her": resolve from context.
         intent = resolvePronoun(intent, ctx);
-        draft = respond(intent, request, ctx, aiReply);
+        draft = respond(intent, request, ctx, understood);
       }
 
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");

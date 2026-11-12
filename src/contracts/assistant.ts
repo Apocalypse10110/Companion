@@ -5,7 +5,7 @@
 
 import type { ProposedAction } from "./actions";
 
-export type RequestSource = "voice" | "text" | "quick-action";
+export type RequestSource = "voice" | "text" | "quick-action" | "photo";
 
 export type QuickActionId = "call" | "messages" | "reminders" | "help";
 
@@ -14,12 +14,21 @@ export interface AssistantTurn {
   text: string;
 }
 
+/** A photo the person took or picked ("Show me"). Already shrunk on the device. */
+export interface AssistantImage {
+  mimeType: "image/jpeg" | "image/png" | "image/webp";
+  /** Base64, no "data:" prefix. Kept under about 1 MB. */
+  data: string;
+}
+
 export interface AssistantRequest {
   /** What the person said or typed. For quick actions, a plain sentence such as "I want to make a call". */
   text: string;
   source: RequestSource;
   /** Set when source is "quick-action". */
   quickActionId?: QuickActionId;
+  /** Set when source is "photo": what the person wants help with in the picture. */
+  image?: AssistantImage;
   /** Recent turns, oldest first, so the assistant has context. Capped by the UI. */
   history: AssistantTurn[];
   /** BCP 47 language tag, for example "en-US". */

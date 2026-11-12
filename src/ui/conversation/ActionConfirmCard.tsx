@@ -16,6 +16,7 @@ export interface ActionConfirmCardProps {
 const PERMISSION_WORDS: Record<PermissionName, string> = {
   microphone: "the microphone",
   notifications: "notifications",
+  camera: "the camera",
 };
 
 /**

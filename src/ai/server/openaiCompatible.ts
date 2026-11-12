@@ -34,7 +34,15 @@ export function createOpenAICompatibleInterpreter(config: {
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             ...input.history.map((t) => ({ role: t.role, content: t.text })),
-            { role: "user", content: userPrompt(input) },
+            {
+              role: "user",
+              content: input.image
+                ? [
+                    { type: "image_url", image_url: { url: `data:${input.image.mimeType};base64,${input.image.data}` } },
+                    { type: "text", text: userPrompt(input) },
+                  ]
+                : userPrompt(input),
+            },
           ],
         }),
         signal,

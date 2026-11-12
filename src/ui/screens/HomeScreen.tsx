@@ -8,6 +8,7 @@ import { MicButton } from "../components/MicButton";
 import { Composer } from "../conversation/Composer";
 import { useConversation } from "../conversation/ConversationProvider";
 import { QuickActions } from "../conversation/QuickActions";
+import { ShowMeButton } from "../conversation/ShowMeButton";
 import { Thread } from "../conversation/Thread";
 import { SAY_EXAMPLES } from "../conversation/types";
 import { useSettings } from "../settings/SettingsProvider";
@@ -78,6 +79,7 @@ export function HomeScreen() {
         {hasMessages ? (
           <>
             <Thread />
+            {!awaitingAnswer && <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} />}
             {canRepeat && (
               <Button variant="secondary" icon={Repeat} fullWidth onClick={c.repeatLast} disabled={c.phase === "thinking"}>
                 Repeat that
@@ -92,9 +94,15 @@ export function HomeScreen() {
             )}
           </>
         ) : (
-          <p className="text-xl text-ink">
-            {typing ? "Type what you need, like" : "Tap the big button and say what you need, like"} “{SAY_EXAMPLES[0]}”.
-          </p>
+          <>
+            <p className="text-xl text-ink">
+              {typing ? "Type what you need, like" : "Tap the big button and say what you need, like"} “{SAY_EXAMPLES[0]}”.
+            </p>
+            <div className="flex flex-col gap-2">
+              <p className="text-lg text-ink">Something confusing on a screen or a letter? Take a photo and I&apos;ll explain it.</p>
+              <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} />
+            </div>
+          </>
         )}
 
         {settings.showQuickActions && !awaitingAnswer && (

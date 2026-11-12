@@ -1,6 +1,6 @@
 # Action schema (proposed by Developer B, for Developer C)
 
-**Status: PROPOSED.** The `ProposedAction` shape itself is the shared contract in
+**Status: IMPLEMENTED** by Developer C in `src/actions` (every kind below works; see the README's phone table). The `ProposedAction` shape itself is the shared contract in
 `src/contracts/actions.ts`. This page fixes what the assistant puts in `kind` and `params`, so
 Developer C's `ActionService` knows exactly what it will receive. Additive changes are welcome; please
 discuss before renaming anything.

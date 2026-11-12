@@ -70,6 +70,28 @@ export const APP_LABELS: Record<AppName, string> = {
   browser: "the web browser",
 };
 
+/**
+ * Apps a web app can actually open with a link (tel:, sms:, mailto:, map and web links).
+ * Any other app can't be launched from a browser, so the assistant explains how to find it instead.
+ */
+export const OPENABLE_APPS: ReadonlySet<AppName> = new Set<AppName>(["phone", "messages", "email", "maps", "browser"]);
+
+/** How to find an app the assistant can't open itself. Plain words, what it looks like. */
+export const APP_GUIDANCE: Partial<Record<AppName, string>> = {
+  photos:
+    "I can't open Photos from here, but here's how. Go to your home screen and tap Photos. On an iPhone it's a colourful flower. On Android it may be called Gallery or Google Photos.",
+  camera:
+    "I can't open the Camera from here, but here's how. Go to your home screen and tap Camera. It looks like a small camera. On many phones you can also swipe left on the lock screen.",
+  settings:
+    "I can't open Settings from here, but here's how. Go to your home screen and look for a grey gear, called Settings. Tap it once. Tell me what you want to change and I'll guide you.",
+  clock:
+    "I can't open the Clock from here, but here's how. Go to your home screen and tap Clock. It looks like a clock face. That's where alarms and timers are.",
+  calendar:
+    "I can't open your Calendar from here, but here's how. Go to your home screen and tap Calendar. It usually shows today's date. I can also set a reminder for you.",
+  contacts:
+    "I can't open Contacts from here, but here's how. Open your Phone app, the green one with a phone handset, and tap Contacts at the bottom.",
+};
+
 export const SETTING_TITLES: Record<string, string> = {
   "textSize:increase": "Make the text bigger",
   "textSize:decrease": "Make the text smaller",

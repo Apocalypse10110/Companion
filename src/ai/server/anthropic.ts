@@ -24,7 +24,15 @@ export function createAnthropicInterpreter(config: { apiKey: string; model?: str
           system: SYSTEM_PROMPT,
           messages: [
             ...input.history.map((t) => ({ role: t.role, content: t.text })),
-            { role: "user" as const, content: userPrompt(input) },
+            {
+              role: "user" as const,
+              content: [
+                ...(input.image
+                  ? [{ type: "image" as const, source: { type: "base64" as const, media_type: input.image.mimeType, data: input.image.data } }]
+                  : []),
+                { type: "text" as const, text: userPrompt(input) },
+              ],
+            },
           ],
           // Classification is quick work: low effort keeps the person waiting as little as possible.
           output_config: { effort: "low", format: { type: "json_schema", schema: INTERPRET_SCHEMA } },

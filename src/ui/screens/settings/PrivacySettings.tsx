@@ -2,6 +2,8 @@
 
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+import { forgetAllSkills } from "@/ai/skills";
+import { useAnnounce } from "../../a11y/LiveAnnouncer";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -16,6 +18,7 @@ export function PrivacySettings() {
   const { history, eraseHistory } = useConversation();
   const [dialog, setDialog] = useState<"none" | "erase" | "stop-saving">("none");
   const [justErased, setJustErased] = useState(false);
+  const announce = useAnnounce();
   const saved = history.length;
 
   return (
@@ -24,9 +27,28 @@ export function PrivacySettings() {
 
       <Card className="flex flex-col gap-2">
         <h2 className="text-xl font-bold text-ink">Where your information goes</h2>
-        <p className="text-lg text-ink">
-          Saved conversations stay on this phone only. What you say or type is sent to the assistant so it can answer you.
-        </p>
+        <ul className="flex list-disc flex-col gap-2 pl-6 text-lg text-ink">
+          <li>
+            <span className="font-bold">Kept on this phone only:</span> your saved conversations, the people you add, your
+            reminders, the things you&apos;ve learned, and your settings. Companion has no accounts and no database.
+          </li>
+          <li>
+            <span className="font-bold">Sent to answer you:</span> what you say or type, the last few messages, and any photo you
+            choose to show me go to Google&apos;s Gemini AI through our server. We don&apos;t store them or write them in our logs.
+          </li>
+          <li>
+            <span className="font-bold">Never read:</span> your text messages, call history or contacts. Phones don&apos;t allow it,
+            and I don&apos;t try. I only see a contact if you pick one.
+          </li>
+          <li>
+            <span className="font-bold">Your voice:</span> turned into words by your phone&apos;s own speech service. Only the words
+            come to me.
+          </li>
+          <li>
+            <span className="font-bold">Calls and messages:</span> I open your phone app with things filled in. You always press
+            Call or Send yourself.
+          </li>
+        </ul>
       </Card>
 
       <Toggle
@@ -53,6 +75,18 @@ export function PrivacySettings() {
       <p className="-mt-3 text-base text-muted" aria-live="polite">
         {saved === 0 ? (justErased ? "Erased. Nothing is saved on this phone now." : "Nothing is saved right now.") : `${saved} ${saved === 1 ? "conversation is" : "conversations are"} saved on this phone.`}
       </p>
+
+      <Button
+        variant="secondary"
+        icon={Trash2}
+        fullWidth
+        onClick={() => {
+          forgetAllSkills();
+          announce("I've forgotten what you've learned. Next time I'll explain each step again.");
+        }}
+      >
+        Forget what I&apos;ve learned
+      </Button>
 
       <ConfirmDialog
         open={dialog === "erase"}

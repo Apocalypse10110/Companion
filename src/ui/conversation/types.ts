@@ -1,4 +1,5 @@
 import type {
+  AssistantImage,
   PermissionName,
   ProposedAction,
   QuickActionId,
@@ -33,6 +34,9 @@ export interface RetryInfo {
   text: string;
   source: RequestSource;
   quickActionId?: QuickActionId;
+  /** A photo to send again. Kept in memory only (errors are never saved). */
+  image?: AssistantImage;
+  thumb?: string;
 }
 
 export interface ChatMessage {
@@ -47,6 +51,8 @@ export interface ChatMessage {
   suggestions?: string[];
   /** On an error: what to resend when the person taps "Try again". */
   retry?: RetryInfo;
+  /** On a person's message: a small preview of the photo they sent ("Show me"). */
+  image?: string;
   /** On a notice: a permission this message offers to ask for. */
   permission?: PermissionName;
 }

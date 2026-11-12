@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { Services } from "@/contracts";
+import { PhoneBridge } from "@/integration/PhoneBridge";
 import { ServicesProvider } from "@/integration/ServicesProvider";
 import { LiveAnnouncer } from "../a11y/LiveAnnouncer";
 import { ConversationProvider } from "../conversation/ConversationProvider";
@@ -22,7 +23,10 @@ export function Providers({
     <SettingsProvider initial={initialSettings}>
       <ServicesProvider services={services}>
         <LiveAnnouncer>
-          <ConversationProvider>{children}</ConversationProvider>
+          <ConversationProvider>
+            {children}
+            <PhoneBridge />
+          </ConversationProvider>
         </LiveAnnouncer>
       </ServicesProvider>
     </SettingsProvider>

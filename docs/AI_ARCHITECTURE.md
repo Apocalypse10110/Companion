@@ -14,7 +14,7 @@ tap mic ─▶ VoiceInputService (Web Speech API) ─▶ "Call my daughter"
           ┌──────────────────────────────────────────┼─────────────────────────────┐
           │ 1. context: yes / no, "her", answers to our questions ("Who?" -> "Emma") │
           │ 2. on-device rules (src/ai/intents/rules.ts)        ◀── always available │
-          │ 3. only if not understood: AI provider via /api/assistant (optional)    │
+          │ 3. help, questions, photos, unclear: Gemini via /api/assistant          │
           │ 4. validateIntent(): allowlisted intents, apps, settings, capped text   │
           │ 5. reply text + ONE ProposedAction (kind, params, risk)                 │
           └──────────────────────────────────────────┼─────────────────────────────┘
@@ -125,3 +125,17 @@ AI unset: the on-device assistant still works.
 - A spoken "yes" can't run an action until the UI adopts `confirmedActionId` (proposed).
 - Weather and reading SMS are not possible from a web app without extra services or OS roles.
 - Context lives in memory on the device and resets on reload (recovering the last-named person from history).
+
+## Updates by Developer C (Nov 12)
+
+- **Gemini is the default provider** (`src/ai/server/gemini.ts`, official `@google/genai` SDK). It is used when `GEMINI_API_KEY` is set and `AI_PROVIDER` is empty. Models are tried in order when one is overloaded or out of quota. Gemini 3 models use low thinking (about 2 s replies).
+- **The AI leads conversation.** HELP, FIND_INFORMATION, UNKNOWN, weather, and a "yes" or "no" with nothing pending go to the AI with the history. Clear actions stay on the device.
+- **Schema additions:** `suggestions` (up to 3 tap replies), `skill` (task being taught), `taskDone`. All are validated server side.
+- **Show Me:** `AssistantRequest.image` (JPEG, base64, shrunk on the device). It always goes to the AI. The Anthropic and OpenAI-compatible adapters also accept it.
+- **Help that fades:** finished tasks are stored in `src/ai/skills.ts` and sent as `skills`. The prompt switches from giving the step to letting them try first, with hints.
+- **Errors:**
+  - A refused key gives 503 `ai-auth`; the client then uses on-device mode and says "can't reach my online helper".
+  - Quota gives 429 `ai-busy`.
+  - Overloaded models give 502.
+  - `GET /api/assistant` reports `{configured, provider, problem}`.
+

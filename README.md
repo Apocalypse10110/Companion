@@ -1,62 +1,129 @@
 # Companion
 
-### Technical Support for Older Adults
+### A patient tech helper for older adults: it explains, then teaches, until you can do it yourself
 
-Technology can be confusing, especially when you're not used to it. Something as simple as setting up a phone, fixing a computer issue, or figuring out a new app can quickly become frustrating.
+> **Try it:** `LIVE_URL_HERE` (works on iPhone Safari and Android Chrome, no install needed; "Add to Home Screen" makes it an app)
+> Built for **Ice Hacks 2026**.
 
-We created Companion to make those everyday problems easier.
+Technology can be confusing, especially when you're not used to it. A pop-up you don't understand, Wi-Fi that won't connect, a text that might be a scam. The usual answer is "ask your grandchild" or wade through tutorials full of words like *toggle* and *app drawer*.
 
-Companion is an AI-powered assistant designed to help older adults with technology. Users can ask questions in plain language and get simple, step-by-step instructions without having to navigate confusing menus or search through endless tutorials.
-
-Our goal is simple: help older adults feel more comfortable using technology, stay independent, and keep in touch with the people who matter most.
+Companion is an AI helper you can **talk to, type to, or just show**. Point the camera at whatever is confusing and it says what it is in plain words, then walks you through fixing it **one step at a time**. It remembers what you've learned, so next time it lets you try first and only gives a hint if you need one. The goal isn't to do things for you forever. It's to help you stay independent.
 
 Technology should bring people together, not leave anyone behind.
 
----
+## Try these
 
-## For the team
+1. **"I can't connect to the Wi-Fi."** It asks one question at a time and gives one step at a time. Say "done" or tap a suggestion to go on.
+2. **Tap "Show me with a photo"** and photograph a pop-up, a letter or your router (or pick a screenshot). It explains what it sees and gives the first step.
+3. **Show it a suspicious text** ("your parcel is on hold, pay £1.45"). It tells you plainly if it looks like a scam and not to tap anything.
+4. **"Call my daughter"** (add her first in Settings → People). It asks first, then opens your phone app with her number. You press Call.
+5. **"Make the text bigger"** or **"Remind me to take my pills at 8."**
+6. Ask the same how-to question again later. Because you've done it before, it asks you to try first ("Give me a hint" / "Tell me exactly"). See **Settings → Things you can do**.
 
-One mobile web app (Next.js 16, React 19, TypeScript, Tailwind CSS v4), installable on Android as a PWA.
-Built for **Ice Hacks 2026**.
+## What makes it different from Siri or Google Assistant
 
-### Run it
+| | Typical voice assistant | Companion |
+| --- | --- | --- |
+| A problem you can't describe | "I didn't get that" | **Show me**: take a photo, it tells you what it is |
+| How-to questions | A web result or a list of 8 steps | One step, waits, checks, then the next. Says what buttons look like |
+| The second time you ask | The same answer | **Help that fades**: asks you to try first, hints on request |
+| Scams | Answers whatever you ask | Warns about scam texts, pop-ups and "call this number" tricks |
+| Doing things | Acts straight away | Always asks first. Never says it called or sent something it didn't |
+| Words | Its own jargon | Plain words, large text, high contrast, read aloud slowly |
+
+## How the AI works
+
+```mermaid
+flowchart LR
+  V[Voice / typing / photo] --> A[Assistant on the phone]
+  A -->|clear requests: call, remind, bigger text| R[On-device rules]
+  A -->|questions, help, photos| S["/api/assistant (server)"]
+  S --> G[Gemini: structured JSON reply]
+  G --> S --> A
+  R --> C{Validate against allowlist}
+  A --> C
+  C -->|reply + suggested replies| UI[Conversation screen]
+  C -->|proposed action| K[Confirm card: Yes, do it]
+  K -->|person taps yes| X[Phone actions: dialer, Messages, reminders, settings]
+```
+
+- **The AI is treated as untrusted.** Gemini returns JSON (`intent`, `reply`, `suggestions`, `skill`, `taskDone`). Every intent goes through the same allowlist validator as the on-device rules. The AI can suggest an action, but only our code builds it, and only the person's tap runs it.
+- **Teaching that fades.** The AI names the task it's teaching and marks it done when you succeed. Finished tasks are kept on the phone (`src/ai/skills.ts`) and sent with later questions, and the prompt changes from "give the step" to "let them try first".
+- **Photos.** They're shrunk on the phone (about 1280 px JPEG, which also removes location data and converts iPhone HEIC), sent once, and never stored.
+- **Reliability.** Gemini models are tried in order (`gemini-3.5-flash`, then `gemini-3.1-flash-lite`, then `gemini-2.5-flash`) when one is overloaded or out of quota. Replies take about 2 seconds. Clear requests work with no AI and no internet. Errors become plain messages, never a crash.
+- **The key stays on the server.** There is no `NEXT_PUBLIC_` key, the server checks the request origin, rate-limits each caller and caps body size, and `GET /api/assistant` reports status without the key.
+
+More: [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md) · [docs/PRIVACY.md](docs/PRIVACY.md).
+
+## What works on a phone (and what can't)
+
+| Feature | iPhone (Safari) | Android (Chrome) |
+| --- | --- | --- |
+| Talk to it / read replies aloud | Yes | Yes |
+| Show me (photo or screenshot) | Yes: Take Photo or Photo Library | Yes: Camera or Files |
+| "Call my daughter" | Opens the dialer with the number; you tap Call | Same |
+| "Text Anna I'm late" | Opens Messages with the text ready; you tap Send | Same |
+| Who "my daughter" is | Settings → People | Settings → People, or pick from contacts when asked |
+| Reminders | On screen and spoken while Companion is open; notifications only once added to the Home Screen | Notifications while Companion is open or recently in the background |
+| Maps, email, web search | Yes | Yes |
+| Open Camera / Photos / Settings apps | No web app can; it explains how to find them | Same |
+| Read SMS or call history | Phones never allow it; it offers to open Messages | Same |
+
+## Run it yourself
 
 ```bash
 npm install
-npm run dev            # http://localhost:3000  (first visit opens the welcome walkthrough)
+cp .env.example .env.local      # then set GEMINI_API_KEY (https://aistudio.google.com/apikey)
+npm run dev                     # http://localhost:3000
 ```
 
-### Optional AI
+With no key, the app still runs. Clear requests are handled on the device, and questions get an honest "my online helper isn't connected".
 
-The assistant works with no AI service at all (on-device understanding). To let it handle unusual
-wording and general questions, copy `.env.example` to `.env.local` and set `AI_PROVIDER`
-(`anthropic` or `openai-compatible`, e.g. a local Ollama). Keys stay on the server.
+### Deploying (Vercel)
 
-### Check it
+1. Import the repo into Vercel (framework: Next.js, no other settings needed).
+2. **Settings → Environment Variables:** add `GEMINI_API_KEY` for Production (and Preview if wanted). Never use a `NEXT_PUBLIC_` name for it.
+3. Deploy. Check `https://<your-site>/api/assistant` shows `{"configured":true,"provider":"gemini"}`.
+4. Run the end-to-end check against it: `BASE_URL=https://<your-site> npm run test:e2e`.
+
+### Gemini quota (do this before judging)
+
+The free tier allows only a limited number of requests per model per day. We used up `gemini-3.5-flash`'s daily allowance during testing, and the fallback to other models is what kept the app working. For the demo and judging:
+
+1. Go to https://aistudio.google.com, then **Get API key**, then open the key's Google Cloud project and **Set up billing** (moves the key to the paid tier, with much higher limits).
+2. In Google Cloud Console, go to **Billing**, then **Budgets & alerts**, then **Create budget** (for example $20 with alerts at 50%, 90% and 100%) so a traffic spike can't run up a bill. Photos and short replies cost a fraction of a cent each.
+3. Optionally set `AI_MODEL` on Vercel to choose the order, for example `gemini-3.1-flash-lite,gemini-3.5-flash`.
+4. If a limit is still hit, people see "I can't reach my online helper right now, please try again in a minute". The app keeps working for calls, reminders and settings.
+
+On the paid tier, Google doesn't use prompts to improve its products; on the free tier it may. See [docs/PRIVACY.md](docs/PRIVACY.md).
+
+## Checks
 
 ```bash
-npm test               # unit, behaviour, voice/AI and accessibility (axe) tests
-npm run typecheck
-npm run lint
-npm run build && npm start   # then, in another terminal:
-npm run test:ui        # real-browser check of every screen at largest text + high contrast
+npm test               # ~390 unit, behaviour, AI, voice, phone-action and accessibility (axe) tests
+npm run typecheck && npm run lint
+npm run build && npm start      # then, in another terminal:
+npm run test:ui        # real browser: every screen at largest text + high contrast, nothing overflows
+npm run test:e2e       # real browser + real Gemini: conversation, voice, Show Me, calls, reminders, offline
 ```
 
-### Who owns what
+`test:e2e` drives the real UI: typed help with follow-up context, voice in with the reply spoken, a photo of a "Storage Almost Full" pop-up, a photo of a scam text, calling an unknown and a saved person, "make the text bigger", a reminder with the notification request, and going offline.
+
+## Project layout and team
 
 | Area | Owner | Where |
 | --- | --- | --- |
 | Mobile UI, accessibility, onboarding, settings, conversation screen | Developer A | `src/app`, `src/ui` |
-| Assistant (AI) and voice in/out | Developer B | `src/ai`, `src/voice` ([docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md)) |
-| Phone actions, permissions, infrastructure | Developer C | implements contracts in `src/contracts` |
+| Assistant (AI) and voice in/out | Developer B | `src/ai`, `src/voice` |
+| Integration, Gemini, Show Me, phone actions, permissions | Developer C | `src/ai/server`, `src/actions`, `src/permissions`, `src/people`, `src/phone`, `src/integration` |
 
-**To connect your part, change one line in [`src/integration/index.ts`](src/integration/index.ts).**
-Until then the app shows honest "not connected yet" messages; it never fakes an answer.
+Everything is wired together in one place: [`src/integration/index.ts`](src/integration/index.ts). The shared interfaces are in `src/contracts`.
 
-- [TEAM.md](TEAM.md): who owns what, branches, dependencies
-- [docs/CONTRACTS.md](docs/CONTRACTS.md): the interfaces between the three parts (proposed, please review)
-- [docs/ACTION_SCHEMA.md](docs/ACTION_SCHEMA.md): exactly what the assistant asks the action engine to do
-- [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md): voice, intents, context, AI providers and key handling
-- [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md): what's done, blocked and next
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): module boundaries and how it fits together
-- [docs/UI.md](docs/UI.md): design system, components, accessibility rules, screens
+- [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md): voice, intents, context, AI providers, photos, key handling
+- [docs/ACTION_SCHEMA.md](docs/ACTION_SCHEMA.md): what the assistant asks the phone to do
+- [docs/CONTRACTS.md](docs/CONTRACTS.md): the interfaces between the parts
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): module boundaries
+- [docs/UI.md](docs/UI.md): design system and accessibility rules
+- [docs/PRIVACY.md](docs/PRIVACY.md): what leaves the phone
+- [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md): what's done and what's next
+- [TEAM.md](TEAM.md): who owns what

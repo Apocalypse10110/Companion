@@ -12,13 +12,16 @@
 import type { Services } from "@/contracts";
 import { assistant } from "@/ai";
 import { voiceInput, voiceOutput } from "@/voice";
+import { actions } from "@/actions";
+import { permissions } from "@/permissions";
 import { unconfiguredServices } from "./unconfigured";
 
 export const services: Services = {
   assistant, // Developer B
   voiceInput, // Developer B
   voiceOutput, // Developer B
-  actions: unconfiguredServices.actions, // Developer C
-  permissions: unconfiguredServices.permissions, // Developer C
+  actions, // Developer C: calls, messages, apps, reminders, settings (src/actions)
+  permissions, // Developer C: microphone, notifications, camera (src/permissions)
+  // Google sign-in is not built yet; this honestly shows "Not available yet".
   connections: unconfiguredServices.connections, // Developer C
 };
