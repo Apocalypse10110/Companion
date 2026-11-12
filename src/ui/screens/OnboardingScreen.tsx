@@ -1,6 +1,6 @@
 "use client";
 
-import { Hand, Mic, Moon, Smartphone, Sun, Volume2 } from "lucide-react";
+import { Camera, Hand, Mic, Moon, Smartphone, Sun, Users, Volume2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { PermissionState } from "@/contracts";
@@ -132,6 +132,23 @@ export function OnboardingScreen() {
             <Numbered n={3} icon={Volume2}>Listen to my answer, or read it on the screen.</Numbered>
           </ol>
           <p className="text-xl text-ink">Prefer typing? You can always type instead.</p>
+          <h2 className="text-xl font-bold text-ink">Two more ways I can help</h2>
+          <ul className="flex flex-col gap-3">
+            <li className="flex items-start gap-3 text-xl text-ink">
+              <Camera aria-hidden="true" className="mt-0.5 size-7 shrink-0 text-accent-ink" strokeWidth={2.25} />
+              <span>
+                <span className="font-bold">Show me.</span> Take a photo of anything confusing, like a letter, a pop-up or the TV
+                remote, and I&apos;ll explain it.
+              </span>
+            </li>
+            <li className="flex items-start gap-3 text-xl text-ink">
+              <Users aria-hidden="true" className="mt-0.5 size-7 shrink-0 text-accent-ink" strokeWidth={2.25} />
+              <span>
+                <span className="font-bold">Your people.</span> Add your family in Settings, under People. Then just say &ldquo;call my
+                daughter&rdquo;.
+              </span>
+            </li>
+          </ul>
         </>
       )}
 

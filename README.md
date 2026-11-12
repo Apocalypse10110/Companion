@@ -11,6 +11,8 @@ Talk to it, type to it, or *show* it a photo. It explains what's going on, then 
 
 Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" makes it an app.
 
+[![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](LIVE_URL_HERE/status)
+
 Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini · ~390 automated tests + real-browser end-to-end checks
 
 </div>
@@ -126,6 +128,10 @@ npm run build && npm start      # then, in another terminal:
 npm run test:ui        # real browser: every screen at largest text + high contrast, nothing overflows
 npm run test:e2e       # real browser + real Gemini: conversation, voice, Show Me, calls, reminders, offline
 ```
+
+Every push runs lint, typecheck, tests and a production build on GitHub Actions (`.github/workflows/ci.yml`).
+`GET /api/health` (shown at `/status`) reports whether the app, the AI and each account service are working.
+It returns 200 or 503, so an uptime monitor such as UptimeRobot can watch it.
 
 `test:e2e` drives the real UI: typed help with follow-up context, voice in with the reply spoken, a photo of a "Storage Almost Full" pop-up, a photo of a scam text, calling an unknown and a saved person, "make the text bigger", a reminder with the notification request, and going offline.
 

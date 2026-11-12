@@ -36,6 +36,15 @@ Last updated: 2026-11-12 by Developers C and D. Branch: `main`.
   - Home-screen shortcuts.
 - **Tests:** about 390 unit and behaviour tests, a real-browser layout check of every screen, and a real-browser e2e run of every demo workflow against live Gemini.
 
+- **Connected accounts:**
+  - Gmail, Google Calendar, Outlook and Spotify sign-in, with "read my email", "what's on my calendar" and "play …".
+  - Needs app keys from each service: see [ACCOUNTS.md](ACCOUNTS.md).
+- **Shipping:**
+  - `/status` page and `/api/health`.
+  - GitHub Actions CI (lint, types, tests, build).
+  - A friendly offline page.
+  - The welcome walkthrough mentions Show me and People.
+
 ## Before judging
 
 1. **Enable billing on the Gemini key and set a budget** (README → Gemini quota). The free tier ran out during testing; the fallback models covered it.
@@ -55,11 +64,10 @@ Last updated: 2026-11-12 by Developers C and D. Branch: `main`.
 - Reminders alert only while Companion is open or recently in the background. There is no push server. On iPhone, notifications need the app added to the Home Screen.
 - Firefox has no speech recognition (typing works). The on-device rules are English-only. Other languages go through Gemini.
 - The rate limit is kept in memory per server instance (fine for a demo, not for scale).
-- Google sign-in for Calendar and Gmail isn't built; that screen honestly says "Not available yet".
+- Gmail and Google Calendar sign-in only works for listed test users until Google verifies the app (restricted scope). Spotify starts music by itself only with Premium.
 
 ## Next, if time allows
 
-- A status page and health check.
 - An eval scorecard of red-team prompts.
 - A "Help Card" that texts a summary of the problem to a family member.
 - The Bank Call Shield.

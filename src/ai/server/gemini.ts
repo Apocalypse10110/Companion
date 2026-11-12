@@ -120,3 +120,30 @@ export function createGeminiInterpreter(config: GeminiConfig): ServerInterpreter
     },
   };
 }
+
+export interface GeminiHealth {
+  ok: boolean;
+  model?: string;
+  ms: number;
+  problem?: "auth" | "rate-limit" | "unavailable" | "failed";
+}
+
+/**
+ * Is the key valid and Gemini reachable? Looks up the first available model's details, which is
+ * free (it doesn't use the reply quota). Tries the models in order, like a real request does.
+ */
+export async function geminiHealth(apiKey: string, models: string[], client?: Pick<GoogleGenAI, "models">): Promise<GeminiHealth> {
+  const c = client ?? new GoogleGenAI({ apiKey, apiVersion: "v1beta" });
+  const started = Date.now();
+  let problem: GeminiHealth["problem"] = "unavailable";
+  for (const model of models) {
+    try {
+      await c.models.get({ model, config: { abortSignal: AbortSignal.timeout(5000) } });
+      return { ok: true, model, ms: Date.now() - started };
+    } catch (err) {
+      problem = classifyGeminiError(err).code;
+      if (problem === "auth") break;
+    }
+  }
+  return { ok: false, ms: Date.now() - started, problem };
+}

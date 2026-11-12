@@ -341,6 +341,27 @@ await step("Device permissions screen lists permissions and AI status", async ()
 });
 
 
+await step("Status page and health check report a working app", async () => {
+  const r = await page.request.get(`${BASE}/api/health`);
+  const j = await r.json();
+  if (r.status() !== 200 || !j.ok || !j.ai.reachable) throw new Error(`health ${r.status()} ${JSON.stringify(j.ai)}`);
+  await page.goto(BASE + "/status", { waitUntil: "networkidle" });
+  await waitForReplyContaining(/Everything is working[\s\S]*My online helper[\s\S]*Working/);
+});
+
+await step("Offline: opening Companion with no internet shows the friendly page", async () => {
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  // The service worker must be in charge of the page before going offline.
+  await page.waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 15_000 }).catch(async () => {
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 15_000 });
+  });
+  await ctx.setOffline(true);
+  await page.goto(BASE + "/settings").catch(() => {});
+  await waitForReplyContaining(/No internet right now[\s\S]*Try again/);
+  await ctx.setOffline(false);
+});
+
 await step("Workflow 5: offline -> friendly message, no crash", async () => {
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
   await ctx.setOffline(true);

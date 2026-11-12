@@ -243,3 +243,24 @@ describe("privacy: phone numbers never leave the phone", () => {
     expect(body).not.toMatch(/0123 456 7890|07700900123/);
   });
 });
+
+describe("health check", () => {
+  it("reports AI reachability, caches it, and never leaks the key", async () => {
+    const { health, resetHealthCache } = await import("./server/health");
+    resetHealthCache();
+    const check = vi.fn(async () => ({ ok: true, model: "gemini-x", ms: 42 }));
+    const res = await health({ GEMINI_API_KEY: "secret-key-abc" }, check);
+    const text = await res.text();
+    expect(res.status).toBe(200);
+    expect(JSON.parse(text).ai).toMatchObject({ configured: true, reachable: true, model: "gemini-x" });
+    expect(text).not.toContain("secret-key");
+    await health({ GEMINI_API_KEY: "secret-key-abc" }, check);
+    expect(check).toHaveBeenCalledTimes(1);
+  });
+  it("is 503 when the AI is configured but down", async () => {
+    const { health, resetHealthCache } = await import("./server/health");
+    resetHealthCache();
+    const res = await health({ GEMINI_API_KEY: "k" }, async () => ({ ok: false, ms: 5, problem: "auth" }));
+    expect(res.status).toBe(503);
+  });
+});

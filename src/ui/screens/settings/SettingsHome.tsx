@@ -1,6 +1,6 @@
 "use client";
 
-import { Accessibility, Award, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
+import { Accessibility, Activity, Award, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
 import { BRAND } from "../../components/BrandMark";
 import { ListGroup, ListLink } from "../../components/ListLink";
 import { PageHeader } from "../../components/PageHeader";
@@ -35,6 +35,9 @@ export function SettingsHome() {
           </li>
           <li>
             <ListLink href="/settings/connections" icon={Link2} title="Connected accounts" description="Calendar, Gmail and more" />
+          </li>
+          <li>
+            <ListLink href="/status" icon={Activity} title="Status" description="Is everything working right now?" />
           </li>
           <li>
             <ListLink href="/settings/privacy" icon={Lock} title="Privacy and safety" description="Saved conversations, asking first" />
