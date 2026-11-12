@@ -8,7 +8,10 @@
  *    and always on screen and spoken, with "Done" and "Remind me in 10 minutes".
  * Owner: Developer C.
  */
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { markLeft, takeReturn, welcomeBackText } from "@/phone/handoff";
+import { useConversation } from "@/ui/conversation/ConversationProvider";
 import { connectSettings } from "@/actions/settingsBridge";
 import { dueReminders, finishReminder, showSystemNotification, snoozeReminder, type Reminder } from "@/actions/reminders";
 import { useServices } from "@/integration/ServicesProvider";
@@ -26,6 +29,47 @@ export function PhoneBridge() {
   const [due, setDue] = useState<Reminder | null>(null);
   const settingsRef = useRef(settings);
   const shown = useRef(new Set<string>());
+  const conversation = useConversation();
+  const convRef = useRef(conversation);
+  const router = useRouter();
+  const pathname = usePathname();
+  const pathRef = useRef(pathname);
+
+  useEffect(() => {
+    convRef.current = conversation;
+    pathRef.current = pathname;
+  });
+
+  // Coming back from a call or Messages: put the conversation back and offer to carry on.
+  useEffect(() => {
+    const resume = (minAwayMs?: number) => {
+      const h = takeReturn(minAwayMs);
+      if (!h) return;
+      const c = convRef.current;
+      if (h.conversationId && h.conversationId !== c.activeId && c.history.some((x) => x.id === h.conversationId)) {
+        c.openConversation(h.conversationId);
+      }
+      if (h.path && h.path !== pathRef.current) router.push(h.path);
+      // Give the reopened conversation a moment to appear, then greet.
+      setTimeout(() => convRef.current.addNotice(welcomeBackText(h)), 300);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") markLeft(convRef.current.activeId, pathRef.current);
+      else resume();
+    };
+    // pagehide also covers the phone unloading the page while it's away.
+    const onHide = () => markLeft(convRef.current.activeId, pathRef.current);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onHide);
+    // If the phone reloaded Companion while the person was on the call, resume after saved
+    // conversations have loaded.
+    const startup = setTimeout(() => resume(0), 800);
+    return () => {
+      clearTimeout(startup);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onHide);
+    };
+  }, [router]);
 
   useEffect(() => {
     settingsRef.current = settings;
@@ -67,7 +111,7 @@ export function PhoneBridge() {
   useEffect(() => {
     if (!due) return;
     const text = `Reminder: ${due.text}`;
-    void showSystemNotification("Companion reminder", due.text, `reminder-${due.id}`);
+    if (due.notify !== false) void showSystemNotification("Companion reminder", due.text, `reminder-${due.id}`);
     announce(text, "assertive");
     buzz(settingsRef.current.haptics, [200, 100, 200]);
     const s = settingsRef.current;

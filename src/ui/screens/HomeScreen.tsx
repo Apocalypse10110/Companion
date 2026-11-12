@@ -9,6 +9,7 @@ import { Composer } from "../conversation/Composer";
 import { useConversation } from "../conversation/ConversationProvider";
 import { QuickActions } from "../conversation/QuickActions";
 import { ShowMeButton } from "../conversation/ShowMeButton";
+import { useIncoming } from "../conversation/useIncoming";
 import { Thread } from "../conversation/Thread";
 import { SAY_EXAMPLES } from "../conversation/types";
 import { useSettings } from "../settings/SettingsProvider";
@@ -26,6 +27,7 @@ export function HomeScreen() {
   const [wantsTyping, setWantsTyping] = useState(false);
   const [greeting, setGreeting] = useState("Hello");
   const scroller = useRef<HTMLDivElement>(null);
+  const openCamera = useIncoming(c);
 
   // Time of day is only known on the device, so it is set after the first render.
   useEffect(() => {
@@ -79,7 +81,7 @@ export function HomeScreen() {
         {hasMessages ? (
           <>
             <Thread />
-            {!awaitingAnswer && <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} />}
+            {!awaitingAnswer && <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} autoOpen={openCamera} />}
             {canRepeat && (
               <Button variant="secondary" icon={Repeat} fullWidth onClick={c.repeatLast} disabled={c.phase === "thinking"}>
                 Repeat that
@@ -100,7 +102,7 @@ export function HomeScreen() {
             </p>
             <div className="flex flex-col gap-2">
               <p className="text-lg text-ink">Something confusing on a screen or a letter? Take a photo and I&apos;ll explain it.</p>
-              <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} />
+              <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} autoOpen={openCamera} />
             </div>
           </>
         )}

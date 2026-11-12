@@ -71,6 +71,8 @@ export interface ConversationApi {
   pressMic: () => void;
   sendText: (text: string) => void;
   sendQuickAction: (id: QuickActionId) => void;
+  /** Show a short "good to know" message in the conversation (not sent to the assistant). */
+  addNotice: (text: string) => void;
   /** "Show me": send a photo from the camera or Photos, with an optional question. */
   sendPhoto: (file: Blob, question?: string) => void;
   cancel: () => void;
@@ -550,6 +552,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       sendText: (text) => void submit(text, "text"),
       sendQuickAction,
       sendPhoto,
+      addNotice: (text) => addNotice(text),
       cancel: () => requestAbort.current?.abort(),
       readAloud,
       repeatLast,
@@ -580,6 +583,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     submit,
     sendQuickAction,
     sendPhoto,
+    addNotice,
     readAloud,
     repeatLast,
     cancelSpeech,
