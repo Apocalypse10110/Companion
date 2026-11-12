@@ -323,16 +323,30 @@ await step("Call return: conversation reopens with a welcome-back message", asyn
 
 await step("Share to Companion: a shared text arrives and is explained", async () => {
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
-  const res = await page.request.post(BASE + "/share", {
-    multipart: { text: "HMRC: You are owed a tax refund of £326.18. Claim now at hmrc-refund-uk.com" },
-    maxRedirects: 0,
-  });
-  const to = res.headers()["location"];
-  if (!to || !to.includes("sharedText=")) throw new Error(`No redirect with the text: ${res.status()} ${to}`);
   const before = await page.evaluate(() => document.body.innerText.split("Companion said:").length);
-  await page.goto(new URL(to, BASE).href, { waitUntil: "networkidle" });
+  const sentToAI = [];
+  page.on("request", (r) => r.url().endsWith("/api/assistant") && r.method() === "POST" && sentToAI.push(r.postData() ?? ""));
+  // Submit the same form a phone's share sheet sends (service worker or /share fallback, whichever runs).
+  await page.evaluate(() => {
+    const f = document.createElement("form");
+    f.method = "POST";
+    f.action = "/share";
+    f.enctype = "multipart/form-data";
+    const t = document.createElement("input");
+    t.name = "text";
+    t.value = "HMRC: You are owed a tax refund of £326.18. Call 07700 900123 or claim now at hmrc-refund-uk.com";
+    f.append(t);
+    document.body.append(f);
+    f.submit();
+  });
+  await page.waitForURL((u) => u.pathname === "/", { timeout: 15_000 });
+  // The shared text (with its phone number) must never appear in an address.
+  if (/07700|HMRC|refund/i.test(page.url())) throw new Error(`Shared text leaked into the address: ${page.url()}`);
   await page.waitForFunction((n) => document.body.innerText.split("Companion said:").length > Math.min(n, 2) - 1 && /scam|don't|do not|fake/i.test(document.body.innerText.split("Companion said:").pop()), before, { timeout: 40_000 });
   console.log(`      reply: ${(await lastCompanionReply()).trim().split("\n")[0].slice(0, 160)}`);
+  if (!sentToAI.length) throw new Error("The shared text never reached the assistant");
+  if (sentToAI.some((b) => /07700|900123/.test(b))) throw new Error("A phone number was sent to the AI");
+  if (!sentToAI.some((b) => b.includes("[phone number]"))) throw new Error("The number wasn't replaced with [phone number]");
 });
 
 await step("Device permissions screen lists permissions and AI status", async () => {

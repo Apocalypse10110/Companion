@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SHARE_SESSION_KEY } from "@/phone/share";
 import type { ConversationApi } from "./ConversationProvider";
 
 const SHARE_CACHE = "companion-share";
@@ -13,6 +14,17 @@ async function takeShared(): Promise<{ photo?: Blob; text?: string }> {
   // Read once, then gone: nothing shared is kept on the phone.
   await Promise.all([cache.delete("/shared/photo"), cache.delete("/shared/text")]);
   return out;
+}
+
+/** Text left by the /share fallback (see src/app/share/route.ts): read once, then removed. */
+export function takeSessionShare(storage: Pick<Storage, "getItem" | "removeItem"> | undefined = typeof sessionStorage === "undefined" ? undefined : sessionStorage): string | null {
+  try {
+    const text = storage?.getItem(SHARE_SESSION_KEY) ?? null;
+    storage?.removeItem(SHARE_SESSION_KEY);
+    return text?.trim() ? text : null;
+  } catch {
+    return null;
+  }
 }
 
 function askAboutText(text: string): string {
@@ -36,9 +48,9 @@ export function useIncoming(c: ConversationApi): boolean {
       setOpenCamera(true);
       return;
     }
-    const direct = params.get("sharedText");
-    if (direct) {
-      c.sendText(askAboutText(direct));
+    if (params.get("shared") === "session") {
+      const text = takeSessionShare();
+      if (text) c.sendText(askAboutText(text));
       return;
     }
     if (params.get("shared") === "1") {
