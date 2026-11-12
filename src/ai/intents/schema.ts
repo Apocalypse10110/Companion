@@ -82,7 +82,6 @@ const LONG = 500;
 /** Trim, drop control characters, collapse spaces, cap length. Returns undefined for empty or non-strings. */
 export function cleanString(value: unknown, max = SHORT): string | undefined {
   if (typeof value !== "string") return undefined;
-  // eslint-disable-next-line no-control-regex
   const s = value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
   if (!s) return undefined;
   return s.length > max ? s.slice(0, max).trim() : s;
