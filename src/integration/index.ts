@@ -10,12 +10,14 @@
  */
 
 import type { Services } from "@/contracts";
+import { assistant } from "@/ai";
+import { voiceInput, voiceOutput } from "@/voice";
 import { unconfiguredServices } from "./unconfigured";
 
 export const services: Services = {
-  assistant: unconfiguredServices.assistant, // Developer B
-  voiceInput: unconfiguredServices.voiceInput, // Developer B
-  voiceOutput: unconfiguredServices.voiceOutput, // Developer B
+  assistant, // Developer B
+  voiceInput, // Developer B
+  voiceOutput, // Developer B
   actions: unconfiguredServices.actions, // Developer C
   permissions: unconfiguredServices.permissions, // Developer C
   connections: unconfiguredServices.connections, // Developer C
