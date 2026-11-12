@@ -12,6 +12,7 @@ import { HistoryScreen } from "./HistoryScreen";
 import { HomeScreen } from "./HomeScreen";
 import { OnboardingScreen } from "./OnboardingScreen";
 import { AccessibilitySettings } from "./settings/AccessibilitySettings";
+import { ConnectionsSettings } from "./settings/ConnectionsSettings";
 import { DisplaySettings } from "./settings/DisplaySettings";
 import { PrivacySettings } from "./settings/PrivacySettings";
 import { SettingsHome } from "./settings/SettingsHome";
@@ -31,6 +32,7 @@ describe("every screen passes an automated accessibility scan", () => {
     ["Voice", <VoiceSettings key="v" />, "/settings/voice"],
     ["Accessibility", <AccessibilitySettings key="a" />, "/settings/accessibility"],
     ["Privacy", <PrivacySettings key="p" />, "/settings/privacy"],
+    ["Connections", <ConnectionsSettings key="c" />, "/settings/connections"],
     ["Onboarding", <OnboardingScreen key="o" />, "/onboarding"],
   ];
   for (const [name, ui, path] of screens) {

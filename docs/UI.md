@@ -6,10 +6,11 @@
 | --- | --- | --- |
 | `/` | Home | Greeting, the big microphone, typing, quick buttons, the conversation |
 | `/history` | History | Saved conversations: read, continue, delete |
-| `/settings` | Settings | Four sections, below |
+| `/settings` | Settings | Five sections, below |
 | `/settings/display` | Text and looks | Text size (4 steps), bold, theme, high contrast, extra-large buttons, spacing, quick buttons |
 | `/settings/voice` | Voice | Read answers aloud, speed, volume, voice choice, "Hear an example" |
 | `/settings/accessibility` | Accessibility | Reduce motion, screen-reader announcements, vibration, reset all |
+| `/settings/connections` | Connected accounts | Google Calendar, Gmail and more: status in words, connect, disconnect (asks first) |
 | `/settings/privacy` | Privacy and safety | Ask before doing things, remember conversations, erase |
 | `/onboarding` | Welcome | 5 short steps; shown automatically on first visit; skippable |
 

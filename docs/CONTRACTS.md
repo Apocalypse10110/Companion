@@ -15,6 +15,7 @@ in a PR that Developer A reviews. Until then, the UI is built against exactly th
 | `VoiceInputService`, `VoiceOutputService` | `src/contracts/voice.ts` | Developer B |
 | `ActionService` | `src/contracts/actions.ts` | Developer C |
 | `PermissionsService` | `src/contracts/permissions.ts` | Developer C |
+| `ConnectionsService` (Google Calendar, Gmail, ...) | `src/contracts/connections.ts` | Developer C |
 
 ## How to connect your work (one line each)
 
@@ -27,6 +28,7 @@ export const services: Services = {
   voiceOutput: myVoiceOutput,    // Developer B
   actions: myActions,            // Developer C
   permissions: myPermissions,    // Developer C
+  connections: myConnections,    // Developer C
 };
 ```
 
@@ -55,6 +57,17 @@ Until swapped, the UI shows honest "not connected yet" messages. It never fakes 
 - `message` is a sentence for an older adult, for example "Calling Anna now."
 - If an action fails only because of a missing permission, set `needsPermission` so the UI can explain and offer to ask.
 - `PermissionsService.check()` must never show a prompt. `request()` may.
+- `ConnectionsService` (Settings > Connected accounts):
+  - `list()` returns every account the app knows (connected or not) and must never start a sign-in.
+  - `connect(id)` is only called from a tap. It may open Google's sign-in (OAuth). It must never throw:
+    return `{ ok, connection, message }`, and set `cancelled: true` when the person closes the sign-in
+    (the UI shows "Nothing changed", not an error).
+  - `disconnect(id)` forgets the tokens on this device. The UI always asks the person first.
+  - States: `connected` (with `account`, e.g. the email address), `disconnected`, `needs-attention`
+    (expired or revoked: the UI offers "Sign in again"), `unavailable` (the UI shows "Not available yet").
+  - The UI never sees tokens or passwords. Reading calendar events or email for the assistant is between
+    Developer B and Developer C (for example as new action kinds); the UI only shows what is connected.
+  - Until this is swapped in, the placeholder lists Google Calendar and Gmail as `unavailable`, so nothing pretends to connect.
 
 ## Changing a contract
 

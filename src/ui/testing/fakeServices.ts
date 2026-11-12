@@ -6,6 +6,10 @@
 import {
   AssistantError,
   type ActionResult,
+  type ConnectionId,
+  type ConnectionInfo,
+  type ConnectionResult,
+  type ConnectionsService,
   type AssistantReply,
   type AssistantRequest,
   type PermissionName,
@@ -41,6 +45,46 @@ export interface FakeControls {
   setPermission: (name: PermissionName, state: PermissionState) => void;
   setNextActionResult: (result: ActionResult) => void;
   setNextPermissionResult: (state: PermissionState) => void;
+  /** Sign-ins that were started, and accounts that were disconnected. */
+  connectRequests: ConnectionId[];
+  disconnectRequests: ConnectionId[];
+  /** The next connect() result: "ok" signs in, "cancel" is the person closing the sign-in, "fail" errors. */
+  setNextConnectOutcome: (outcome: "ok" | "cancel" | "fail") => void;
+}
+
+/** Accounts as they start in tests: Calendar connected, Gmail not. */
+export function fakeConnections(): ConnectionInfo[] {
+  return [
+    { id: "google-calendar", name: "Google Calendar", state: "connected", account: "anna.smith@example.com" },
+    { id: "gmail", name: "Gmail", state: "disconnected" },
+  ];
+}
+
+/** A working, in-memory ConnectionsService for tests and the demo harness. */
+function createFakeConnections(
+  initial: ConnectionInfo[],
+  log?: { connect: ConnectionId[]; disconnect: ConnectionId[]; next: () => "ok" | "cancel" | "fail" },
+): ConnectionsService {
+  const accounts = initial.map((c) => ({ ...c }));
+  const find = (id: ConnectionId) => accounts.find((c) => c.id === id) ?? { id, name: "This account", state: "unavailable" as const };
+  return {
+    list: async () => accounts.map((c) => ({ ...c })),
+    async connect(id): Promise<ConnectionResult> {
+      log?.connect.push(id);
+      const c = find(id);
+      const outcome = log?.next() ?? "ok";
+      if (outcome === "cancel") return { ok: false, cancelled: true, connection: { ...c }, message: "You closed the sign-in. Nothing was changed." };
+      if (outcome === "fail") return { ok: false, connection: { ...c }, message: "I couldn't reach Google. Please try again in a moment." };
+      Object.assign(c, { state: "connected", account: "anna.smith@example.com", message: undefined });
+      return { ok: true, connection: { ...c }, message: `${c.name} is connected.` };
+    },
+    async disconnect(id): Promise<ConnectionResult> {
+      log?.disconnect.push(id);
+      const c = find(id);
+      Object.assign(c, { state: "disconnected", account: undefined, message: undefined });
+      return { ok: true, connection: { ...c }, message: `${c.name} is disconnected.` };
+    },
+  };
 }
 
 interface Options {
@@ -51,6 +95,8 @@ interface Options {
   voices?: Array<{ id: string; label: string; language: string }>;
   /** Anything not listed is treated as unsupported. Default: everything. */
   supportedActions?: string[] | "all";
+  /** Accounts the fake ConnectionsService starts with. Default: fakeConnections(). */
+  connections?: ConnectionInfo[];
 }
 
 /** Fully manual: nothing happens until a test calls a control. */
@@ -62,6 +108,7 @@ export function createFakeServices(options: Options = {}): { services: Services;
   let nextActionResult: ActionResult | null = null;
   let nextPermissionResult: PermissionState | null = null;
   const supported = options.supportedActions ?? "all";
+  let nextConnectOutcome: "ok" | "cancel" | "fail" = "ok";
 
   const controls: FakeControls = {
     requests: [],
@@ -88,6 +135,9 @@ export function createFakeServices(options: Options = {}): { services: Services;
     setPermission: (n, s) => void permissionStates.set(n, s),
     setNextActionResult: (r) => void (nextActionResult = r),
     setNextPermissionResult: (s) => void (nextPermissionResult = s),
+    connectRequests: [],
+    disconnectRequests: [],
+    setNextConnectOutcome: (o) => void (nextConnectOutcome = o),
   };
 
   const services: Services = {
@@ -149,6 +199,15 @@ export function createFakeServices(options: Options = {}): { services: Services;
         return result;
       },
     },
+    connections: createFakeConnections(options.connections ?? fakeConnections(), {
+      connect: controls.connectRequests,
+      disconnect: controls.disconnectRequests,
+      next: () => {
+        const o = nextConnectOutcome;
+        nextConnectOutcome = "ok";
+        return o;
+      },
+    }),
   };
 
   return { services, controls };
@@ -219,5 +278,6 @@ export function createDemoServices(): Services {
       check: async () => "granted",
       request: async () => "granted",
     },
+    connections: createFakeConnections(fakeConnections()),
   };
 }
