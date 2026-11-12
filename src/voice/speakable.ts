@@ -28,7 +28,8 @@ export function splitForSpeech(text: string, max = 220): string[] {
     const s = raw.trim();
     if (!s) continue;
     if (s.length > max) {
-      if (current) chunks.push(current), (current = "");
+      if (current) chunks.push(current);
+      current = "";
       // Break very long sentences at commas, then spaces.
       let rest = s;
       while (rest.length > max) {
