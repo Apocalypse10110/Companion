@@ -1,6 +1,7 @@
 "use client";
 
 import { Keyboard, Repeat, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Banner } from "../components/Card";
 import { Button } from "../components/Button";
@@ -104,6 +105,9 @@ export function HomeScreen() {
               <p className="text-lg text-ink">Something confusing on a screen or a letter? Take a photo and I&apos;ll explain it.</p>
               <ShowMeButton onPhoto={(f) => c.sendPhoto(f)} disabled={c.phase === "thinking"} autoOpen={openCamera} />
             </div>
+            <Link href="/scam-bait" className="text-lg font-bold text-accent-ink underline underline-offset-4">
+              Got a scam text? Waste the scammer&apos;s time
+            </Link>
           </>
         )}
 

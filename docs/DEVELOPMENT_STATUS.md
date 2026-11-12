@@ -39,6 +39,10 @@ Last updated: 2026-11-12 by Developers C and D. Branch: `main`.
 - **Connected accounts:**
   - Gmail, Google Calendar, Outlook and Spotify sign-in, with "read my email", "what's on my calendar" and "play …".
   - Needs app keys from each service: see [ACCOUNTS.md](ACCOUNTS.md).
+- **Wow features (Nov 12):**
+  - **Tap here circles:** Show Me replies can carry a box from Gemini; it is checked on the server and the phone, then drawn as a high-contrast ring on the person's photo. For a task done before, the ring starts hidden behind "Show me where" (help that fades).
+  - **Help Card to family:** when the person is stuck or was warned about a scam, Gemini writes a 2-3 line note in their voice. One tap offers it as a normal, confirmed message to someone in People (family first), or via the share sheet with the photo.
+  - **Scam Bait** (`/scam-bait`): paste a scam text and "Doris" writes muddled, time-wasting replies (Gemini, `/api/scam-bait`), with stall lines when there's no AI. Doris never gives numbers, codes, links or emails (checked on the server). The person copies or opens each reply in Messages and sends it themselves. Ends with "Kept them busy N minutes" and the 7726 report tip. Inspired by O2's Daisy.
 - **Shipping:**
   - `/status` page and `/api/health`.
   - GitHub Actions CI (lint, types, tests, build).

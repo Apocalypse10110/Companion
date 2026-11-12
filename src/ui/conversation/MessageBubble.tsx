@@ -1,6 +1,7 @@
 "use client";
 
 import { Volume2, VolumeX } from "lucide-react";
+import Link from "next/link";
 import type { PermissionName } from "@/contracts";
 import type { Person } from "@/people/store";
 import { Banner } from "../components/Card";
@@ -134,6 +135,12 @@ export function MessageBubble(props: MessageBubbleProps) {
           </div>
         )}
       </div>
+
+      {/\bscam/i.test(m.text) && (
+        <Link href="/scam-bait" className="text-lg font-bold text-accent-ink underline underline-offset-4">
+          Waste the scammer&apos;s time with Scam Bait
+        </Link>
+      )}
 
       {m.familyNote && props.onSendFamilyNote && (
         <FamilyNote note={m.familyNote} photo={m.photo} disabled={props.disabled} onSend={props.onSendFamilyNote} />
