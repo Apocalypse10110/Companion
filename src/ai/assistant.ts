@@ -102,7 +102,8 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       if (local) return { intent: local, ai: "failed" };
       throw err;
     }
-    if (!result) return { intent: local, ai: "none" };
+    // No AI. If it's set up but its key was refused, say so honestly instead of acting as if it isn't there.
+    if (!result) return { intent: local, ai: provider.unavailableReason?.() === "ai-auth" ? "failed" : "none" };
     const intent = validateIntent(result.intent) ?? local;
     const aiSuggestions = (result.suggestions ?? [])
       .map((x) => cleanString(x, 60))

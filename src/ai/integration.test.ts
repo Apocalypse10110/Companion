@@ -171,6 +171,12 @@ describe("assistant with an AI: tech support", () => {
     expect(r.text).toContain("can't reach my online helper");
   });
 
+  it("says so when the server's AI key was refused", async () => {
+    const { say } = setup({ interpret: async () => null, unavailableReason: () => "ai-auth" });
+    const r = await say("What is the capital of France?");
+    expect(r.text).toContain("can't reach my online helper");
+  });
+
   it("explains how to find apps a web app can't open", async () => {
     const { say } = setup();
     const r = await say("open the camera");

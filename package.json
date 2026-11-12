@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "node scripts/ui-check.mjs"
+    "test:ui": "node scripts/ui-check.mjs",
+    "test:e2e": "node scripts/e2e-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

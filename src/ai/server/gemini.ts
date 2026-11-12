@@ -9,7 +9,7 @@
  * the next one is used. The key is read from the server environment only.
  * Owner: Developer C (integration).
  */
-import { ApiError, GoogleGenAI } from "@google/genai";
+import { ApiError, GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { GEMINI_SCHEMA, SYSTEM_PROMPT, extractJson, toRawIntent, userPrompt } from "./prompt";
 import { ProviderError, type ServerInterpreter } from "./types";
 
@@ -17,7 +17,7 @@ import { ProviderError, type ServerInterpreter } from "./types";
 export const DEFAULT_GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
 
 /** Per-model time limit, so a slow model still leaves time to try the next one. */
-const PER_MODEL_TIMEOUT_MS = 9_000;
+const PER_MODEL_TIMEOUT_MS = 7_000;
 
 export function parseModelList(value: string | undefined): string[] {
   const list = (value ?? "")
@@ -87,6 +87,8 @@ export function createGeminiInterpreter(config: GeminiConfig): ServerInterpreter
               responseJsonSchema: GEMINI_SCHEMA,
               temperature: 0.3,
               maxOutputTokens: 2048,
+              // Gemini 3 models think before answering; a little is plenty here and keeps replies fast (~2s).
+              ...(model.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
               abortSignal: own.signal,
             },
           });
