@@ -92,7 +92,20 @@ function rateLimited(key: string, now = Date.now()): boolean {
 
 const json = (status: number, data: unknown) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
 
+/** Only Companion's own pages may use the AI key (same check as /api/assistant). */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!origin || !host) return true;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 export async function handleScamBait(request: Request, write: Writer | null): Promise<Response> {
+  if (!sameOrigin(request)) return json(403, { error: "forbidden" });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   if (rateLimited(ip)) return json(429, { error: "rate-limited" });
   const raw = await request.text().catch(() => "");

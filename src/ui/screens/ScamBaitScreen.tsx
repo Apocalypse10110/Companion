@@ -3,6 +3,7 @@
 import { ClipboardPaste, Copy, Flag, MessageSquare, RotateCcw, Timer } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { smsUrl } from "@/actions/links";
+import { redactPhoneNumbers } from "@/ai/providers/redact";
 import { BAIT_NAME, busyMinutes, stallLine, type BaitTurn } from "@/ai/scamBait";
 import { cleanPhone } from "@/people/store";
 import { detectOS } from "@/phone/platform";
@@ -50,7 +51,8 @@ export async function nextLine(thread: BaitTurn[], fetchImpl: typeof fetch = (..
     const res = await fetchImpl(SCAM_BAIT_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ thread: thread.map(({ from, text }) => ({ from, text })) }),
+      // Phone numbers stay on the phone (the same rule as the assistant): Doris doesn't need them.
+      body: JSON.stringify({ thread: thread.map(({ from, text }) => ({ from, text: redactPhoneNumbers(text) })) }),
     });
     const data = (await res.json().catch(() => null)) as { reply?: unknown } | null;
     if (res.ok && typeof data?.reply === "string" && data.reply.trim()) return data.reply;
