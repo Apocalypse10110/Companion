@@ -129,6 +129,24 @@ export function parseInput(body: unknown): InterpretInput | null {
   };
 }
 
+/** Models sometimes write the word "null" (or "n/a", "none") instead of leaving a field empty. */
+const PLACEHOLDER = /^\s*(?:null|none|nil|undefined|n\/?a|-)\s*$/i;
+
+/** Every placeholder string becomes null, at any depth, so nothing shows "From: null" on screen. */
+export function dropPlaceholders<T>(value: T): T {
+  if (typeof value === "string") return (PLACEHOLDER.test(value) ? null : value) as T;
+  if (Array.isArray(value)) return value.map(dropPlaceholders).filter((v) => v !== null) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, dropPlaceholders(v)])) as T;
+  }
+  return value;
+}
+
+/** Did the person ask for something to be checked or read (as opposed to, say, Wi-Fi help)? */
+function askedForCheck(input: InterpretInput): boolean {
+  return Boolean(input.image) || input.mode === "scam" || input.mode === "document" || /\b(scam|fraud|genuine|legit|real or)\b/i.test(input.text);
+}
+
 /** A task name is shown on screen and kept on the phone, so it must be short plain words. */
 function cleanSkill(value: unknown): string | null {
   const s = cleanString(value, 40)?.toLowerCase();
@@ -197,8 +215,12 @@ export async function handleAssistantRequest(
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   request.signal?.addEventListener("abort", () => controller.abort());
   try {
-    const result = await interpreter.interpret(input, controller.signal);
+    const result = dropPlaceholders(await interpreter.interpret(input, controller.signal));
     const intent = result ? validateIntent(result.intent) : null;
+    // A warning always gets through. "Looks safe" / "can't tell" and "what I could read" only make
+    // sense when the person asked for a check; otherwise they clutter a how-to answer.
+    const checking = askedForCheck(input);
+    const scam = result?.scam === "scam" || result?.scam === "suspicious" ? result.scam : checking && (result?.scam === "safe" || result?.scam === "unsure") ? result.scam : null;
     const suggestions = (result?.suggestions ?? [])
       .map((x) => cleanString(x, 60))
       .filter((x): x is string => Boolean(x))
@@ -212,11 +234,11 @@ export async function handleAssistantRequest(
       // "Tap here" only makes sense with a photo to draw on.
       target: input.image ? cleanTarget(result?.target) : null,
       familyNote: cleanFamilyNote(result?.familyNote),
-      scam: result?.scam === "scam" || result?.scam === "suspicious" || result?.scam === "safe" || result?.scam === "unsure" ? result.scam : null,
-      scamReasons: cleanScam(result?.scam, result?.scamReasons)?.reasons ?? [],
+      scam,
+      scamReasons: (scam && cleanScam(scam, result?.scamReasons)?.reasons) || [],
       // A step is only "checked" against a photo.
       stepCheck: input.image ? cleanStepCheck(result?.stepCheck) : null,
-      document: cleanDocument(result?.document),
+      document: checking || scam ? cleanDocument(result?.document) : null,
     });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });

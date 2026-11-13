@@ -140,4 +140,34 @@ describe("scam verdict", () => {
     const bad = await handleAssistantRequest(post({ text: "Is this a scam?" }), fixed({ intent: { name: "HELP", params: {} }, reply: "Hm.", scam: "maybe" } as never));
     expect((await bad.json()).scam).toBeNull();
   });
+
+  it("keeps 'looks safe' and 'what I could read' off a how-to answer, but always lets a warning through", async () => {
+    const out = { intent: { name: "HELP", params: {} }, reply: "Open Settings.", scam: "safe", document: { summary: "Wi-Fi help" } } as never;
+    const howTo = await (await handleAssistantRequest(post({ text: "How do I connect to the Wi-Fi?" }), fixed(out))).json();
+    expect(howTo.scam).toBeNull();
+    expect(howTo.document).toBeNull();
+    const asked = await (await handleAssistantRequest(post({ text: "Check this", mode: "scam" }), fixed(out))).json();
+    expect(asked.scam).toBe("safe");
+    expect(asked.document).toEqual({ summary: "Wi-Fi help", unclear: [] });
+    const warning = await (await handleAssistantRequest(post({ text: "How do I pay this fee?" }), fixed({ ...(out as object), scam: "scam" } as never))).json();
+    expect(warning.scam).toBe("scam");
+  });
+});
+
+describe("placeholder strings from the model", () => {
+  it("treats 'null', 'n/a' and 'none' as empty, so nothing shows 'From: null'", async () => {
+    const out = {
+      intent: { name: "HELP", params: {} },
+      reply: "This looks fine.",
+      skill: "null",
+      familyNote: "null",
+      scam: "safe",
+      document: { organization: "null", reference: "n/a", summary: "None", unclear: ["null"] },
+    } as never;
+    const res = await (await handleAssistantRequest(post({ text: "Is this real or a scam?", mode: "scam" }), fixed(out))).json();
+    expect(res.skill).toBeNull();
+    expect(res.familyNote).toBeNull();
+    expect(res.document).toBeNull();
+    expect(res.reply).toBe("This looks fine.");
+  });
 });

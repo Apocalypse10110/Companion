@@ -13,7 +13,7 @@ Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" 
 
 [![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](https://uprepcompanion.vercel.app/status)
 
-Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini + Gemini Live · 543 automated tests + real-browser checks
+Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini + Gemini Live · 545 automated tests + real-browser checks
 
 </div>
 
@@ -141,7 +141,7 @@ On the paid tier, Google doesn't use prompts to improve its products; on the fre
 ## Checks
 
 ```bash
-npm test               # 543 unit, behaviour, AI, server-route, voice and accessibility (axe) tests
+npm test               # 545 unit, behaviour, AI, server-route, voice and accessibility (axe) tests
 npm run typecheck && npm run lint
 npm run build && npm start      # then, in another terminal:
 npm run test:ui        # real browser: every screen at largest text + dark high contrast, nothing overflows
