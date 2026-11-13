@@ -1,0 +1,158 @@
+{
+  "when": "2026-11-13T04:36:06.484Z",
+  "site": "http://localhost:3100",
+  "model": "gemini-3.5-flash",
+  "scams": {
+    "total": 10,
+    "caught": 10,
+    "missed": []
+  },
+  "genuine": {
+    "total": 10,
+    "falseAlarms": 0,
+    "flagged": []
+  },
+  "noVerdict": [],
+  "rows": [
+    {
+      "id": "hs01",
+      "kind": "parcel",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not click that link or pay anything. Delivery companies will not send you a text message asking for a small payment like th"
+    },
+    {
+      "id": "hs02",
+      "kind": "bank",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Banks will never ask you to reply to a text with a security code. Please do not reply to that message or tap any links in it. It is s"
+    },
+    {
+      "id": "hs03",
+      "kind": "family",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is a very common scam. Please do not send any money or reply to the message. It is designed to make you feel worried and act quickly. I recommend you call "
+    },
+    {
+      "id": "hs04",
+      "kind": "prize",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not pay any money or reply to that message. Legitimate lotteries never ask for a fee to release winnings. It is best to del"
+    },
+    {
+      "id": "hs05",
+      "kind": "tech support",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Microsoft will never send you a message threatening to delete your files or asking you to call a number to renew a licence. Please do"
+    },
+    {
+      "id": "hs06",
+      "kind": "subscription",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not click that link or enter any card details. Disney would not send a text like that. It is safest to delete the message r"
+    },
+    {
+      "id": "hs07",
+      "kind": "government",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not click that link or give them any of your bank details. The government will never ask you to apply for payments through "
+    },
+    {
+      "id": "hs08",
+      "kind": "investment",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not reply to it or send any money. Legitimate investment advisers will never ask you to send money like that, and there is "
+    },
+    {
+      "id": "hs09",
+      "kind": "courier fraud",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not give anyone your card or PIN, and do not let anyone collect anything from you. Banks and police will never ask for your"
+    },
+    {
+      "id": "hs10",
+      "kind": "marketplace",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is definitely a scam. Scammers often pretend to be buyers on Facebook Marketplace to trick you into clicking links that steal your information. Ple"
+    },
+    {
+      "id": "hg01",
+      "kind": "delivery",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds like a standard delivery notification. It is likely safe, but always be careful. If you are not expecting a parcel, it is best to just ignor"
+    },
+    {
+      "id": "hg02",
+      "kind": "bank",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "This message looks safe. It is not asking you to click a link or give any details, and it correctly tells you to use the number on the back of your card if you "
+    },
+    {
+      "id": "hg03",
+      "kind": "doctor",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just giving you information and does not ask you to do anything or click any links. It is common for doctors to send updates like"
+    },
+    {
+      "id": "hg04",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks perfectly safe. It sounds like a thoughtful note from your child about your plans for the theatre tonight."
+    },
+    {
+      "id": "hg05",
+      "kind": "friend",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds perfectly safe and friendly. It is just someone from your bridge club checking in with you about next week. You do not need to worry about i"
+    },
+    {
+      "id": "hg06",
+      "kind": "code",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a security code from Amazon. As long as you did not share that code with anyone, you are perfectly fine. You can just ignore"
+    },
+    {
+      "id": "hg07",
+      "kind": "shop",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard notification letting you know your order is ready to be picked up. You do not need to do anything special, just h"
+    },
+    {
+      "id": "hg08",
+      "kind": "utility",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe to me. Utility companies like Thames Water often send texts to let you know about planned work in your area. Since it is not asking you "
+    },
+    {
+      "id": "hg09",
+      "kind": "appointment",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a helpful reminder about your car appointment, and it is not asking you to click anything or pay money. You do not need to d"
+    },
+    {
+      "id": "hg10",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a lovely, safe message from a grandchild sharing some happy news. It does not look like a scam at all, as it is just a personal note and is not "
+    }
+  ]
+}

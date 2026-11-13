@@ -1,0 +1,25 @@
+{
+  "about": "Held-out check: 20 messages written AFTER the prompt was tuned on scam-set.json, and never used for tuning. Fictional numbers (07700 900xxx, 555-01xx) and made-up addresses.",
+  "messages": [
+    { "id": "hs01", "scam": true, "kind": "parcel", "text": "Parcelforce: Customs charge of £2.99 required before delivery. Pay securely: parcelforce-customs-pay.com" },
+    { "id": "hs02", "scam": true, "kind": "bank", "text": "Santander: We noticed a login from a new location. If this wasn't you, reply with your security code to stop it." },
+    { "id": "hs03", "scam": true, "kind": "family", "text": "Mum it's Chloe, new phone! My banking app is locked and I need to pay my rent today, can you send £650? I'll pay you back Friday" },
+    { "id": "hs04", "scam": true, "kind": "prize", "text": "Your number was drawn in the National Lottery Mobile Bonus! £25,000 is waiting. Pay a £20 release fee to claim." },
+    { "id": "hs05", "scam": true, "kind": "tech support", "text": "Microsoft: Your Windows licence has expired and your files will be deleted in 24 hours. Call 0800 555 0133 to renew." },
+    { "id": "hs06", "scam": true, "kind": "subscription", "text": "Your Disney+ subscription could not be renewed. Re-enter your card details within 24 hours to keep watching: disneyplus-renew.info" },
+    { "id": "hs07", "scam": true, "kind": "government", "text": "GOV.UK: You are eligible for a £400 cost of living payment. Apply with your bank details here: gov-support-payment.uk.com" },
+    { "id": "hs08", "scam": true, "kind": "investment", "text": "Hi, I'm an investment adviser. Our members made 30% last month on gold. Send £250 to start, guaranteed returns, limited places." },
+    { "id": "hs09", "scam": true, "kind": "courier fraud", "text": "This is DC Harris from the fraud squad. Your card has been cloned. A courier will collect your card and PIN this afternoon. Don't tell your bank." },
+    { "id": "hs10", "scam": true, "kind": "marketplace", "text": "Hi, I want to buy your sofa on Facebook Marketplace. I've paid through the courier service, just click this link to receive the money: fb-safe-pay.com" },
+    { "id": "hg01", "scam": false, "kind": "delivery", "text": "Hermes/Evri: Your parcel has been delivered to your safe place (porch)." },
+    { "id": "hg02", "scam": false, "kind": "bank", "text": "HSBC: You've sent £40.00 to J Smith. If you didn't make this payment, please call us on the number on the back of your card." },
+    { "id": "hg03", "scam": false, "kind": "doctor", "text": "Riverside Surgery: Your blood test results are back and are normal. No action needed." },
+    { "id": "hg04", "scam": false, "kind": "family", "text": "Hi Mum, I'll pick you up at 6 for the theatre. Wrap up warm, it's cold out!" },
+    { "id": "hg05", "scam": false, "kind": "friend", "text": "Lovely to see you at bridge today Betty. Same time next week?" },
+    { "id": "hg06", "scam": false, "kind": "code", "text": "Your Amazon verification code is 739201. Do not share this code." },
+    { "id": "hg07", "scam": false, "kind": "shop", "text": "Sainsbury's: Your Click & Collect order is ready at the customer service desk." },
+    { "id": "hg08", "scam": false, "kind": "utility", "text": "Thames Water: We're carrying out planned work on your street on Tuesday. Your water may be off from 9am to 1pm." },
+    { "id": "hg09", "scam": false, "kind": "appointment", "text": "Reminder: Your car's MOT is booked at Kwik Fit on Monday 18 Nov at 9:00." },
+    { "id": "hg10", "scam": false, "kind": "family", "text": "Grandad we won the football match!! I scored a goal 😀" }
+  ]
+}

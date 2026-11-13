@@ -40,7 +40,7 @@ describe("handleAssistantRequest", () => {
   it("returns a validated intent and reply", async () => {
     const res = await handleAssistantRequest(post({ text: "ring the lad", history: [] }), fixed({ intent: { name: "CALL_CONTACT", params: { contact: "son", extra: "x" } }, reply: "ok" }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ intent: { name: "CALL_CONTACT", params: { contact: "son" } }, reply: "ok", suggestions: [], skill: null, taskDone: false, target: null, familyNote: null });
+    expect(await res.json()).toEqual({ intent: { name: "CALL_CONTACT", params: { contact: "son" } }, reply: "ok", suggestions: [], skill: null, taskDone: false, target: null, familyNote: null, scam: null });
   });
 
   it("turns invalid model output into UNKNOWN", async () => {
@@ -130,5 +130,14 @@ describe("remote provider (client side)", () => {
     await expect(createRemoteProvider("/x", async () => new Response("", { status: 504 })).interpret(req)).rejects.toMatchObject({ code: "timeout" });
     await expect(createRemoteProvider("/x", async () => new Response("", { status: 500 })).interpret(req)).rejects.toMatchObject({ code: "unknown" });
     await expect(createRemoteProvider("/x", async () => { throw new TypeError("Failed to fetch"); }).interpret(req)).rejects.toMatchObject({ code: "network" });
+  });
+});
+
+describe("scam verdict", () => {
+  it("passes a valid verdict through and drops anything else", async () => {
+    const ok = await handleAssistantRequest(post({ text: "Is this a scam?" }), fixed({ intent: { name: "HELP", params: {} }, reply: "Yes.", scam: "scam" } as never));
+    expect((await ok.json()).scam).toBe("scam");
+    const bad = await handleAssistantRequest(post({ text: "Is this a scam?" }), fixed({ intent: { name: "HELP", params: {} }, reply: "Hm.", scam: "maybe" } as never));
+    expect((await bad.json()).scam).toBeNull();
   });
 });

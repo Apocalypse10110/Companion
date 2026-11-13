@@ -209,6 +209,7 @@ export async function handleAssistantRequest(
       // "Tap here" only makes sense with a photo to draw on.
       target: input.image ? cleanTarget(result?.target) : null,
       familyNote: cleanFamilyNote(result?.familyNote),
+      scam: result?.scam === "scam" || result?.scam === "suspicious" || result?.scam === "safe" ? result.scam : null,
     });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });

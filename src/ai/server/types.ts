@@ -26,6 +26,8 @@ export interface InterpretOutput {
   target?: unknown;
   /** A note the person may send to family, untrusted. */
   familyNote?: string;
+  /** For a message, call, pop-up or letter they asked about: the AI's verdict. Used by the scam scorecard. */
+  scam?: "scam" | "suspicious" | "safe";
 }
 
 /** A server-side AI adapter. Returns untrusted raw output; the client validates it. */
