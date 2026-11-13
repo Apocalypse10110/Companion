@@ -7,11 +7,11 @@
 **A patient tech helper for older adults.**
 Talk to it, type to it, or *show* it a photo. It explains what's going on, then teaches you one step at a time until you can do it yourself.
 
-### ▶ Try it on your phone: **LIVE_URL_HERE**
+### ▶ Try it on your phone: **https://uprepcompanion.vercel.app**
 
 Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" makes it an app.
 
-[![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](LIVE_URL_HERE/status)
+[![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](https://uprepcompanion.vercel.app/status)
 
 Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini · ~390 automated tests + real-browser end-to-end checks
 
