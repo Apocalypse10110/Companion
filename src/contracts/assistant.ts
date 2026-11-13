@@ -55,6 +55,11 @@ export interface AssistantReply {
   proposedActions?: ProposedAction[];
   /** Short tappable suggestions shown under the reply. Max 3 are shown. */
   suggestions?: string[];
+  /**
+   * Companion is teaching a task ("connect to wifi"). "new": first time, shown as a lesson.
+   * "practice": done before, so they try first. "learned": just finished it.
+   */
+  lesson?: { skill: string; stage: "new" | "practice" | "learned" };
   /** "Tap here": the thing to press in the photo the person just sent, drawn as a ring on it. */
   pointAt?: PointAt;
   /**

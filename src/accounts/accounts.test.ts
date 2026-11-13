@@ -53,8 +53,15 @@ describe("configuration", () => {
 
   it("lists accounts honestly, never with tokens", async () => {
     const list = await listAccounts(new Request(`${BASE}/api/accounts`), { ACCOUNTS_SECRET: SECRET, SPOTIFY_CLIENT_ID: "a", SPOTIFY_CLIENT_SECRET: "b" }).json();
-    expect(list.find((a: { id: string }) => a.id === "gmail").state).toBe("unavailable");
+    // Accounts this server isn't set up for are left out, so nothing looks broken.
+    expect(list.map((a: { id: string }) => a.id)).toEqual(["spotify"]);
     expect(list.find((a: { id: string }) => a.id === "spotify").state).toBe("disconnected");
+  });
+
+  it("hides Outlook when it isn't set up, keeps the ones that are", async () => {
+    const env = { ACCOUNTS_SECRET: SECRET, GOOGLE_CLIENT_ID: "g", GOOGLE_CLIENT_SECRET: "s" };
+    const ids = (await listAccounts(new Request(`${BASE}/api/accounts`), env).json()).map((a: { id: string }) => a.id);
+    expect(ids).toEqual(["gmail", "google-calendar", "spotify"]);
   });
 });
 

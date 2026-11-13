@@ -8,6 +8,7 @@ import { Banner } from "../components/Card";
 import { Button } from "../components/Button";
 import { cn } from "../components/cn";
 import { ActionConfirmCard } from "./ActionConfirmCard";
+import { LessonBadge } from "./LessonBadge";
 import { FamilyNote } from "./FamilyNote";
 import { TapHere } from "./TapHere";
 import type { ChatMessage } from "./types";
@@ -105,6 +106,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     <li className="anim-rise flex flex-col gap-3">
       {/* The reply. Who is speaking is clear from the side and shape, and said in words to screen readers. */}
       <div className={cn("bw flex w-full max-w-[96%] flex-col gap-4 rounded-3xl rounded-tl-md bg-surface px-4 py-4")}>
+        {m.lesson && <LessonBadge lesson={m.lesson} />}
         <p className="text-xl text-ink">
           <span className="sr-only">Companion said: </span>
           {m.text}

@@ -58,7 +58,10 @@ function sameOrigin(request: Request): boolean {
 }
 
 export function listAccounts(request: Request, env: Env): Response {
-  const list: AccountInfo[] = ACCOUNT_IDS.map((id) => {
+  // Accounts this server isn't set up for are left out (so nothing looks broken), except Spotify,
+  // which already works without signing in.
+  const shown = ACCOUNT_IDS.filter((id) => id === "spotify" || isConfigured(id, env));
+  const list: AccountInfo[] = shown.map((id) => {
     const name = providerConfig(id, env).name;
     if (!isConfigured(id, env)) {
       if (id === "spotify") {

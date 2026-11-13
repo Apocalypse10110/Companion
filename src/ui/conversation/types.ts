@@ -1,4 +1,5 @@
 import type {
+  AssistantReply,
   AssistantImage,
   PermissionName,
   PointAt,
@@ -62,6 +63,8 @@ export interface ChatMessage {
   pointAt?: PointAt;
   /** A note the person may choose to send to family (Help Card). */
   familyNote?: string;
+  /** Companion is teaching a task: shown as a lesson badge on the reply. */
+  lesson?: AssistantReply["lesson"];
 }
 
 export interface Conversation {

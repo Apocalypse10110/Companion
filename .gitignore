@@ -22,3 +22,7 @@ next-env.d.ts
 PROMPT-DEV-*.txt
 HANDOFF-DEV-*.md
 docs/HANDOFF-DEV-*.md
+NEXT-STEPS.md
+.vercel
+.env*
+!.env.example

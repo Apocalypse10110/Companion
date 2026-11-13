@@ -14,16 +14,27 @@ The primary users are older adults and people with disabilities (motor, vision, 
 
 ## Product Purpose
 
-Companion is a voice-first assistant that makes a smartphone easier to use. It is built for Ice Hacks 2026 (Nov 8–15).
+**Companion teaches older adults how to use their technology, until they can do it themselves.**
 
-- **First, it does things for the person.** They speak naturally ("Call my daughter", "Remind me about my appointment tomorrow", "Make the text bigger", "Open my photos") and Companion carries out supported phone actions.
-- **Second, it explains.** When asked ("Help me use my phone"), it guides the person through a task one plain step at a time.
+Ask it how to do anything ("How do I connect to Wi-Fi?", "What does this pop-up mean?", "How do I send a photo?"), or show it a photo of what's confusing. It teaches, one plain step at a time. It says what to look for and why, and checks after each step.
 
-Success means the person can say what they want in their own words, understand what Companion is about to do, confirm it, and hear a clear result. They should never be stranded by an error they can't recover from.
+- **The first time, it teaches.** The reply is marked as a lesson ("Teaching you: Connect to Wi-Fi"). Each step comes with a short why, and on a photo a ring shows exactly where to tap. The person can choose "Let me try it myself" at any point.
+- **The help fades as they learn.** When a task is finished, it's recorded ("Learned: Connect to Wi-Fi") in **Things you can do**. The next time, Companion says "You've done this before: try it yourself", gives a hint only if asked, and shows the ring only after "Show me where".
+- **It also does things,** always with confirmation: calls and texts (the person presses Call or Send), FaceTime, reminders, weather, bigger text.
+- **It keeps them safe.** It spots scams in texts and pop-ups (measured: 10 of 10 unseen scams caught, 0 false alarms), and can send a plain note to a family member.
+
+Success means the person learns to do it alone. They need Companion less each time, not more.
 
 ## Positioning
 
-Companion is a Rabbit R1-style "speak and it acts" assistant built from the ground up for people mainstream assistants leave behind. Every surface is designed for low vision, unsteady hands and screen readers. Risky actions always need the person's confirmation, and the app never claims to have done something the phone did not actually do.
+**"Siri answers your question. Companion stays until you can do it yourself."**
+
+General assistants answer and forget. They repeat the same answer forever, use jargon, and assume you know where things are. Companion is a patient teacher built for people mainstream technology leaves behind:
+- it teaches step by step, with photos of the person's own screen or device,
+- it remembers what they've learned so its help fades,
+- it is designed for low vision, unsteady hands and screen readers.
+
+Risky actions always need confirmation, and it never claims to have done something it didn't.
 
 ## Operating Context
 
@@ -45,11 +56,7 @@ Companion is a Rabbit R1-style "speak and it acts" assistant built from the grou
 - **Settings apply before first paint.**
 - **No fake functionality.** Unconnected services say "not connected yet", and the scripted demo harness is dev-only.
 - **History is device-only.** It is saved only if "Remember my conversations" is on, and erasing it leaves nothing behind.
-- **Undecided or pending:**
-  - The shared contracts are proposed and not yet agreed with B and C.
-  - The real assistant, voice and actions are not yet connected.
-  - The PR is not yet merged.
-  - Offline screen, a "repeat that" quick action and a caregiver-contact quick action are nice-to-haves.
+- **Status:** the assistant (Gemini), voice, phone actions, Show Me, help that fades, scam checks and the offline page are all connected and live. See `docs/DEVELOPMENT_STATUS.md`.
 
 ## Brand Commitments
 
