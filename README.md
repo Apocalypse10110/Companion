@@ -24,6 +24,8 @@ Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini · ~390 automated te
 
 > **"Siri answers your question. Companion stays until you can do it yourself."**
 
+**Scam detection, measured:** caught **10 of 10** scam messages it had never seen, with **0 false alarms** on 10 genuine ones (and 30/30, 0 false alarms on our 60-message set). See [Scam scorecard](#scam-scorecard-measured-nov-13-gemini-35-flash).
+
 Technology can be confusing, especially when you're not used to it. A pop-up you don't understand, Wi-Fi that won't connect, a text that might be a scam. The usual answer is "ask your grandchild" or wade through tutorials full of words like *toggle* and *app drawer*.
 
 Companion is an AI helper you can **talk to, type to, or just show**. Point the camera at whatever is confusing and it says what it is in plain words, then walks you through fixing it **one step at a time**. It remembers what you've learned, so next time it lets you try first and only gives a hint if you need one. The goal isn't to do things for you forever. It's to help you stay independent.
@@ -37,7 +39,9 @@ Technology should bring people together, not leave anyone behind.
 3. **Show it a suspicious text** ("your parcel is on hold, pay £1.45"). It tells you plainly if it looks like a scam and not to tap anything.
 4. **"Call my daughter"** (add her first in Settings → People). It asks first, then opens your phone app with her number. You press Call.
 5. **"Make the text bigger"** or **"Remind me to take my pills at 8."**
-6. Ask the same how-to question again later. Because you've done it before, it asks you to try first ("Give me a hint" / "Tell me exactly"). See **Settings → Things you can do**.
+6. **"Read my email"** or **"What's on tomorrow?"**: turn on **Settings → Connected accounts → Try a sample inbox and calendar** to try it without signing in.
+7. **"Will it rain tomorrow?"** or **"FaceTime my daughter"** (FaceTime on iPhone).
+8. Ask the same how-to question again later. Because you've done it before, it asks you to try first ("Give me a hint" / "Tell me exactly"). See **Settings → Things you can do**.
 
 ## What makes it different from Siri or Google Assistant
 

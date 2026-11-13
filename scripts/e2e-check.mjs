@@ -349,6 +349,20 @@ await step("Share to Companion: a shared text arrives and is explained", async (
   if (!sentToAI.some((b) => b.includes("[phone number]"))) throw new Error("The number wasn't replaced with [phone number]");
 });
 
+await step("Sample inbox: anyone can try 'read my email' without signing in", async () => {
+  await page.goto(BASE + "/settings/connections", { waitUntil: "networkidle" });
+  const toggle = page.getByRole("switch", { name: /Try a sample inbox and calendar/ });
+  for (let i = 0; i < 20 && (await toggle.getAttribute("aria-checked")) !== "true"; i++) {
+    await toggle.click().catch(() => {});
+    await page.waitForTimeout(250);
+  }
+  await waitForReplyContaining(/Spotify[\s\S]*Ready, no sign-in needed/);
+  await page.goto(BASE + "/", { waitUntil: "networkidle" });
+  await typeAndSend("Read my email");
+  await page.getByRole("button", { name: /yes, do it: read my latest emails/i }).last().click();
+  await waitForReplyContaining(/This is the sample inbox\. You have 3 unread emails/);
+});
+
 await step("Device permissions screen lists permissions and AI status", async () => {
   await page.goto(BASE + "/settings/phone", { waitUntil: "networkidle" });
   await waitForReplyContaining(/Device permissions[\s\S]*Microphone[\s\S]*Camera[\s\S]*Contacts[\s\S]*My online helper/);

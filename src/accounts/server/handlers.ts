@@ -30,6 +30,7 @@ export interface AccountInfo {
   state: "connected" | "disconnected" | "needs-attention" | "unavailable";
   account?: string;
   message?: string;
+  worksWithoutSignIn?: boolean;
 }
 
 function json(status: number, data: unknown, cookies: string[] = []): Response {
@@ -60,6 +61,15 @@ export function listAccounts(request: Request, env: Env): Response {
   const list: AccountInfo[] = ACCOUNT_IDS.map((id) => {
     const name = providerConfig(id, env).name;
     if (!isConfigured(id, env)) {
+      if (id === "spotify") {
+        return {
+          id,
+          name,
+          state: "unavailable",
+          worksWithoutSignIn: true,
+          message: "Works without signing in: say \"play\" and a song or singer, and I'll open it in Spotify.",
+        };
+      }
       return { id, name, state: "unavailable", message: "This hasn't been set up on Companion's server yet." };
     }
     const s = readSession(request, id, env);
