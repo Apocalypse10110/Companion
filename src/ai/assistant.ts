@@ -53,7 +53,7 @@ const MAX_AI_REPLY = 600;
  * Intents that are conversation rather than a request to do something. When an AI is available it
  * answers these, so "how do I connect to Wi-Fi?" gets real step-by-step help, not fixed text.
  */
-const CONVERSATIONAL = new Set<Intent["name"]>(["HELP", "FIND_INFORMATION", "UNKNOWN", "CHECK_WEATHER"]);
+const CONVERSATIONAL = new Set<Intent["name"]>(["HELP", "FIND_INFORMATION", "UNKNOWN"]);
 
 /** How the AI did on this turn, so a fallback reply can be honest about it. */
 type AIState = "answered" | "none" | "failed";
@@ -211,6 +211,13 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
           };
         }
         const who = contactLabel(p.contact);
+        if (p.video) {
+          return {
+            text: `Would you like me to FaceTime ${who}? Tap "Yes, do it" to start the video call.`,
+            spoken: `Would you like me to FaceTime ${who}? Tap yes to start the video call.`,
+            action: { intent, action: { kind: "call", title: `FaceTime ${who}`, risk: "high", params: { contact: p.contact, video: true } } },
+          };
+        }
         return {
           text: `Would you like me to call ${who}? Tap "Yes, do it" to start the call.`,
           spoken: `Would you like me to call ${who}? Tap yes to start the call.`,
@@ -351,12 +358,16 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         return { text: `It's ${time}.`, spoken: `It's ${time.replace(/\s?[AP]M$/i, "")} ${part}.` };
       }
 
-      case "CHECK_WEATHER":
-        if (aiReply) return { text: aiReply };
+      case "CHECK_WEATHER": {
+        // A real forecast (src/actions/weather.ts). The AI never makes up weather.
+        const day = p.when === "tomorrow" ? "tomorrow" : "today";
+        const place = p.query ? recoverCase(request.text, p.query) : undefined;
+        const title = `Check ${day}'s weather${place ? ` in ${place}` : ""}`;
         return {
-          text: "I'm sorry, I can't check the weather yet. I can open the web browser so you can look it up.",
-          action: { intent: { name: "OPEN_APPLICATION", params: { app: "browser" } }, action: { kind: "open-app", title: "Open the web browser", risk: "low", params: { app: "browser", query: "weather" } } },
+          text: place ? `I can check ${day}'s weather in ${place} for you.` : `I can check ${day}'s weather where you are. I'll need your location for that.`,
+          action: { intent, action: { kind: "weather", title, risk: "low", params: { when: day, ...(place ? { place } : {}) } } },
         };
+      }
 
       case "FIND_INFORMATION":
         if (aiReply) return { text: aiReply, suggestions: aiSuggestions };

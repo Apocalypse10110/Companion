@@ -10,11 +10,12 @@
  */
 import type { ActionKind, ActionResult, ActionService, PermissionsService, ProposedAction } from "@/contracts";
 import { contactLabel, isRelationship, yourify } from "@/ai/words";
-import { addPerson, findPeople, isPhoneNumber, type Person } from "@/people/store";
+import { addPerson, cleanPhone, findPeople, isPhoneNumber, type Person } from "@/people/store";
 import { contactPicker as defaultPicker, defaultLauncher, detectOS, type ContactPicker, type Launcher, type OS } from "@/phone/platform";
 import { permissions as defaultPermissions } from "@/permissions";
 import { recordHandoff } from "@/phone/handoff";
 import { checkCalendar, playMusic, readEmail } from "./accounts";
+import { weatherReport } from "./weather";
 import { mapsUrl, searchUrl, smsUrl, telUrl } from "./links";
 import { addReminder, describeReminders } from "./reminders";
 import { planSetting, settingsBridge } from "./settingsBridge";
@@ -29,6 +30,7 @@ const SUPPORTED = new Set<ActionKind>([
   "read-email",
   "check-calendar",
   "play-music",
+  "weather",
 ]);
 
 export interface ActionDeps {
@@ -107,11 +109,27 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
   async function call(action: ProposedAction): Promise<ActionResult> {
     const contact = str(action.params.contact);
     if (!contact) return { ok: false, message: "I don't know who to call. Please tell me their name." };
+    const video = action.params.video === true;
+    if (video && os() === "android") {
+      return {
+        ok: false,
+        message: "FaceTime only works on iPhones, iPads and Macs, so I can't start it on this phone. I can make a normal call instead: just say \"call\" and their name.",
+      };
+    }
     const r = await resolve(contact);
     if (r.fail) return r.fail;
     const name = who(contact, r.person);
     // So Companion can pick up where it left off when the person comes back from the call.
     recordHandoff("call", name);
+    if (video) {
+      // FaceTime takes a phone number (or the email their Apple account uses).
+      launch(`facetime:${cleanPhone(r.phone!)}`);
+      const next =
+        os() === "ios"
+          ? "Tap FaceTime on the box that appears to start the video call."
+          : "If FaceTime didn't open, this device can't make FaceTime calls.";
+      return { ok: true, message: `I've opened FaceTime with ${name}'s number. ${next}${savedNote(contact, r.person, r.picked)}` };
+    }
     launch(telUrl(r.phone!));
     const system = os();
     const next =
@@ -228,6 +246,11 @@ export function createActionService(deps: ActionDeps = {}): ActionService {
             return await readEmail(fetchImpl, now());
           case "check-calendar":
             return await checkCalendar(str(action.params.when) || "today", fetchImpl, now(), lang());
+          case "weather":
+            return await weatherReport(
+              { place: str(action.params.place) || undefined, when: action.params.when === "tomorrow" ? "tomorrow" : "today" },
+              { fetch: fetchImpl, language: lang() },
+            );
           case "play-music":
             return await playMusic(str(action.params.query) || "relaxing music", fetchImpl, launch);
           case "accessibility":

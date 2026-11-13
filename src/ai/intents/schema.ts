@@ -69,7 +69,9 @@ export interface IntentParams {
   which?: (typeof REMINDER_LISTS)[number];
   /** READ_TIME: "time" or "date". */
   what?: "time" | "date";
-  /** FIND_INFORMATION / HELP: what they asked about. */
+  /** CALL_CONTACT: a video call (FaceTime) instead of a voice call. */
+  video?: boolean;
+  /** FIND_INFORMATION / HELP: what they asked about. CHECK_WEATHER: the place, if they named one. */
   query?: string;
   topic?: string;
 }
@@ -114,7 +116,14 @@ export function validateIntent(raw: unknown): Intent | null {
   switch (name) {
     case "CALL_CONTACT":
       params.contact = cleanString(p.contact, 60);
+      if (p.video === true || p.video === "true") params.video = true;
       break;
+    case "CHECK_WEATHER": {
+      const w = (cleanString(p.when, 40) ?? "").toLowerCase();
+      params.when = /tomorrow/.test(w) ? "tomorrow" : "today";
+      params.query = cleanString(p.query, 60);
+      break;
+    }
     case "SEND_MESSAGE":
       params.contact = cleanString(p.contact, 60);
       params.body = cleanString(p.body, LONG);

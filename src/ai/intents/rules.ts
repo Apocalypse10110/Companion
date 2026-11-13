@@ -193,9 +193,10 @@ function call(s: string): Intent | null {
     s.match(/^(?:get|put) me through to (.+)$/) ??
     s.match(/^(?:i want to )?(?:talk|speak) (?:to|with) (.+?)(?: on the phone)?$/);
   if (!m) return null;
-  const who = m[1] ? cleanContact(m[1]) : undefined;
-  if (who && /^(?:someone|somebody|a number|a friend)$/.test(who)) return { name: "CALL_CONTACT", params: {} };
-  return { name: "CALL_CONTACT", params: { contact: who } };
+  const video = /^(?:video call|facetime)\b/.test(s) || /\b(?:on facetime|video call|by video)\b/.test(s);
+  const who = m[1] ? cleanContact(m[1].replace(/\s+(?:on facetime|by video)$/, "")) : undefined;
+  if (who && /^(?:someone|somebody|a number|a friend)$/.test(who)) return { name: "CALL_CONTACT", params: video ? { video: true } : {} };
+  return { name: "CALL_CONTACT", params: { contact: who, ...(video ? { video: true } : {}) } };
 }
 
 function openApp(s: string): Intent | null {
@@ -235,9 +236,13 @@ function help(s: string): Intent | null {
 }
 
 function weather(s: string): Intent | null {
-  if (/\b(?:weather|forecast|temperature outside|going to rain|will it rain|is it raining|umbrella|how (?:hot|cold|warm) is it)\b/.test(s))
-    return { name: "CHECK_WEATHER", params: {} };
-  return null;
+  if (!/\b(?:weather|forecast|temperature outside|going to rain|will it rain|is it raining|umbrella|how (?:hot|cold|warm) is it)\b/.test(s)) return null;
+  const when = /\btomorrow\b/.test(s) ? "tomorrow" : "today";
+  // "... in Seattle", "... for New York" (a place), but not "in the morning".
+  const place = s
+    .match(/\b(?:in|for|at)\s+(?!the (?:morning|afternoon|evening)|today|tomorrow)([a-z][a-z .'-]{1,40}?)(?:\s+(?:today|tomorrow|tonight|this week))?\s*\??$/)?.[1]
+    ?.trim();
+  return { name: "CHECK_WEATHER", params: { when, ...(place ? { query: place } : {}) } };
 }
 
 /**

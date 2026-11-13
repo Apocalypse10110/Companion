@@ -38,6 +38,16 @@ export async function permissionRows(perms: PermissionsService): Promise<Permiss
   const os = detectOS();
   const check = (n: PermissionName) => perms.check(n).catch(() => "unsupported" as const);
   const [mic, cam, notif] = await Promise.all([check("microphone"), check("camera"), check("notifications")]);
+  // Location is asked for by the weather check itself, at the moment it's needed.
+  let geo: RowState = typeof navigator !== "undefined" && navigator.geolocation ? "prompt" : "unsupported";
+  try {
+    if (geo === "prompt") {
+      const st = (await navigator.permissions?.query({ name: "geolocation" }))?.state;
+      if (st === "granted" || st === "denied" || st === "prompt") geo = st;
+    }
+  } catch {
+    /* this browser can't report it */
+  }
   const w = typeof window === "undefined" ? undefined : (window as unknown as Record<string, unknown>);
   const speech = Boolean(w?.SpeechRecognition || w?.webkitSpeechRecognition);
 
@@ -108,8 +118,10 @@ export async function permissionRows(perms: PermissionsService): Promise<Permiss
     {
       id: "location",
       title: "Location",
-      use: "I don't use your location. Maps uses its own when I open directions for you.",
-      state: "not-needed",
+      use: "Only when you ask about the weather without naming a town. It's rounded to about 1 km and used once, never saved.",
+      state: geo,
+      howToEnable: enableHelp(os, "Location"),
+      alternative: "Name your town instead, for example: what's the weather in Seattle?",
     },
     {
       id: "calendar",

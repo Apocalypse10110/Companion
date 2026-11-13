@@ -52,6 +52,12 @@ When you connect Gmail, Google Calendar, Outlook or Spotify ([ACCOUNTS.md](ACCOU
 - Spotify is used to find and start music you ask for.
 - Disconnecting deletes the cookie, and Google is asked to revoke access.
 
+## Weather and location
+
+"What's the weather?" uses Open-Meteo, a free weather service with no account. If you name a town, only
+the town's name is sent. If you don't, Companion asks for your location at that moment. It rounds it to
+about 1 km, sends it once to get the forecast, and doesn't keep it.
+
 ## Never read
 
 - **Text messages, call history, the address book.** iPhone and Android don't allow a website to read
