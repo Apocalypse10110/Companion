@@ -10,3 +10,4 @@ export { Stepper, type StepperProps } from "./Stepper";
 export { Toggle, type ToggleProps } from "./Toggle";
 export { cn } from "./cn";
 export { ScrollPage } from "./ScrollPage";
+export { ActionTile } from "./ActionTile";

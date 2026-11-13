@@ -9,6 +9,8 @@ import { useConversation } from "./ConversationProvider";
 export function Thread() {
   const c = useConversation();
   const busy = c.phase === "thinking";
+  const lastReply = [...c.messages].reverse().find((m) => m.role === "assistant")?.id;
+  const lastId = c.messages[c.messages.length - 1]?.id;
 
   return (
     <ol aria-label="Conversation" aria-live="off" className="flex flex-col gap-4" data-testid="thread">
@@ -29,6 +31,10 @@ export function Thread() {
           onDismiss={() => c.dismissMessage(m.id)}
           onSendFamilyNote={(person) => c.offerFamilyNote(m.id, person)}
           onRevealTarget={(label) => c.announce(`Tap here: ${label}`)}
+          isLast={m.id === lastReply && m.id === lastId}
+          onCheckPhoto={(photo) => c.sendPhoto(photo, undefined, "check")}
+          onAnnounce={c.announce}
+          canSaveLesson
         />
       ))}
 

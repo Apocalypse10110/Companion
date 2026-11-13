@@ -286,3 +286,49 @@ h2 {
 dialog::backdrop {
   background: rgb(0 0 0 / 0.6);
 }
+
+/* Printing (Fridge Cards): only the card, black on white, no backgrounds, no app chrome. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  header,
+  nav,
+  .skip-link,
+  .no-print {
+    display: none !important;
+  }
+  /* Let the page grow to its full height instead of the phone-shaped scrolling frame. */
+  .h-dvh,
+  .h-full,
+  main,
+  main * {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .lesson-card {
+    border: 3px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 18pt;
+  }
+  .lesson-card * {
+    color: #000 !important;
+    background: transparent !important;
+    border-color: #000 !important;
+  }
+  .lesson-card h1 {
+    font-size: 28pt;
+  }
+  .lesson-card li {
+    break-inside: avoid;
+  }
+}

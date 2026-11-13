@@ -26,7 +26,7 @@ export function LessonBadge({ lesson }: { lesson: Lesson }) {
         <span>{text}</span>
       </p>
       {lesson.stage === "learned" && (
-        <p className="text-base text-ink">Next time I&apos;ll let you try first. See it in Settings, Things you can do.</p>
+        <p className="text-base text-ink">Next time I&apos;ll let you try first. See it in My Skills.</p>
       )}
     </div>
   );

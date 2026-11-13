@@ -62,7 +62,7 @@ describe("Help Card to family", () => {
     );
 
     expect(screen.getByText("Let your family know?")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Send to Anna (daughter)" }));
+    await user.click(screen.getByRole("button", { name: "Send to my daughter (Anna)" }));
 
     // Nothing is sent yet: a confirm card shows the exact words.
     expect(controls.executed).toHaveLength(0);

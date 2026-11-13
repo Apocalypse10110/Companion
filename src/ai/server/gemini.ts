@@ -147,3 +147,71 @@ export async function geminiHealth(apiKey: string, models: string[], client?: Pi
   }
   return { ok: false, ms: Date.now() - started, problem };
 }
+
+export interface JsonRequest {
+  system: string;
+  /** The user message (plain text). */
+  prompt: string;
+  /** Gemini responseJsonSchema. */
+  schema: object;
+  temperature?: number;
+  image?: { mimeType: string; data: string };
+}
+
+/**
+ * One structured-JSON call, with the same model order, per-model timeout and error handling as the
+ * assistant. Returns the parsed JSON (untrusted), or throws a ProviderError. Used for lesson cards
+ * and family notes so every feature shares one Gemini path.
+ */
+export function createGeminiJson(config: GeminiConfig) {
+  const client = config.client ?? new GoogleGenAI({ apiKey: config.apiKey, apiVersion: "v1beta" });
+  const models = config.models?.length ? config.models : DEFAULT_GEMINI_MODELS;
+  return async function generate(req: JsonRequest, signal?: AbortSignal): Promise<unknown> {
+    let lastError: ProviderError = new ProviderError("unavailable", "No Gemini model configured");
+    for (const model of models) {
+      if (signal?.aborted) throw new ProviderError("unavailable", "Cancelled");
+      const own = new AbortController();
+      const timer = setTimeout(() => own.abort(), PER_MODEL_TIMEOUT_MS);
+      const onAbort = () => own.abort();
+      signal?.addEventListener("abort", onAbort);
+      try {
+        const response = await client.models.generateContent({
+          model,
+          contents: [
+            {
+              role: "user",
+              parts: [...(req.image ? [{ inlineData: { mimeType: req.image.mimeType, data: req.image.data } }] : []), { text: req.prompt }],
+            },
+          ],
+          config: {
+            systemInstruction: req.system,
+            responseMimeType: "application/json",
+            responseJsonSchema: req.schema,
+            temperature: req.temperature ?? 0.3,
+            maxOutputTokens: 2048,
+            ...(model.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
+            abortSignal: own.signal,
+          },
+        });
+        const parsed = extractJson(response.text ?? "");
+        if (parsed && typeof parsed === "object") return parsed;
+        lastError = new ProviderError("failed", `Gemini (${model}) returned no usable JSON`);
+      } catch (err) {
+        if (signal?.aborted) throw err;
+        lastError = classifyGeminiError(err);
+        if (!tryNext(lastError)) throw lastError;
+        console.warn(`[ai] gemini model ${model} failed (${lastError.code}), trying the next one`);
+      } finally {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+      }
+    }
+    throw lastError;
+  };
+}
+
+/** The Gemini key from the environment (GEMINI_API_KEY, or AI_API_KEY when AI_PROVIDER is gemini). */
+export function geminiKey(env: Record<string, string | undefined>): string | undefined {
+  const provider = (env.AI_PROVIDER ?? "").trim().toLowerCase();
+  return env.GEMINI_API_KEY || (provider === "gemini" || provider === "google" ? env.AI_API_KEY : undefined) || undefined;
+}

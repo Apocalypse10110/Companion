@@ -157,12 +157,12 @@ describe("settings change real behaviour", () => {
 });
 
 describe("navigation", () => {
-  it("bottom nav has three labelled links and marks the current page", () => {
+  it("bottom nav has four labelled links and marks the current page", () => {
     nav.pathname = "/settings/voice";
     renderApp(<AppFrame><p>x</p></AppFrame>);
     const navEl = screen.getByRole("navigation", { name: "Main" });
     const links = within(navEl).getAllByRole("link");
-    expect(links.map((l) => l.textContent)).toEqual(["Home", "History", "Settings"]);
+    expect(links.map((l) => l.textContent)).toEqual(["Home", "My Skills", "Safety", "Settings"]);
     expect(within(navEl).getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
     expect(within(navEl).getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });

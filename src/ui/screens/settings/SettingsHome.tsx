@@ -1,6 +1,6 @@
 "use client";
 
-import { Accessibility, Activity, Award, BellRing, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
+import { Accessibility, Activity, BellRing, Clock, Eye, Link2, Lock, Smartphone, Users, Volume2 } from "lucide-react";
 import { ListGroup, ListLink } from "../../components/ListLink";
 import { PageHeader } from "../../components/PageHeader";
 import { ScrollPage } from "../../components/ScrollPage";
@@ -21,7 +21,7 @@ export function SettingsHome() {
             <ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" description="Motion, screen reader, vibration" />
           </li>
           <li>
-            <ListLink href="/settings/learned" icon={Award} title="Things you can do" description="What you've learned with my help" />
+            <ListLink href="/history" icon={Clock} title="Past conversations" description="See or remove what we talked about" />
           </li>
           <li>
             <ListLink href="/settings/people" icon={Users} title="People" description="Who I can call or text for you" />

@@ -31,21 +31,40 @@ function askAboutText(text: string): string {
   return `Can you look at this message I got and tell me what it means, and if it's safe? "${text.slice(0, 1200)}"`;
 }
 
+export interface Incoming {
+  /** Open the Show Me camera straight away. */
+  openCamera: boolean;
+  /** The question to send with that photo (kept from Live Help when it falls back to Show Me). */
+  question?: string;
+}
+
 /**
  * Things that open Companion with a job to do:
- *  - the "Show me" home-screen shortcut (/?showme=1) opens the camera,
+ *  - the "Show me" home-screen shortcut (/?showme=1) opens the camera; Live Help's fallback adds
+ *    the person's question (&q=...),
+ *  - "Practise again" from My Skills (/?practise=connect%20to%20wifi),
  *  - something shared TO Companion from another app (screenshot, photo, a suspicious text).
- * Returns true when the camera should open straight away.
  */
-export function useIncoming(c: ConversationApi): boolean {
-  const [openCamera, setOpenCamera] = useState(false);
+export function useIncoming(c: ConversationApi): Incoming {
+  const [incoming, setIncoming] = useState<Incoming>({ openCamera: false });
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (![...params.keys()].length) return;
     window.history.replaceState(null, "", "/");
     if (params.get("showme") === "1") {
+      const q = params.get("q")?.trim().slice(0, 500);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- acting on how the app was opened
-      setOpenCamera(true);
+      setIncoming({ openCamera: true, ...(q ? { question: q } : {}) });
+      return;
+    }
+    const practise = params.get("practise")?.trim().slice(0, 60);
+    if (practise) {
+      // After this render settles: arriving on a new screen stops anything in progress first.
+      // A fresh conversation first, then the request once it has rendered.
+      setTimeout(() => {
+        c.newConversation();
+        setTimeout(() => c.sendText(`I'd like to practise: ${practise}.`), 50);
+      }, 0);
       return;
     }
     if (params.get("shared") === "session") {
@@ -62,5 +81,5 @@ export function useIncoming(c: ConversationApi): boolean {
     // Run once, on arrival.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return openCamera;
+  return incoming;
 }

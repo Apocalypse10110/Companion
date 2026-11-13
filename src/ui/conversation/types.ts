@@ -1,11 +1,15 @@
 import type {
   AssistantReply,
   AssistantImage,
+  AssistantMode,
+  DocumentInfo,
   PermissionName,
   PointAt,
   ProposedAction,
   QuickActionId,
   RequestSource,
+  ScamCheck,
+  StepCheck,
 } from "@/contracts";
 
 /** What the assistant is doing right now. Drives the microphone button. */
@@ -36,6 +40,7 @@ export interface RetryInfo {
   text: string;
   source: RequestSource;
   quickActionId?: QuickActionId;
+  mode?: AssistantMode;
   /** A photo to send again. Kept in memory only (errors are never saved). */
   image?: AssistantImage;
   thumb?: string;
@@ -65,6 +70,12 @@ export interface ChatMessage {
   familyNote?: string;
   /** Companion is teaching a task: shown as a lesson badge on the reply. */
   lesson?: AssistantReply["lesson"];
+  /** Is this message, call or letter a scam? With reasons. */
+  scam?: ScamCheck;
+  /** "Check my step": what the photo showed. */
+  stepCheck?: StepCheck;
+  /** "Point at a bill": what was read from it. */
+  document?: DocumentInfo;
 }
 
 export interface Conversation {

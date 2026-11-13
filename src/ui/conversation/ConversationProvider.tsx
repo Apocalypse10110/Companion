@@ -14,6 +14,7 @@ import {
 import {
   AssistantError,
   type AssistantImage,
+  type AssistantMode,
   type AssistantReply,
   type PermissionName,
   type QuickActionId,
@@ -48,6 +49,13 @@ import {
 /** What a photo says when the person doesn't add their own question. */
 export const PHOTO_DEFAULT_QUESTION = "Can you look at this photo and help me with it?";
 
+/** What each kind of photo says when the person doesn't add their own words. */
+export const PHOTO_QUESTIONS: Partial<Record<AssistantMode, string>> = {
+  check: "I've done that step. Can you check my screen?",
+  scam: "Is this message real, or is it a scam?",
+  document: "Can you read this bill or letter for me?",
+};
+
 /** How long to wait for the assistant before giving up. */
 export const REQUEST_TIMEOUT_MS = 45_000;
 /** How many earlier turns are sent to the assistant for context. */
@@ -70,12 +78,13 @@ export interface ConversationApi {
 
   /** The microphone button: does the obvious next thing for the current phase. */
   pressMic: () => void;
-  sendText: (text: string) => void;
+  /** Send what the person typed or said. `mode` "scam" asks "is this real?" for a pasted message. */
+  sendText: (text: string, mode?: AssistantMode) => void;
   sendQuickAction: (id: QuickActionId) => void;
   /** Show a short "good to know" message in the conversation (not sent to the assistant). */
   addNotice: (text: string) => void;
   /** "Show me": send a photo from the camera or Photos, with an optional question. */
-  sendPhoto: (file: Blob, question?: string) => void;
+  sendPhoto: (file: Blob, question?: string, mode?: AssistantMode) => void;
   cancel: () => void;
   readAloud: (messageId: string) => void;
   /** Read Companion's latest reply aloud again, stopping anything being spoken now. */
@@ -90,6 +99,8 @@ export interface ConversationApi {
   interrupt: () => void;
   /** Help Card: offer to text a reply's family note to someone. They confirm, then press Send. */
   offerFamilyNote: (messageId: string, person: Person) => void;
+  /** Help Card on request: attach a note (written on demand) to a reply. */
+  setFamilyNote: (messageId: string, note: string) => void;
   /** Say something to screen readers. */
   announce: (text: string) => void;
 
@@ -240,7 +251,13 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   // ---------- asking the assistant ----------
 
   const submit = useCallback(
-    async (text: string, source: RequestSource, quickActionId?: QuickActionId, photo?: { image: AssistantImage; thumb: string }) => {
+    async (
+      text: string,
+      source: RequestSource,
+      quickActionId?: QuickActionId,
+      photo?: { image: AssistantImage; thumb: string },
+      mode?: AssistantMode,
+    ) => {
       const clean = text.trim();
       if (!clean || stateRef.current.phase === "thinking") return;
 
@@ -279,6 +296,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             source,
             quickActionId,
             ...(photo ? { image: photo.image } : {}),
+            ...(mode && mode !== "help" ? { mode } : {}),
             history,
             language: languageTag(),
             hints: { plainLanguage: true, willBeSpoken: willSpeak },
@@ -311,6 +329,9 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             ...(photo && (reply.pointAt || reply.familyNote) ? { photo: `data:${photo.image.mimeType};base64,${photo.image.data}` } : {}),
             ...(reply.familyNote ? { familyNote: reply.familyNote } : {}),
             ...(reply.lesson ? { lesson: reply.lesson } : {}),
+            ...(reply.scam ? { scam: reply.scam } : {}),
+            ...(reply.stepCheck ? { stepCheck: reply.stepCheck } : {}),
+            ...(reply.document ? { document: reply.document } : {}),
             createdAt: Date.now(),
           },
         });
@@ -343,7 +364,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             role: "error",
             text: message,
             createdAt: Date.now(),
-            retry: { text: clean, source, quickActionId, ...(photo ? { image: photo.image, thumb: photo.thumb } : {}) },
+            retry: { text: clean, source, quickActionId, ...(mode ? { mode } : {}), ...(photo ? { image: photo.image, thumb: photo.thumb } : {}) },
           },
         });
         dispatch({ type: "phase", phase: "idle" });
@@ -489,15 +510,15 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     (messageId: string) => {
       const message = activeConversation(stateRef.current).messages.find((m) => m.id === messageId);
       if (!message?.retry) return;
-      const { text, source, quickActionId, image, thumb } = message.retry;
+      const { text, source, quickActionId, image, thumb, mode } = message.retry;
       dispatch({ type: "remove", id: messageId });
-      void submit(text, source, quickActionId, image && thumb ? { image, thumb } : undefined);
+      void submit(text, source, quickActionId, image && thumb ? { image, thumb } : undefined, mode);
     },
     [submit],
   );
 
   const sendPhoto = useCallback(
-    (file: Blob, question?: string) => {
+    (file: Blob, question?: string, mode?: AssistantMode) => {
       void (async () => {
         let photo;
         try {
@@ -507,7 +528,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
           return;
         }
         const q = question?.trim();
-        void submit(q ? q : PHOTO_DEFAULT_QUESTION, "photo", undefined, photo);
+        void submit(q ? q : (PHOTO_QUESTIONS[mode ?? "help"] ?? PHOTO_DEFAULT_QUESTION), "photo", undefined, photo, mode);
       })();
     },
     [addNotice, submit],
@@ -582,7 +603,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       activeId: state.activeId,
 
       pressMic,
-      sendText: (text) => void submit(text, "text"),
+      sendText: (text, mode) => void submit(text, "text", undefined, undefined, mode),
       sendQuickAction,
       sendPhoto,
       addNotice: (text) => addNotice(text),
@@ -597,6 +618,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       dismissMessage: (id) => dispatch({ type: "remove", id }),
       interrupt,
       offerFamilyNote,
+      setFamilyNote: (messageId, note) => dispatch({ type: "patchMessage", messageId, patch: { familyNote: note } }),
       announce: (text) => say(text),
 
       newConversation: () => {

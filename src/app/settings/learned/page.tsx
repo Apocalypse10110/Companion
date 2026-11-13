@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import { LearnedSettings } from "@/ui/screens/settings/LearnedSettings";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Things you can do" };
-
+/** "Things you can do" is now My Skills. Old links still work. */
 export default function Page() {
-  return <LearnedSettings />;
+  redirect("/skills");
 }

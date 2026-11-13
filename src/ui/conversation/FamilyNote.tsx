@@ -1,10 +1,11 @@
 "use client";
 
-import { HeartHandshake, Image as ImageIcon } from "lucide-react";
+import { HeartHandshake, Image as ImageIcon, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loadPeople, subscribePeople, type Person } from "@/people/store";
 import { Button } from "../components/Button";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export interface FamilyNoteProps {
   note: string;
@@ -24,8 +25,9 @@ export function pickHelpers(people: Person[], max = 3): Person[] {
   return [...family, ...rest].slice(0, max);
 }
 
+/** "Send to my daughter (Anna)" when a relationship is saved, otherwise "Send to Anna". */
 function helperLabel(p: Person): string {
-  return p.relationship ? `Send to ${p.name} (${p.relationship})` : `Send to ${p.name}`;
+  return p.relationship ? `Send to my ${p.relationship.toLowerCase()} (${p.name})` : `Send to ${p.name}`;
 }
 
 async function photoFile(dataUrl: string): Promise<File | null> {
@@ -45,11 +47,18 @@ async function photoFile(dataUrl: string): Promise<File | null> {
 export function FamilyNote({ note, photo, disabled, onSend }: FamilyNoteProps) {
   const [people, setPeople] = useState<Person[]>([]);
   const [canSharePhoto, setCanSharePhoto] = useState(false);
+  const [canShareText, setCanShareText] = useState(false);
+  const [confirm, setConfirm] = useState<"photo" | "text" | null>(null);
 
   useEffect(() => {
     const refresh = () => setPeople(pickHelpers(loadPeople()));
     refresh();
     return subscribePeople(refresh);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading device capabilities after mount
+    setCanShareText(typeof navigator !== "undefined" && typeof navigator.share === "function");
   }, []);
 
   useEffect(() => {
@@ -63,17 +72,40 @@ export function FamilyNote({ note, photo, disabled, onSend }: FamilyNoteProps) {
     };
   }, [photo]);
 
-  const sharePhoto = async () => {
-    if (!photo) return;
-    const file = await photoFile(photo);
-    if (!file) return;
+  const share = async (withPhoto: boolean) => {
+    setConfirm(null);
+    const file = withPhoto && photo ? await photoFile(photo) : null;
     try {
       // The phone's own share sheet: the person picks who, and presses Send there.
-      await navigator.share({ files: [file], text: note });
+      await navigator.share(file ? { files: [file], text: note } : { text: note });
     } catch {
       /* they closed the share sheet; nothing was sent */
     }
   };
+
+  const shareButtons = (
+    <>
+      {canSharePhoto && (
+        <Button variant="secondary" icon={ImageIcon} fullWidth disabled={disabled} onClick={() => setConfirm("photo")}>
+          Send it with the photo
+        </Button>
+      )}
+      {canShareText && (
+        <Button variant="secondary" icon={Share2} fullWidth disabled={disabled} onClick={() => setConfirm("text")}>
+          Share another way
+        </Button>
+      )}
+      <ConfirmDialog
+        open={confirm !== null}
+        title="Open your phone's share screen?"
+        description={`You'll choose who gets it${confirm === "photo" ? ", with your photo" : ""}. Nothing is sent until you press Send there.`}
+        confirmLabel="Yes, open it"
+        cancelLabel="No, don't share"
+        onConfirm={() => void share(confirm === "photo")}
+        onCancel={() => setConfirm(null)}
+      />
+    </>
+  );
 
   return (
     <section aria-label="Let your family know" className="bw flex flex-col gap-3 rounded-3xl bg-surface-2 px-4 py-4">
@@ -82,6 +114,7 @@ export function FamilyNote({ note, photo, disabled, onSend }: FamilyNoteProps) {
         Let your family know?
       </h3>
       <blockquote className="border-l-4 border-accent pl-3 text-lg text-ink">{note}</blockquote>
+      <p className="text-base text-muted">Only you decide if and where this goes. I never send it on my own.</p>
       {people.length > 0 ? (
         <div className="flex flex-col gap-3" role="group" aria-label="Who to send it to">
           {people.map((p) => (
@@ -89,11 +122,7 @@ export function FamilyNote({ note, photo, disabled, onSend }: FamilyNoteProps) {
               {helperLabel(p)}
             </Button>
           ))}
-          {canSharePhoto && (
-            <Button variant="secondary" icon={ImageIcon} fullWidth disabled={disabled} onClick={() => void sharePhoto()}>
-              Send it with the photo
-            </Button>
-          )}
+          {shareButtons}
         </div>
       ) : (
         <>
@@ -101,11 +130,7 @@ export function FamilyNote({ note, photo, disabled, onSend }: FamilyNoteProps) {
           <Link href="/settings/people" className="text-lg font-bold text-accent-ink underline underline-offset-4">
             Add a person
           </Link>
-          {canSharePhoto && (
-            <Button variant="secondary" icon={ImageIcon} fullWidth disabled={disabled} onClick={() => void sharePhoto()}>
-              Send it with the photo
-            </Button>
-          )}
+          {shareButtons}
         </>
       )}
     </section>

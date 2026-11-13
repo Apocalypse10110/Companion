@@ -1,8 +1,9 @@
 "use client";
 
-import { Camera, Monitor } from "lucide-react";
+import { Camera, Monitor, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cameraSupported, captureScreenOnce, screenShareSupported } from "@/phone/camera";
+import { ActionTile } from "../components/ActionTile";
 import { Button } from "../components/Button";
 import { CameraSheet } from "./CameraSheet";
 
@@ -11,6 +12,13 @@ export interface ShowMeButtonProps {
   disabled?: boolean;
   /** Open the camera straight away (the "Show me" home-screen shortcut). */
   autoOpen?: boolean;
+  /** Button words (default "Show me with a photo"). */
+  label?: string;
+  icon?: LucideIcon;
+  /** Show as a large home-screen tile with this line under the title. */
+  tileDescription?: string;
+  /** Hide "Show my screen" (for secondary uses such as reading a letter). */
+  noScreen?: boolean;
 }
 
 /**
@@ -19,7 +27,7 @@ export interface ShowMeButtonProps {
  * permission (no `capture` attribute, so both Take Photo and Photo Library are offered).
  * On a computer, "Show my screen" takes one picture of a window the person chooses.
  */
-export function ShowMeButton({ onPhoto, disabled, autoOpen }: ShowMeButtonProps) {
+export function ShowMeButton({ onPhoto, disabled, autoOpen, label = "Show me with a photo", icon = Camera, tileDescription, noScreen }: ShowMeButtonProps) {
   const input = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [live, setLive] = useState(false);
@@ -38,16 +46,14 @@ export function ShowMeButton({ onPhoto, disabled, autoOpen }: ShowMeButtonProps)
 
   return (
     <>
-      <Button
-        variant="secondary"
-        icon={Camera}
-        fullWidth
-        disabled={disabled}
-        onClick={() => (live ? setOpen(true) : input.current?.click())}
-      >
-        Show me with a photo
-      </Button>
-      {screen && (
+      {tileDescription ? (
+        <ActionTile icon={icon} title={label} description={tileDescription} disabled={disabled} onClick={() => (live ? setOpen(true) : input.current?.click())} />
+      ) : (
+        <Button variant="secondary" icon={icon} fullWidth disabled={disabled} onClick={() => (live ? setOpen(true) : input.current?.click())}>
+          {label}
+        </Button>
+      )}
+      {screen && !noScreen && !tileDescription && (
         <Button
           variant="secondary"
           icon={Monitor}
