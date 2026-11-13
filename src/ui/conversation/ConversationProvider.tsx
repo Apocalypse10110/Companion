@@ -310,6 +310,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             // Kept with the reply for "tap here" and for sending to family. Memory only.
             ...(photo && (reply.pointAt || reply.familyNote) ? { photo: `data:${photo.image.mimeType};base64,${photo.image.data}` } : {}),
             ...(reply.familyNote ? { familyNote: reply.familyNote } : {}),
+            ...(reply.lesson ? { lesson: reply.lesson } : {}),
             createdAt: Date.now(),
           },
         });

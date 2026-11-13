@@ -58,10 +58,30 @@ const CONVERSATIONAL = new Set<Intent["name"]>(["HELP", "FIND_INFORMATION", "UNK
 /** How the AI did on this turn, so a fallback reply can be honest about it. */
 type AIState = "answered" | "none" | "failed";
 
+type Lesson = NonNullable<AssistantReply["lesson"]>;
+
+/** Offered the first time a task is taught, so the person can choose to try before being told. */
+export const TRY_MYSELF = "Let me try it myself";
+
+/** Which stage of learning this reply is, read BEFORE recording a finished task. */
+function lessonFrom(learned: string[], skill: string | undefined, taskDone: boolean | undefined): Lesson | undefined {
+  const name = skill?.trim().toLowerCase();
+  if (!name) return undefined;
+  if (taskDone) return { skill: name, stage: "learned" };
+  return { skill: name, stage: knowsSkill(learned, name) ? "practice" : "new" };
+}
+
+/** First lesson: keep the AI's suggestions, and make room for "Let me try it myself". */
+function withTryMyself(suggestions: string[], lesson: Lesson | undefined): string[] {
+  if (lesson?.stage !== "new" || suggestions.some((s) => s.toLowerCase() === TRY_MYSELF.toLowerCase())) return suggestions;
+  return [...suggestions.slice(0, 2), TRY_MYSELF];
+}
+
 interface Understood {
   intent: Intent | null;
   aiReply?: string;
   aiSuggestions?: string[];
+  lesson?: Lesson;
   familyNote?: string;
   ai: AIState;
 }
@@ -84,6 +104,7 @@ interface Draft {
   keepPending?: boolean;
   pointAt?: PointAt;
   familyNote?: string;
+  lesson?: Lesson;
 }
 
 export function createAssistant(options: AssistantOptions = {}): AssistantService & { reset(): void } {
@@ -126,16 +147,21 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     // No AI. If it's set up but its key was refused, say so honestly instead of acting as if it isn't there.
     if (!result) return { intent: local, ai: provider.unavailableReason?.() === "ai-auth" ? "failed" : "none" };
     const intent = validateIntent(result.intent) ?? local;
+    const lesson = lessonFrom(skills.list(), result.skill, result.taskDone);
     if (result.taskDone && result.skill) skills.record(result.skill);
-    const aiSuggestions = (result.suggestions ?? [])
-      .map((x) => cleanString(x, 60))
-      .filter((x): x is string => Boolean(x))
-      .slice(0, 3);
+    const aiSuggestions = withTryMyself(
+      (result.suggestions ?? [])
+        .map((x) => cleanString(x, 60))
+        .filter((x): x is string => Boolean(x))
+        .slice(0, 3),
+      lesson,
+    );
     // For actions we always use our own wording; the AI's sentence is only used for answers.
     return {
       intent,
       aiReply: cleanString(result.reply, MAX_AI_REPLY),
       aiSuggestions,
+      ...(lesson ? { lesson } : {}),
       ...(cleanFamilyNote(result.familyNote) ? { familyNote: cleanFamilyNote(result.familyNote)! } : {}),
       ai: "answered",
     };
@@ -462,6 +488,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     if (!reply) return { text: PHOTO_FAILED };
     // Read before recording, so finishing a task now doesn't hide this ring.
     const known = knowsSkill(skills.list(), result.skill);
+    const lesson = lessonFrom(skills.list(), result.skill, result.taskDone);
     if (result.taskDone && result.skill) skills.record(result.skill);
     let suggestions = (result.suggestions ?? [])
       .map((x) => cleanString(x, 60))
@@ -472,9 +499,11 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     const pointAt: PointAt | undefined = target ? (known ? { ...target, hidden: true } : target) : undefined;
     if (pointAt?.hidden) suggestions = suggestions.filter((x) => !/^(give me a hint|tell me exactly|show me where)$/i.test(x));
     const familyNote = cleanFamilyNote(result.familyNote) ?? undefined;
+    suggestions = withTryMyself(suggestions, lesson);
     return {
       text: reply,
       suggestions: suggestions.length ? suggestions : undefined,
+      ...(lesson ? { lesson } : {}),
       ...(pointAt ? { pointAt } : {}),
       ...(familyNote ? { familyNote } : {}),
     };
@@ -521,6 +550,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         intent = resolvePronoun(intent, ctx);
         draft = respond(intent, request, ctx, understood);
         if (understood?.familyNote && !draft.action) draft = { ...draft, familyNote: understood.familyNote };
+        if (understood?.lesson && !draft.action) draft = { ...draft, lesson: understood.lesson };
       }
 
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
@@ -531,6 +561,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       if (spoken !== draft.text) reply.spokenText = spoken;
       if (draft.suggestions?.length) reply.suggestions = draft.suggestions.slice(0, 3);
       if (draft.pointAt) reply.pointAt = draft.pointAt;
+      if (draft.lesson) reply.lesson = draft.lesson;
       if (!draft.action && draft.familyNote) reply.familyNote = draft.familyNote;
 
       const next: ConversationContext = { lastContact: ctx.lastContact, lastReplyText: reply.text };

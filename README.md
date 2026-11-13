@@ -49,7 +49,8 @@ Technology should bring people together, not leave anyone behind.
 | --- | --- | --- |
 | A problem you can't describe | "I didn't get that" | **Show me**: take a photo, it tells you what it is |
 | How-to questions | A web result or a list of 8 steps | One step, waits, checks, then the next. Says what buttons look like |
-| The second time you ask | The same answer | **Help that fades**: asks you to try first, hints on request |
+| The first time you ask | An answer, then it's gone | **A lesson:** "Teaching you: Connect to Wi-Fi", one step at a time with the why, or "Let me try it myself" |
+| The second time you ask | The same answer | **Help that fades:** "You've done this before: try it yourself", with hints only if you ask. Finished tasks go into **Things you can do** |
 | Scams | Answers whatever you ask | Warns about scam texts, pop-ups and "call this number" tricks |
 | Doing things | Acts straight away | Always asks first. Never says it called or sent something it didn't |
 | Words | Its own jargon | Plain words, large text, high contrast, read aloud slowly |
