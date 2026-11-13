@@ -3,6 +3,7 @@
 import { CalendarDays, CircleCheck, CircleDashed, Inbox, Link2, Loader2, Mail, Music, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { signInOutcome } from "@/accounts/client";
+import { isSampleOn, setSampleOn } from "@/accounts/sample";
 import type { ConnectionId, ConnectionInfo } from "@/contracts";
 import { useServices } from "@/integration/ServicesProvider";
 import { useAnnounce } from "../../a11y/LiveAnnouncer";
@@ -11,6 +12,7 @@ import { Banner, Card } from "../../components/Card";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { PageHeader } from "../../components/PageHeader";
 import { ScrollPage } from "../../components/ScrollPage";
+import { Toggle } from "../../components/Toggle";
 
 /** What each known account is for, in plain words. Unknown accounts get a generic row. */
 const KNOWN: Record<string, { icon: LucideIcon; about: string }> = {
@@ -25,7 +27,9 @@ type Feedback = { tone: "success" | "error" | "info"; text: string };
 function StatusLine({ c }: { c: ConnectionInfo }) {
   // Each state is written in words, with an icon, never shown by colour alone.
   const [Icon, text, tone] =
-    c.state === "connected"
+    c.worksWithoutSignIn && c.state !== "connected"
+      ? [CircleCheck, "Ready, no sign-in needed", "text-success"]
+      : c.state === "connected"
       ? [CircleCheck, "Connected", "text-success"]
       : c.state === "needs-attention"
         ? [TriangleAlert, "Needs you to sign in again", "text-accent-ink"]
@@ -57,6 +61,12 @@ export function ConnectionsSettings() {
   const [busy, setBusy] = useState<ConnectionId | null>(null);
   const [feedback, setFeedback] = useState<Record<string, Feedback>>({});
   const [disconnecting, setDisconnecting] = useState<ConnectionInfo | null>(null);
+  const [sample, setSample] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the saved choice after mount
+    setSample(isSampleOn());
+  }, []);
 
   const load = useCallback(async () => {
     setLoadFailed(false);
@@ -122,6 +132,17 @@ export function ConnectionsSettings() {
           can disconnect at any time.
         </p>
       </Card>
+
+      <Toggle
+        label="Try a sample inbox and calendar"
+        description="Lets anyone try “read my email” and “what’s on tomorrow?” with made-up emails and appointments, no sign-in needed. I always say it's the sample. Your real accounts aren't touched."
+        checked={sample}
+        onChange={(on) => {
+          setSampleOn(on);
+          setSample(on);
+          announce(on ? "Sample inbox and calendar are on." : "Sample inbox and calendar are off.");
+        }}
+      />
 
       {loadFailed && (
         <Banner tone="error" title="I couldn't check your accounts" urgent actions={<Button onClick={() => void load()}>Try again</Button>}>

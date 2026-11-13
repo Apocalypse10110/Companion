@@ -30,6 +30,8 @@ export interface ConnectionInfo {
   state: ConnectionState;
   /** Which account, once connected. Example: "anna.smith@gmail.com". */
   account?: string;
+  /** True when the feature already works with no sign-in (for example Spotify search). */
+  worksWithoutSignIn?: boolean;
   /** Optional plain sentence about the current state, shown under the name. */
   message?: string;
 }
