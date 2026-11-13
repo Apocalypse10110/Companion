@@ -1,10 +1,12 @@
 import {
   DEFAULT_SETTINGS,
+  LANGUAGES,
   SPEECH_RATE_MAX,
   SPEECH_RATE_MIN,
   TEXT_SCALE,
   VOLUME_MAX,
   VOLUME_MIN,
+  type DetailChoice,
   type MotionChoice,
   type Settings,
   type TextSize,
@@ -46,6 +48,8 @@ export function sanitizeSettings(input: unknown): Settings {
     speechRate: round1(clamp(num(o.speechRate, d.speechRate), SPEECH_RATE_MIN, SPEECH_RATE_MAX)),
     volume: round1(clamp(num(o.volume, d.volume), VOLUME_MIN, VOLUME_MAX)),
     voiceId: typeof o.voiceId === "string" && o.voiceId.length > 0 ? o.voiceId : null,
+    language: pick<string>(o.language, LANGUAGES.map((l) => l.value), d.language),
+    detail: pick<DetailChoice>(o.detail, ["short", "normal", "detailed"], d.detail),
 
     announcements: bool(o.announcements, d.announcements),
     haptics: bool(o.haptics, d.haptics),

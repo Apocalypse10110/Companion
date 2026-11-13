@@ -12,6 +12,7 @@ export interface InterpretInput {
   skills?: string[];
   /** What the request is for (default "help"). */
   mode?: AssistantMode;
+  detail?: "short" | "detailed";
 }
 
 /** What a server-side adapter returns. All of it is untrusted; the client validates it. */

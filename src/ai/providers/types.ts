@@ -22,6 +22,8 @@ export interface InterpretRequest {
   skills?: string[];
   /** What the request is for (default "help"). */
   mode?: AssistantMode;
+  /** How much the person likes explained. */
+  detail?: "short" | "detailed";
 }
 
 export interface InterpretResult {

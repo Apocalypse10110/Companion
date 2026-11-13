@@ -208,11 +208,14 @@ export function userPrompt(input: {
   image?: unknown;
   skills?: string[];
   mode?: string;
+  detail?: string;
 }): string {
   const lines = [`Local time: ${input.now}`, `Language: ${input.language}`];
   if (input.skills?.length) lines.push(`Things they've done before: ${input.skills.join("; ")}`);
   else lines.push("Things they've done before: none yet");
   if (input.mode && input.mode !== "help") lines.push(`mode: ${input.mode}`);
+  if (input.detail === "short") lines.push("They prefer very short explanations: just the step, no reasons unless asked.");
+  if (input.detail === "detailed") lines.push("They like a little more explanation: add a short reason with each step (still one step at a time).");
   if (input.image) lines.push("They sent the photo attached to this message.");
   if (input.lastAssistantText) lines.push(`The assistant just said: ${JSON.stringify(input.lastAssistantText)}`);
   lines.push(`The person said: ${JSON.stringify(input.text)}`);

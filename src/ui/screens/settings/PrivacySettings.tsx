@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { forgetAllSkills } from "@/ai/skills";
+import { forgetAllLessons } from "@/lessons/store";
 import { useAnnounce } from "../../a11y/LiveAnnouncer";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -82,10 +83,11 @@ export function PrivacySettings() {
         fullWidth
         onClick={() => {
           forgetAllSkills();
-          announce("I've forgotten what you've learned. Next time I'll explain each step again.");
+          forgetAllLessons();
+          announce("I've forgotten what you've learned and your saved lesson cards. Next time I'll explain each step again.");
         }}
       >
-        Forget what I&apos;ve learned
+        Forget my skills and lesson cards
       </Button>
 
       <ConfirmDialog

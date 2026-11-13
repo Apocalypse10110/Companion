@@ -60,11 +60,7 @@ export function useIncoming(c: ConversationApi): Incoming {
     const practise = params.get("practise")?.trim().slice(0, 60);
     if (practise) {
       // After this render settles: arriving on a new screen stops anything in progress first.
-      // A fresh conversation first, then the request once it has rendered.
-      setTimeout(() => {
-        c.newConversation();
-        setTimeout(() => c.sendText(`I'd like to practise: ${practise}.`), 50);
-      }, 0);
+      setTimeout(() => c.sendText(`I'd like to practise: ${practise}.`, undefined, { fresh: true }), 0);
       return;
     }
     if (params.get("shared") === "session") {

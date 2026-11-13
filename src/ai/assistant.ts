@@ -169,6 +169,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
           lastAssistantText: lastAssistant,
           skills: skills.list(),
           ...(request.mode && request.mode !== "help" ? { mode: request.mode } : {}),
+          ...(request.hints?.detail === "short" || request.hints?.detail === "detailed" ? { detail: request.hints.detail } : {}),
         },
         signal,
       );
@@ -512,6 +513,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
           image: request.image,
           skills: skills.list(),
           ...(request.mode && request.mode !== "help" ? { mode: request.mode } : {}),
+          ...(request.hints?.detail === "short" || request.hints?.detail === "detailed" ? { detail: request.hints.detail } : {}),
         },
         signal,
       );

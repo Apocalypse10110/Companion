@@ -50,6 +50,8 @@ export interface AssistantRequest {
     plainLanguage: true;
     /** The reply will be read aloud, so avoid emoji, tables and links. */
     willBeSpoken: boolean;
+    /** How much the person likes explained (Settings). Default "normal". */
+    detail?: "short" | "normal" | "detailed";
   };
 }
 

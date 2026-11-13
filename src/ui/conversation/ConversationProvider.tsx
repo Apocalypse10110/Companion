@@ -79,12 +79,12 @@ export interface ConversationApi {
   /** The microphone button: does the obvious next thing for the current phase. */
   pressMic: () => void;
   /** Send what the person typed or said. `mode` "scam" asks "is this real?" for a pasted message. */
-  sendText: (text: string, mode?: AssistantMode) => void;
+  sendText: (text: string, mode?: AssistantMode, options?: { fresh?: boolean }) => void;
   sendQuickAction: (id: QuickActionId) => void;
   /** Show a short "good to know" message in the conversation (not sent to the assistant). */
   addNotice: (text: string) => void;
   /** "Show me": send a photo from the camera or Photos, with an optional question. */
-  sendPhoto: (file: Blob, question?: string, mode?: AssistantMode) => void;
+  sendPhoto: (file: Blob, question?: string, mode?: AssistantMode, options?: { fresh?: boolean }) => void;
   cancel: () => void;
   readAloud: (messageId: string) => void;
   /** Read Companion's latest reply aloud again, stopping anything being spoken now. */
@@ -113,7 +113,9 @@ export interface ConversationApi {
 
 const ConversationContext = createContext<ConversationApi | null>(null);
 
-function languageTag(): string {
+/** The chosen language, or the phone's when set to "Same as my phone". */
+function languageTag(chosen = "auto"): string {
+  if (chosen && chosen !== "auto") return chosen;
   return (typeof navigator !== "undefined" && navigator.language) || "en-US";
 }
 
@@ -198,7 +200,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
           rate: s.speechRate,
           volume: s.volume,
           voiceId: s.voiceId,
-          language: languageTag(),
+          language: languageTag(settingsRef.current.language),
         });
       } catch {
         if (token === speechToken.current) addNotice(SPEECH_FAILED);
@@ -257,9 +259,15 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       quickActionId?: QuickActionId,
       photo?: { image: AssistantImage; thumb: string },
       mode?: AssistantMode,
+      fresh?: boolean,
     ) => {
       const clean = text.trim();
       if (!clean || stateRef.current.phase === "thinking") return;
+      if (fresh) {
+        // Start a new conversation now, so this request carries none of the old one.
+        stateRef.current = reducer(stateRef.current, { type: "new" });
+        dispatch({ type: "new" });
+      }
 
       cancelSpeech();
       const conversation = activeConversation(stateRef.current);
@@ -298,8 +306,8 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             ...(photo ? { image: photo.image } : {}),
             ...(mode && mode !== "help" ? { mode } : {}),
             history,
-            language: languageTag(),
-            hints: { plainLanguage: true, willBeSpoken: willSpeak },
+            language: languageTag(s.language),
+            hints: { plainLanguage: true, willBeSpoken: willSpeak, detail: s.detail },
           },
           {
             signal: controller.signal,
@@ -420,7 +428,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
             else addNotice(VOICE_ERRORS[failure ?? "no-speech"]);
           },
         },
-        { language: languageTag() },
+        { language: languageTag(settingsRef.current.language) },
       );
     } catch {
       session.current = null;
@@ -518,7 +526,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   );
 
   const sendPhoto = useCallback(
-    (file: Blob, question?: string, mode?: AssistantMode) => {
+    (file: Blob, question?: string, mode?: AssistantMode, options?: { fresh?: boolean }) => {
       void (async () => {
         let photo;
         try {
@@ -528,7 +536,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
           return;
         }
         const q = question?.trim();
-        void submit(q ? q : (PHOTO_QUESTIONS[mode ?? "help"] ?? PHOTO_DEFAULT_QUESTION), "photo", undefined, photo, mode);
+        void submit(q ? q : (PHOTO_QUESTIONS[mode ?? "help"] ?? PHOTO_DEFAULT_QUESTION), "photo", undefined, photo, mode, options?.fresh);
       })();
     },
     [addNotice, submit],
@@ -603,7 +611,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       activeId: state.activeId,
 
       pressMic,
-      sendText: (text, mode) => void submit(text, "text", undefined, undefined, mode),
+      sendText: (text, mode, options) => void submit(text, "text", undefined, undefined, mode, options?.fresh),
       sendQuickAction,
       sendPhoto,
       addNotice: (text) => addNotice(text),

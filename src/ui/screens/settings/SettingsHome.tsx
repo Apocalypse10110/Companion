@@ -15,7 +15,7 @@ export function SettingsHome() {
             <ListLink href="/settings/display" icon={Eye} title="Text and looks" description="Text size, colours, buttons" />
           </li>
           <li>
-            <ListLink href="/settings/voice" icon={Volume2} title="Voice" description="Speed, volume and which voice" />
+            <ListLink href="/settings/voice" icon={Volume2} title="Voice and language" description="Speed, voice, language, how much I explain" />
           </li>
           <li>
             <ListLink href="/settings/accessibility" icon={Accessibility} title="Accessibility" description="Motion, screen reader, vibration" />

@@ -125,6 +125,7 @@ export function parseInput(body: unknown): InterpretInput | null {
     ...(image ? { image } : {}),
     ...(skills.length ? { skills } : {}),
     ...(mode ? { mode } : {}),
+    ...(b.detail === "short" || b.detail === "detailed" ? { detail: b.detail } : {}),
   };
 }
 

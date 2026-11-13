@@ -12,6 +12,7 @@ import { Banner, Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { PageHeader } from "../components/PageHeader";
 import { ScrollPage } from "../components/ScrollPage";
+import { ScamBaitDemo } from "./ScamBaitDemo";
 
 export interface TimedTurn extends BaitTurn {
   at: number;
@@ -158,7 +159,7 @@ export function ScamBaitScreen() {
 
   return (
     <ScrollPage>
-      <PageHeader title="Scam Bait" backHref="/" backLabel="Home">
+      <PageHeader title="Scam Bait" backHref="/safety" backLabel="Safety">
         <p className="text-xl text-muted">
           Got a scam text? Let {BAIT_NAME} keep them busy, so they have less time for anyone else.
         </p>
@@ -174,6 +175,7 @@ export function ScamBaitScreen() {
             <p className="text-lg text-ink">You send each reply yourself. Companion never sends anything for you.</p>
             <p className="text-base text-muted">Inspired by O2&apos;s &ldquo;Daisy&rdquo;, who does this on phone calls.</p>
           </Card>
+          <ScamBaitDemo />
           <Banner tone="warning" title="Good to know">
             Replying tells a scammer your number works, so you may get more scam texts. If you&apos;d rather not, just delete
             the message and forward it to 7726.

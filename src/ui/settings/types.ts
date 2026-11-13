@@ -3,6 +3,23 @@
 export type TextSize = "standard" | "large" | "larger" | "largest";
 export type ThemeChoice = "system" | "light" | "dark";
 export type MotionChoice = "system" | "reduce" | "full";
+/** How much Companion explains. */
+export type DetailChoice = "short" | "normal" | "detailed";
+
+/** Languages offered in Settings. "auto" follows the phone, and Companion also follows the person's own words. */
+export const LANGUAGES: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "auto", label: "Same as my phone" },
+  { value: "en-US", label: "English (US)" },
+  { value: "en-GB", label: "English (UK)" },
+  { value: "es-ES", label: "Español" },
+  { value: "fr-FR", label: "Français" },
+  { value: "de-DE", label: "Deutsch" },
+  { value: "it-IT", label: "Italiano" },
+  { value: "pt-BR", label: "Português" },
+  { value: "zh-CN", label: "中文" },
+  { value: "hi-IN", label: "हिन्दी" },
+  { value: "ar-SA", label: "العربية" },
+];
 
 export interface Settings {
   version: 1;
@@ -26,6 +43,10 @@ export interface Settings {
   /** 0.2 (quiet) to 1 (loud). */
   volume: number;
   voiceId: string | null;
+  /** "auto" or a BCP 47 tag from LANGUAGES. Used for listening, speaking and the AI's replies. */
+  language: string;
+  /** Short, normal or detailed explanations. */
+  detail: DetailChoice;
 
   // Accessibility
   announcements: boolean;
@@ -70,6 +91,8 @@ export const DEFAULT_SETTINGS: Settings = {
   speechRate: 0.9,
   volume: 1,
   voiceId: null,
+  language: "auto",
+  detail: "normal",
 
   announcements: true,
   haptics: true,

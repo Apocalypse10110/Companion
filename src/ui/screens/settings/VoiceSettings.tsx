@@ -14,6 +14,7 @@ import { Toggle } from "../../components/Toggle";
 import { useConversation } from "../../conversation/ConversationProvider";
 import { useSettings } from "../../settings/SettingsProvider";
 import {
+  LANGUAGES,
   SPEECH_RATE_MAX,
   SPEECH_RATE_MIN,
   SPEECH_RATE_STEP,
@@ -69,7 +70,7 @@ export function VoiceSettings() {
         rate: settings.speechRate,
         volume: settings.volume,
         voiceId: settings.voiceId,
-        language: (typeof navigator !== "undefined" && navigator.language) || "en-US",
+        language: settings.language !== "auto" ? settings.language : (typeof navigator !== "undefined" && navigator.language) || "en-US",
       });
     } catch {
       setFailed(true);
@@ -83,7 +84,7 @@ export function VoiceSettings() {
 
   return (
     <ScrollPage>
-      <PageHeader title="Voice" backHref="/settings" backLabel="Settings" />
+      <PageHeader title="Voice and language" backHref="/settings" backLabel="Settings" />
 
       {!supported && (
         <Banner tone="warning" title="Reading aloud isn't connected yet">
@@ -134,6 +135,25 @@ export function VoiceSettings() {
           onChange={(id) => update({ voiceId: id === "__default" ? null : id })}
         />
       )}
+
+      <ChoiceGroup
+        legend="Language"
+        value={settings.language}
+        choices={LANGUAGES.map((l) => ({ value: l.value, label: l.label }))}
+        onChange={(language) => update({ language })}
+      />
+      <p className="-mt-3 text-base text-muted">If you speak to me in another language, I&apos;ll answer in that language too.</p>
+
+      <ChoiceGroup
+        legend="How much should I explain?"
+        value={settings.detail}
+        choices={[
+          { value: "short", label: "Just the steps" },
+          { value: "normal", label: "A little explanation" },
+          { value: "detailed", label: "Explain more" },
+        ]}
+        onChange={(detail) => update({ detail: detail as "short" | "normal" | "detailed" })}
+      />
 
       {playing ? (
         <Button variant="secondary" icon={Square} fullWidth onClick={() => voiceOutput.cancel()}>
