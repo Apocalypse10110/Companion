@@ -74,6 +74,20 @@ flowchart LR
 
 More: [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md) · [docs/PRIVACY.md](docs/PRIVACY.md).
 
+## Scam scorecard (measured, Nov 13, `gemini-3.5-flash`)
+
+We sent real-world-style messages to Companion's live assistant and counted its verdicts (`npm run eval:scams`).
+
+| Run | Scams caught | False alarms on genuine messages |
+| --- | --- | --- |
+| First run, 60 messages | **30 of 30** | 9 of 30: it distrusted real bank and delivery texts |
+| After fixing the rules, same 60 | **30 of 30** | **0 of 30** |
+| **New, unseen messages** (honest check, never used for tuning) | **10 of 10** | **0 of 10** |
+
+**What the fix changed:** Companion now judges what a message *asks you to do* (pay, click to verify, share a code, keep it secret) rather than who it claims to be from.
+
+**Limits:** the messages are written from common UK and US scam types, with fictional numbers and links, not collected from real phones. A real-message set would be the next step. Data and results: [`evals/`](evals/).
+
 ## What works on a phone (and what can't)
 
 | Feature | iPhone (Safari) | Android (Chrome) |

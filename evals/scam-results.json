@@ -1,0 +1,438 @@
+{
+  "when": "2026-11-13T04:34:24.881Z",
+  "site": "http://localhost:3100",
+  "model": "gemini-3.5-flash",
+  "scams": {
+    "total": 30,
+    "caught": 30,
+    "missed": []
+  },
+  "genuine": {
+    "total": 30,
+    "falseAlarms": 0,
+    "flagged": []
+  },
+  "noVerdict": [],
+  "rows": [
+    {
+      "id": "s01",
+      "kind": "parcel fee",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Royal Mail will not send you a text message asking for a small payment like that, and that website link is not their official address"
+    },
+    {
+      "id": "s02",
+      "kind": "parcel fee",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Official delivery companies do not send text messages with links like that to update your address. Please do not click the link or re"
+    },
+    {
+      "id": "s03",
+      "kind": "parcel fee",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is a scam. It is trying to trick you into paying money and giving away your details. Please do not click the link or reply to the message. It is be"
+    },
+    {
+      "id": "s04",
+      "kind": "tax refund",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. HMRC will never send you a text message asking you to claim a refund by clicking a link. Please do not tap on that link or reply to t"
+    },
+    {
+      "id": "s05",
+      "kind": "tax",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not call that number or reply to the message. Scammers often pretend to be government agencies to scare people into giving "
+    },
+    {
+      "id": "s06",
+      "kind": "bank",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Banks will never send you a link like that to cancel a device. Please do not click the link or reply to the message. You should delet"
+    },
+    {
+      "id": "s07",
+      "kind": "bank",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not click on that link or reply to the message. Banks will not send you a text message with a link like that to verify your"
+    },
+    {
+      "id": "s08",
+      "kind": "bank call",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Banks will never ask you to read them a code sent to your phone. Please do not reply to that message or share any codes with anyone. "
+    },
+    {
+      "id": "s09",
+      "kind": "family impersonation",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is a very common scam message, not a real message from your child. Please do not reply to it, do not click any links, and do not send any money. It is best"
+    },
+    {
+      "id": "s10",
+      "kind": "family impersonation",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not send any money or reply to the message. It is a common trick where someone pretends to be a family member in trouble to"
+    },
+    {
+      "id": "s11",
+      "kind": "prize",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is a scam. Please do not click the link or reply to it. Scammers often pretend to be big shops to trick you into giving away your personal details "
+    },
+    {
+      "id": "s12",
+      "kind": "prize",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not tap on that link or provide any information. Scammers use these fake prizes to try and steal your personal details or m"
+    },
+    {
+      "id": "s13",
+      "kind": "gift cards",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not buy any gift cards or reply to this message. Scammers often pretend to be someone you know to trick you into sending mo"
+    },
+    {
+      "id": "s14",
+      "kind": "tech support pop-up",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not call that number or click anything on that page. It is trying to scare you into giving them money or access to your dev"
+    },
+    {
+      "id": "s15",
+      "kind": "tech support",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not call that number or install any apps they suggest. Real companies like Apple will never text you asking you to call the"
+    },
+    {
+      "id": "s16",
+      "kind": "account suspended",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Netflix will never send you a text message with a link to update your billing details. Please do not tap that link or reply to the me"
+    },
+    {
+      "id": "s17",
+      "kind": "account suspended",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is definitely a scam. Please do not call that number or click any links. Scammers often pretend to be big companies to scare you into calling them."
+    },
+    {
+      "id": "s18",
+      "kind": "utility",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This message is a scam. It is trying to scare you into sending money quickly, which is a common trick. Please do not reply to it, do not click any links, and do"
+    },
+    {
+      "id": "s19",
+      "kind": "government",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This message looks like a scam. Please do not tap on the link or reply to the message."
+    },
+    {
+      "id": "s20",
+      "kind": "toll",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is a scam. It is trying to trick you into clicking a link to steal your money or information. Please do not tap the link, and delete the message ri"
+    },
+    {
+      "id": "s21",
+      "kind": "investment",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not click on that link or reply to the message. Scammers often use famous names to trick people into giving them money. It "
+    },
+    {
+      "id": "s22",
+      "kind": "romance",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not reply to this message, send any money, or buy any gift cards. It is designed to trick you by pretending to be someone y"
+    },
+    {
+      "id": "s23",
+      "kind": "job",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Please do not reply or click anything. These messages try to trick people into giving away money or personal details. It is best to d"
+    },
+    {
+      "id": "s24",
+      "kind": "wrong number",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This message is suspicious. It is a common trick where strangers send a friendly message to start a conversation, often leading to a scam. Please do not reply t"
+    },
+    {
+      "id": "s25",
+      "kind": "medicare",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Medicare will never call or text you asking for your number or offering free equipment like that. Please do not call that number or p"
+    },
+    {
+      "id": "s26",
+      "kind": "pension",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is definitely a scam. Please do not call that number or reply to the text. Scammers often try to trick people with promises about their pensions to"
+    },
+    {
+      "id": "s27",
+      "kind": "charity",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "This is definitely a scam. Please do not reply to it, do not send any gift cards, and do not call the number. Legitimate charities will never ask for payment in"
+    },
+    {
+      "id": "s28",
+      "kind": "voicemail",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That message is definitely a scam. Please do not click that link, as it could try to steal your information or install something harmful on your phone. It is be"
+    },
+    {
+      "id": "s29",
+      "kind": "refund",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. Legitimate companies like BT will never ask you to send your card number or security code in a message. Please do not reply to it, cl"
+    },
+    {
+      "id": "s30",
+      "kind": "police",
+      "expected": "scam",
+      "got": "scam",
+      "reply": "That is definitely a scam. The police will never contact you to move your money, and they would never tell you to keep it a secret from your bank. Please do not"
+    },
+    {
+      "id": "g01",
+      "kind": "delivery",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard delivery update from Royal Mail about your parcel. You do not need to do anything, just wait for your delivery to"
+    },
+    {
+      "id": "g02",
+      "kind": "delivery",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard notification telling you that a package has arrived. You do not need to do anything, but it is always good to be "
+    },
+    {
+      "id": "g03",
+      "kind": "delivery",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a safe and genuine message from DPD about a delivery. It is just letting you know when your parcel will arrive. You do not need to do anything, "
+    },
+    {
+      "id": "g04",
+      "kind": "bank",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "This looks like a safe notification from your bank about a recent purchase. It is just letting you know about the transaction and does not ask you to click anyt"
+    },
+    {
+      "id": "g05",
+      "kind": "bank",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is a standard alert from your bank, and it gives you good advice by telling you to call the number on the back of your card if you a"
+    },
+    {
+      "id": "g06",
+      "kind": "bank code",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe and legitimate. It is a standard security alert from your bank. Just remember, never share that code with anyone, even if they claim to "
+    },
+    {
+      "id": "g07",
+      "kind": "doctor",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a genuine appointment reminder from your doctor's surgery. It is common for them to send these and ask you to reply with a letter to confirm or "
+    },
+    {
+      "id": "g08",
+      "kind": "pharmacy",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a safe and standard message from your pharmacy letting you know your prescription is ready. It is not asking you to click any links or pay for a"
+    },
+    {
+      "id": "g09",
+      "kind": "dentist",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a safe and genuine message from your dentist. It is just confirming your appointment, and it is not asking you to click any links or share any p"
+    },
+    {
+      "id": "g10",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a very sweet and safe message from your child. It is just letting you know they arrived safely and does not ask for anything, so you do not need"
+    },
+    {
+      "id": "g11",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds like a perfectly normal note from a family member who is running late for lunch. It does not ask for money or anything suspicious, so it loo"
+    },
+    {
+      "id": "g12",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That sounds like a lovely, genuine message from your grandchild thanking you for your gift. It does not look like a scam at all, as it is just a personal note."
+    },
+    {
+      "id": "g13",
+      "kind": "friend",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks perfectly safe. It is just a friendly note from someone who knows you, asking to meet for coffee. You do not need to worry about this one."
+    },
+    {
+      "id": "g14",
+      "kind": "utility",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "This message looks safe. It is just a standard notification about your energy bill. It does not ask you to click any suspicious links, share personal details, o"
+    },
+    {
+      "id": "g15",
+      "kind": "phone company",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard notification from your mobile provider about your bill, and it is not asking you to click any links or provide an"
+    },
+    {
+      "id": "g16",
+      "kind": "council",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That sounds like a helpful update from your local council about your bin collection. It does not ask you to click anything or pay money, so it looks safe. You c"
+    },
+    {
+      "id": "g17",
+      "kind": "shop",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds like a standard delivery update and appears to be safe. It is just letting you know your package is on its way. As a good rule of thumb, if "
+    },
+    {
+      "id": "g18",
+      "kind": "appointment",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard reminder for your eye test appointment. You do not need to do anything, but it is always a good idea to check you"
+    },
+    {
+      "id": "g19",
+      "kind": "hairdresser",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a perfectly safe and normal message from your salon reminding you about your appointment. You do not need to worry about it."
+    },
+    {
+      "id": "g20",
+      "kind": "church",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks perfectly safe. It is just a friendly invitation to a coffee morning at the church, and it does not ask you to do anything risky like clickin"
+    },
+    {
+      "id": "g21",
+      "kind": "bank",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds safe. It is just letting you know about a card being sent, which is a normal thing for banks to do. As long as it does not ask you to click "
+    },
+    {
+      "id": "g22",
+      "kind": "security code",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message is safe. It is just a security code from WhatsApp. You do not need to do anything, but please remember to never share that code with anyone, even i"
+    },
+    {
+      "id": "g23",
+      "kind": "delivery",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a perfectly safe and normal message from Tesco about your grocery delivery. You do not need to worry about it, as it is just letting you know wh"
+    },
+    {
+      "id": "g24",
+      "kind": "hospital",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe and genuine. It is just a reminder about your hospital appointment and does not ask you to click any links or share personal information"
+    },
+    {
+      "id": "g25",
+      "kind": "vaccination",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is a standard reminder from your doctor's surgery about your flu vaccine. You do not need to do anything special, just contact your "
+    },
+    {
+      "id": "g26",
+      "kind": "library",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That looks like a safe and genuine message from your local library about a book you reserved. You do not need to worry about this one."
+    },
+    {
+      "id": "g27",
+      "kind": "neighbour",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message sounds like a friendly note from a neighbor. It does not ask you to click any links, pay money, or share personal information, so it appears to be "
+    },
+    {
+      "id": "g28",
+      "kind": "streaming",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks safe. It is just a standard notification from Netflix to let you know your subscription is continuing as normal. You do not need to do anythi"
+    },
+    {
+      "id": "g29",
+      "kind": "taxi",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks perfectly safe. It is just a standard update from your taxi company to let you know your ride has arrived. You do not need to do anything wit"
+    },
+    {
+      "id": "g30",
+      "kind": "family",
+      "expected": "genuine",
+      "got": "safe",
+      "reply": "That message looks perfectly safe. It is just a family member asking for your recipe. You can reply to them whenever you are ready."
+    }
+  ]
+}
