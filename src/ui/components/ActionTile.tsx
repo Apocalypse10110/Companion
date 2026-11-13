@@ -19,7 +19,7 @@ type ActionTileProps = Common & ({ href: string; onClick?: never; disabled?: nev
  */
 export function ActionTile({ icon: Icon, title, description, tone = "plain", className, ...rest }: ActionTileProps) {
   const classes = cn(
-    "bw flex w-full min-h-[calc(var(--target)*1.3)] items-center gap-4 rounded-3xl px-4 py-3 text-left transition-[transform,background-color] duration-150 ease-out active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60",
+    "bw flex w-full min-h-[calc(var(--target)*1.2)] items-center gap-3.5 rounded-3xl px-4 py-2.5 text-left transition-[transform,background-color] duration-150 ease-out active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60",
     tone === "primary" ? "bg-primary text-on-primary" : "bg-surface text-ink hover:bg-surface-2",
     className,
   );

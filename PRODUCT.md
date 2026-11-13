@@ -19,7 +19,8 @@ The primary users are older adults and people with disabilities (motor, vision, 
 Ask it how to do anything ("How do I connect to Wi-Fi?", "What does this pop-up mean?", "How do I send a photo?"), or show it a photo of what's confusing. It teaches, one plain step at a time. It says what to look for and why, and checks after each step.
 
 - **The first time, it teaches.** The reply is marked as a lesson ("Teaching you: Connect to Wi-Fi"). Each step comes with a short why, and on a photo a ring shows exactly where to tap. The person can choose "Let me try it myself" at any point.
-- **The help fades as they learn.** When a task is finished, it's recorded ("Learned: Connect to Wi-Fi") in **Things you can do**. The next time, Companion says "You've done this before: try it yourself", gives a hint only if asked, and shows the ring only after "Show me where".
+- **The help fades as they learn.** Each task moves through five levels in **My Skills** (full guidance, shorter steps, "do you remember?", try it and check, learned). For a practised task Companion asks them to try first, gives a hint only if asked, and shows the ring only after "Show me where". Help is always available.
+- **It checks each step.** "I've done it", "Show me again", "That didn't work", or a photo of the screen, which it checks before moving on.
 - **It also does things,** always with confirmation: calls and texts (the person presses Call or Send), FaceTime, reminders, weather, bigger text.
 - **It keeps them safe.** It spots scams in texts and pop-ups (measured: 10 of 10 unseen scams caught, 0 false alarms), and can send a plain note to a family member.
 
@@ -46,8 +47,8 @@ Risky actions always need confirmation, and it never claims to have done somethi
 
 ## Capabilities and Constraints
 
-- **Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS v4. The UI work is on branch `feature/mobile-ui`.
-- **Screens:** Home (conversation and mic), History, Onboarding, and Settings (Text and looks, Voice, Accessibility, Privacy).
+- **Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS v4. 
+- **Screens:** Home (Ask, Show me, Live Help, conversation and mic), My Skills, Safety (message check, Call Shield, Scam Bait), Live Help, lesson cards, History, Onboarding, and Settings (Text and looks, Voice and language, Accessibility, People, Reminders, Privacy).
 - **Quick actions:** Call, Messages, Reminders and Help. These depend on Developer C's actions.
 - **Settings must really change behavior:** 4 themes (including high contrast, dark and light), 4 text sizes, bold text, extra-large buttons, reduce motion, speech speed, volume and voice.
 - **Sizing:** all sizes are in `rem`, so text size also scales spacing and touch targets. The minimum target is 56px, or 72px with extra-large buttons.
@@ -56,7 +57,7 @@ Risky actions always need confirmation, and it never claims to have done somethi
 - **Settings apply before first paint.**
 - **No fake functionality.** Unconnected services say "not connected yet", and the scripted demo harness is dev-only.
 - **History is device-only.** It is saved only if "Remember my conversations" is on, and erasing it leaves nothing behind.
-- **Status:** the assistant (Gemini), voice, phone actions, Show Me, help that fades, scam checks and the offline page are all connected and live. See `docs/DEVELOPMENT_STATUS.md`.
+- **Status:** the assistant (Gemini), voice, phone actions, Show Me with Tap here rings, Check my step, help that fades, Live Help (Gemini Live), scam checks, bills, lesson cards and the offline page are built. See `docs/DEVELOPMENT_STATUS.md` for what has and hasn't been verified.
 
 ## Brand Commitments
 
@@ -67,7 +68,7 @@ Risky actions always need confirmation, and it never claims to have done somethi
 ## Evidence on Hand
 
 - **Documentation:** `HANDOFF-DEV-A.md` and `PROMPT-DEV-A/B/C.txt` sit in the project folder but are git-ignored (local team notes, not in the repo). Docs in the repo: `docs/CONTRACTS.md`, `ARCHITECTURE.md` and `UI.md`.
-- **Tests:** 163 Vitest tests and a real-browser layout check (`scripts/ui-check.mjs`), all passing on `feature/mobile-ui`.
+- **Tests:** 543 Vitest tests and a real-browser layout check of every screen (`scripts/ui-check.mjs`), all passing.
 - **What doesn't exist yet:** user testing, testimonials, usage data or a recorded real-device demo. Future work must not invent them.
 
 ## Product Principles

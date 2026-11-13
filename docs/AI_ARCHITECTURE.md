@@ -139,3 +139,31 @@ AI unset: the on-device assistant still works.
   - Overloaded models give 502.
   - `GET /api/assistant` reports `{configured, provider, problem}`.
 
+
+## Updates (Nov 13)
+
+- **One reply shape, more fields.** `prompt.ts` asks for `scam` + `scamReasons`, `stepCheck`, `document`, and
+  `target.confidence`. Every field is checked twice (server `handler.ts`, phone `providers/remote.ts`) with the
+  validators in `src/ai/target.ts`: `cleanTarget` (four numbers 0–1000, right way round, not a speck, not the
+  whole photo, dropped when `confidence` is `low`), `cleanScam` (no links or long numbers in reasons),
+  `cleanStepCheck`, `cleanDocument` (amount must look like money, date must be `YYYY-MM-DD`).
+- **Modes.** `AssistantRequest.mode`: `help` (default), `check` (a photo to check the last step), `scam`
+  (always judge and explain), `document` (read a bill or letter). A `stepCheck` is only kept for a photo sent
+  in `check` mode, so a step is never "done" without evidence.
+- **Help that fades, five levels** (`src/ai/skills.ts`, `skillLevel`): 1 learning, 2 shorter steps, 3 "do you
+  remember?", 4 try the whole task then check, 5 learned (3 finishes on their own). A finish counts as
+  independent only for a task done before and when the person didn't ask "Tell me exactly" / "Show me again".
+  Lesson starts are counted as attempts. Old records load unchanged.
+- **Shared Gemini path.** `createGeminiJson` in `gemini.ts` gives every structured call the same model
+  order, timeouts and error mapping. `/api/summarize` uses it for lesson cards and family notes.
+  `src/ai/server/guard.ts` holds the shared origin check, rate limiter and body reader.
+- **Live Help** (`src/ai/server/live.ts`, `src/live/session.ts`): `/api/live/token` mints a single-use
+  ephemeral token (`authTokens.create`, `v1alpha`) locked to one Live model and `LIVE_PROMPT`. The browser
+  connects with the token, streams 16 kHz PCM from an AudioWorklet (`public/live-mic-worklet.js`) and a 768 px
+  JPEG a second, plays 24 kHz PCM, stops playback on `interrupted`, reconnects once, and tries the next model in
+  `GEMINI_LIVE_MODEL` if one doesn't answer. Any failure shows "Live Help isn't available right now. Let's use
+  Show Me instead." with the question kept.
+- **Call Shield** (`src/ai/callShield.ts`): plain rules that spot requests for codes, PINs, card numbers, gift
+  cards, safe accounts, remote access, secrecy, threats, urgency and impersonation as the words arrive.
+- **Language.** The prompt answers in the language the person uses; Settings → Voice and language sets the
+  listening and speaking language and how much to explain.

@@ -11,7 +11,8 @@ little as possible and say plainly what goes where. The same summary is shown in
 | Saved conversations (text plus a small photo preview) | `src/ui/conversation/history-storage.ts` | Settings → Privacy → Erase saved conversations, or turn off "Remember my conversations" |
 | People you add (name, relationship, number), typed, picked from contacts, or from a contact card | `src/people/store.ts` (key `companion.people.v1`) | Settings → People → Remove |
 | Reminders | `src/actions/reminders.ts` | Settings → Reminders → Remove |
-| Things you've learned (task names and counts, for help that fades) | `src/ai/skills.ts` | Settings → Things you can do, or Privacy → Forget what I've learned |
+| Things you've learned (task names, counts and level, for help that fades) | `src/ai/skills.ts` | My Skills → Remove / Clear all, or Privacy → Forget my skills and lesson cards |
+| Saved lesson cards (text only, no photos) | `src/lessons/store.ts` (key `companion.lessons.v1`) | Lesson card → Delete, or Privacy → Forget my skills and lesson cards |
 | Settings | `src/ui/settings/storage.ts` | Settings → Text and looks → reset |
 
 There are no accounts, no database, no analytics and no cookies of ours.
@@ -23,7 +24,8 @@ When the question needs the AI (help, questions, photos), the phone sends our ow
 
 - what you said or typed, with **phone numbers replaced by "[phone number]"** first (`src/ai/providers/redact.ts`),
 - the last few messages of this conversation (at most 12),
-- the names of tasks you've already learned (for example "connect to wifi (2 times)"),
+- the names of tasks you've already learned and their level (for example "connect to wifi (level 3, done 2 times)"),
+- what the request is for ("check my step", "is this a scam?", "read this bill") and how much you like explained,
 - your device language and local time,
 - the photo, if you chose to show one: shrunk to about 1280 px and re-encoded on the phone, which also
   removes location (EXIF) data.
@@ -40,6 +42,32 @@ Clear requests ("call my daughter", "make the text bigger", "remind me at 8") ar
 phone and don't go to the AI at all.
 
 Saved people and their numbers are **never** sent: calls and texts are matched to people on the phone.
+Bills and letters you photograph are read once to answer you. What was read (who it's from, amount,
+due date) is shown on screen; it is **not** saved with your conversation history, and the photo is never stored.
+A reminder is only made if you tap "Yes, set it".
+
+**Lesson cards and family notes** (`/api/summarize`): when you tap "Save this lesson" or "Share this with my
+family", the conversation text (phone numbers removed) is sent once to write the card or note. The result is
+shown to you; a lesson card is kept on this phone only. A family note is never sent anywhere unless you pick a
+person and press Send yourself.
+
+## Live Help
+
+- Starts only when you tap **Start Live Help**. The camera and microphone turn off when you tap End, leave
+  the screen, or switch to another app.
+- The phone asks our server for a **single-use token** that works for one session, for 15 minutes, with
+  Companion's own instructions locked in. The permanent AI key never reaches the phone.
+- While it runs, your voice and about one camera picture a second go **directly from the phone to Google's
+  Gemini Live API**. Nothing is recorded or stored by Companion; captions are shown on screen only.
+
+## Call Shield
+
+- Listens only between **Start listening** and **Stop**, with the words shown on screen, using this phone's
+  microphone to hear a call on speaker on *another* phone or a recording. It can't hear calls on the phone it
+  runs on (no web app can), and it never listens in secret.
+- Warning signs are found on the phone. The words go to the AI only if you tap "Ask Companion to check the
+  whole call". Speech-to-text itself is done by your browser (on Chrome this uses Google's speech service).
+
 A screenshot or text shared **to** Companion from another app sits in a private cache on the phone for
 a moment, is read once, and is deleted at once.
 

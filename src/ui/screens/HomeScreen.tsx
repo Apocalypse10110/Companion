@@ -75,10 +75,10 @@ export function HomeScreen() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4 pt-1 *:shrink-0">
+      <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 pt-1 *:shrink-0">
         <div className="flex flex-col gap-1">
-          <h1 className="display text-[2.125rem] leading-tight text-ink">{hasMessages ? greeting : `${greeting}. How can I help?`}</h1>
-          {!hasMessages && <p className="text-lg text-muted">I&apos;m here whenever technology gets confusing.</p>}
+          <h1 className="display text-[1.875rem] leading-tight text-ink">{hasMessages ? greeting : `${greeting}. How can I help?`}</h1>
+          {!hasMessages && <p className="text-lg text-muted">I&apos;m here when tech gets confusing.</p>}
         </div>
 
         {c.voiceInputSupported === false && (
@@ -106,12 +106,12 @@ export function HomeScreen() {
           </>
         ) : (
           <>
-            <div className="flex flex-col gap-3" role="group" aria-label="Ways to get help">
+            <div className="flex flex-col gap-2.5" role="group" aria-label="Ways to get help">
               <ActionTile
                 icon={MessageCircleQuestion}
                 tone="primary"
                 title="Ask"
-                description={typing ? "Type what's going on below." : "Tell me what's going on."}
+                description={typing ? "Type what's going on." : "Say what's going on."}
                 onClick={() => (typing ? document.querySelector<HTMLTextAreaElement>('section[aria-label="Talk or type"] textarea')?.focus() : c.pressMic())}
                 disabled={c.phase === "thinking"}
               />
@@ -121,9 +121,9 @@ export function HomeScreen() {
                 autoOpen={openCamera}
                 label="Show me"
                 icon={Camera}
-                tileDescription="Take a picture and I'll guide you."
+                tileDescription="Take a photo of it."
               />
-              <ActionTile icon={Video} title="Live Help" description="Let's figure it out together, on camera." href="/live" />
+              <ActionTile icon={Video} title="Live Help" description="Talk while I watch." href="/live" />
             </div>
             <p className="text-lg text-ink">
               {typing ? "For example, type" : "For example, say"} “{SAY_EXAMPLES[0]}”.

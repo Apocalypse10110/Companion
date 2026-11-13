@@ -1,77 +1,54 @@
 # Development status
 
-Last updated: 2026-11-12 by Developers C and D. Branch: `main`.
+Last updated: 2026-11-13. Branch: `claude/hopeful-noether-xqx6oc`.
 
-## Done and working end to end
+## Working end to end
 
-- **UI (A):** every screen, design system, accessibility (large text, high contrast, screen reader, reduced motion), onboarding, settings, conversation.
-- **Voice (B):** speech in (Web Speech recognition) and speech out (speechSynthesis), "Repeat that".
-- **Assistant (B + C):**
-  - On-device rules for clear requests.
-  - Gemini on the server for help, questions and photos, with structured JSON output, a model fallback chain, and replies in about 2 s.
-  - Conversation context and suggested replies.
-  - Help that fades: it lets the person try first on tasks they've already learned.
-- **Show Me (C):** photo or screenshot, then a plain explanation and one step at a time. Calls out scam texts and pop-ups.
-- **Phone actions (C):**
-  - Call and text by handing over to the dialer and Messages (`tel:`/`sms:` with number and text filled in).
-  - Maps, email and web search.
-  - Reminders with notification, on-screen and spoken alerts.
-  - Reading reminders back.
-  - Voice-driven settings ("make the text bigger").
-- **People, permissions (C):**
-  - Saved People, plus Android's contact picker.
-  - Microphone, notifications and camera permissions, asked only when needed.
-  - "Phone and permissions" screen showing what works on this device.
-- **Privacy:** in-app summary and [PRIVACY.md](PRIVACY.md). There are no accounts and no database.
-- **Device (D):** details in [DEVICE.md](DEVICE.md).
-  - Live camera for Show Me: back and front, take, retake, send.
-  - On computers, "Show my screen".
-  - Sharing a screenshot or text to the installed Android app.
-  - Contacts: the Android picker, and contact-card import on iPhone.
-  - Phone numbers are removed before anything goes to the AI.
-  - Device permissions dashboard.
-  - Reminders management: add, edit, done, past, details, repeat, notification switch.
-  - Reminder times from Gemini are worked out on the phone.
-  - Coming back after a call reopens the conversation with a welcome back.
-  - Home-screen shortcuts.
-- **Tests:** about 390 unit and behaviour tests, a real-browser layout check of every screen, and a real-browser e2e run of every demo workflow against live Gemini.
+| Area | What works | Where |
+| --- | --- | --- |
+| Home | Greeting, three large actions (Ask, Show me, Live Help), read a bill, scam check, continue learning, family help | `src/ui/screens/HomeScreen.tsx` |
+| Ask | Voice or typing, one step at a time, suggestions, "Repeat that" | `src/ui/conversation`, `src/voice` |
+| Show me + Tap here | Photo or screenshot, plain explanation, high-contrast ring on the thing to press (validated twice, dropped when unsure), "I can't find it on my screen" | `TapHere.tsx`, `src/ai/target.ts` |
+| Check my step | "I've done it", "Show me again", "That didn't work", or a photo the AI checks (`stepCheck`) | `CheckStep.tsx` |
+| Help that fades | Five levels per skill, attempts and independent finishes tracked, ring hidden for practised tasks, help always available | `src/ai/skills.ts`, `src/ai/assistant.ts` |
+| My Skills | Learning / Practising / Nearly there / Learned, last done, practise again, print card, remove | `src/ui/skills` |
+| Fridge Card | "Save this lesson" writes a printable card (AI, or from the conversation offline); print stylesheet | `src/ui/lessons`, `/lesson` |
+| Live Help | Gemini Live with ephemeral tokens: camera + voice, spoken replies, interruption, captions, reconnect, model fallback, Show Me fallback | `src/live`, `src/ui/live`, `/api/live/token` |
+| Safety | Paste or photograph a message: STOP / Be careful / no warning signs / can't tell, reasons, how to check safely, share with family | `src/ui/safety`, `/safety` |
+| Call Shield | Listens to a call on another phone's speaker, flags scam signs live, full check on request | `/safety/listen` |
+| Scam Bait | Doris replies to real scam texts (the person sends); practice round with a labelled pretend scammer | `/scam-bait` |
+| Point at a bill | Organisation, amount, due date, reference, unclear fields flagged; confirmed reminder; never pays | `DocumentCard.tsx` |
+| Help Card | Note from the AI (in the reply or on request), send to someone in People via the confirm card, or the share sheet after a confirmation | `FamilyNote.tsx`, `FamilyShareOffer.tsx` |
+| Settings | Text and looks, voice and language, how much to explain, people, reminders, permissions, accounts, privacy | `src/ui/screens/settings` |
 
-- **Connected accounts:**
-  - Gmail, Google Calendar, Outlook and Spotify sign-in, with "read my email", "what's on my calendar" and "play …".
-  - Needs app keys from each service: see [ACCOUNTS.md](ACCOUNTS.md).
-- **Wow features (Nov 12):**
-  - **Tap here circles:** Show Me replies can carry a box from Gemini; it is checked on the server and the phone, then drawn as a high-contrast ring on the person's photo. For a task done before, the ring starts hidden behind "Show me where" (help that fades).
-  - **Help Card to family:** when the person is stuck or was warned about a scam, Gemini writes a 2-3 line note in their voice. One tap offers it as a normal, confirmed message to someone in People (family first), or via the share sheet with the photo.
-  - **Scam Bait** (`/scam-bait`): paste a scam text and "Doris" writes muddled, time-wasting replies (Gemini, `/api/scam-bait`), with stall lines when there's no AI. Doris never gives numbers, codes, links or emails (checked on the server). The person copies or opens each reply in Messages and sends it themselves. Ends with "Kept them busy N minutes" and the 7726 report tip. Inspired by O2's Daisy.
-- **Shipping:**
-  - `/status` page and `/api/health`.
-  - GitHub Actions CI (lint, types, tests, build).
-  - A friendly offline page.
-  - The welcome walkthrough mentions Show me and People.
+## Checks run on Nov 13
+
+- `npm test`: 543 tests pass (unit, behaviour, accessibility with axe, server handlers).
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- `npm run test:ui` against a production build: every screen (including My Skills, Safety, Call Shield, Live
+  Help, lesson card) passes at the largest text with dark high contrast at 360×640, and at normal settings.
+- Real browser with the AI replies stubbed: photo → Tap here ring + Check my step, Safety → scam warning,
+  bill photo → bill card. The print preview of a lesson card renders as one black-and-white A4 page.
+
+## Not verified yet (needs a key, a device or a deploy)
+
+- Real Gemini answers for the new fields (`stepCheck`, `document`, `scamReasons`, `confidence`): there was no
+  `GEMINI_API_KEY` in the build environment. Run `npm run test:e2e` and `npm run eval:scams` with a key.
+- Live Help against the real Gemini Live API, and the default Live model names (`GEMINI_LIVE_MODEL`).
+- Real iPhone and Android phones: camera, microphone, Live Help audio, share sheet, printing.
 
 ## Before judging
 
-1. **Enable billing on the Gemini key and set a budget** (README → Gemini quota). The free tier ran out during testing; the fallback models covered it.
-2. Set `GEMINI_API_KEY` in Vercel and redeploy; check `/api/assistant`.
-3. Put the live URL at the top of the README.
-4. Run `BASE_URL=<live url> npm run test:e2e`.
-5. Test on a real iPhone and Android phone:
-   - microphone prompt,
-   - Show Me with the camera and with a screenshot,
-   - call and text hand-off,
-   - Add to Home Screen,
-   - the largest system font and TalkBack/VoiceOver.
+1. Set `GEMINI_API_KEY` (paid tier, with a budget) in Vercel for Production and Preview; optionally
+   `GEMINI_LIVE_MODEL`.
+2. Open `/status` and `/api/assistant` on the deployment.
+3. Try Live Help on a phone; if it fails, check the Live model name in Google AI Studio.
+4. `BASE_URL=<deployment> npm run test:e2e`.
 
-## Known limits (by platform, not by choice)
+## Known limits (by platform)
 
-- A web app can't read SMS or call history, can't open the Camera, Photos or Settings apps (it explains how to find them instead), and can't see the phone's own screen (Show Me uses a photo or screenshot).
-- Reminders alert only while Companion is open or recently in the background. There is no push server. On iPhone, notifications need the app added to the Home Screen.
-- Firefox has no speech recognition (typing works). The on-device rules are English-only. Other languages go through Gemini.
-- The rate limit is kept in memory per server instance (fine for a demo, not for scale).
-- Gmail and Google Calendar sign-in only works for listed test users until Google verifies the app (restricted scope). Spotify starts music by itself only with Premium.
-
-## Next, if time allows
-
-- An eval scorecard of red-team prompts.
-- A "Help Card" that texts a summary of the problem to a family member.
-- The Bank Call Shield.
+- A web app can't read SMS or call history, can't open the Camera, Photos or Settings apps, can't see the
+  phone's own screen, and can't hear phone calls on the phone it runs on.
+- Reminders alert only while Companion is open or recently in the background.
+- Firefox has no speech recognition (typing works; Call Shield doesn't).
+- Rate limits are kept in memory per server instance.
