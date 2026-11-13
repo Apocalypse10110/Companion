@@ -24,6 +24,8 @@ export type ActionKind =
   | "read-email"
   | "check-calendar"
   | "play-music"
+  /** Today's or tomorrow's forecast, where they are or for a named place. */
+  | "weather"
   | (string & {});
 
 export interface ProposedAction {

@@ -173,9 +173,11 @@ describe("assistant: honest about limits", () => {
     expect(r.proposedActions?.[0]).toMatchObject({ kind: "open-app", params: { app: "messages" } });
   });
 
-  it("can't check weather without an AI provider", async () => {
+  it("checks the real weather (no AI needed), asking for the location first", async () => {
     const { say } = setup();
-    expect((await say("What's the weather like?")).text).toContain("can't check the weather");
+    const r = await say("What's the weather like?");
+    expect(r.text).toContain("I'll need your location");
+    expect(r.proposedActions?.[0]).toMatchObject({ kind: "weather", risk: "low" });
   });
 
   it("unknown things get a kind reply with suggestions", async () => {

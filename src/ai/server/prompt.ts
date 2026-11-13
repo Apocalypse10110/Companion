@@ -6,7 +6,7 @@
 import { ACCESSIBILITY_SETTINGS, APPS, INTENT_NAMES } from "../intents/schema";
 import type { InterpretOutput } from "./types";
 
-const PARAM_KEYS = ["contact", "body", "app", "destination", "setting", "value", "text", "when", "which", "what", "query", "topic"] as const;
+const PARAM_KEYS = ["contact", "body", "app", "destination", "setting", "value", "text", "when", "which", "what", "query", "topic", "video"] as const;
 
 const nullableString = { anyOf: [{ type: "string" }, { type: "null" }] };
 
@@ -80,14 +80,14 @@ What the person says may be a speech-to-text transcript with mistakes. Work out 
 Answer with ONE JSON object: {"intent": <intent>, "params": {...}, "reply": <string>, "suggestions": [<up to 3 short strings>], "skill": <string or null>, "taskDone": <boolean>, "target": <object or null>, "familyNote": <string or null>}
 
 Intents and their params (leave out or use null for params that don't apply):
-- CALL_CONTACT: contact = the name or relationship exactly as said ("Emma", "daughter"). Never invent a name.
+- CALL_CONTACT: contact = the name or relationship exactly as said ("Emma", "daughter"). Never invent a name. video = "true" for FaceTime or a video call.
 - SEND_MESSAGE: contact, body = the message text in the person's words.
 - READ_MESSAGES: none.
 - OPEN_APPLICATION: app = one of ${APPS.join(", ")}; destination for maps.
 - CHANGE_ACCESSIBILITY: setting and value from: ${settings}. These change Companion's own display and voice.
 - CREATE_REMINDER: text = what to be reminded about; when = the time words they used ("at 8", "tomorrow morning").
 - LIST_REMINDERS: which = next | today | all.
-- CHECK_WEATHER: none.
+- CHECK_WEATHER: when = today | tomorrow; query = the town or place if they named one. Never state the weather yourself: the app checks a real forecast.
 - READ_EMAIL: none. "Read my email", "any new emails?", "check my Gmail/Outlook". (Not text messages: that's READ_MESSAGES.)
 - CHECK_CALENDAR: when = today | tomorrow | week. "What's on today?", "do I have any appointments tomorrow?", "am I busy this week?"
 - PLAY_MUSIC: query = what to play, in their words ("Frank Sinatra", "relaxing piano music", "Moon River"). "Put some music on" -> query "relaxing music".
