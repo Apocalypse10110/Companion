@@ -33,7 +33,9 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex min-h-[var(--target)] flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-center text-base leading-tight [overflow-wrap:anywhere]",
+                  // Labels grow with the text size but stop at 19px, so "Settings" never breaks mid-word in a
+                  // quarter of a phone's width. Words wrap only between words ("My / Skills").
+                  "relative flex min-h-[var(--target)] flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-center text-[length:min(1rem,19px)] leading-tight [overflow-wrap:normal] [word-break:keep-all]",
                   active ? "bw border-accent bg-accent-soft font-bold text-ink" : "text-muted hover:bg-surface-2",
                 )}
               >
