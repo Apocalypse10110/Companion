@@ -77,8 +77,8 @@ export function HomeScreen() {
     <div className="flex h-full min-h-0 flex-col">
       <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4 pt-1 *:shrink-0">
         <div className="flex flex-col gap-1">
-          <h1 className="display text-[2.375rem] text-ink">{hasMessages ? greeting : `${greeting}. How can I help?`}</h1>
-          <p className="text-xl text-muted">I&apos;m here whenever technology gets confusing.</p>
+          <h1 className="display text-[2.125rem] leading-tight text-ink">{hasMessages ? greeting : `${greeting}. How can I help?`}</h1>
+          {!hasMessages && <p className="text-lg text-muted">I&apos;m here whenever technology gets confusing.</p>}
         </div>
 
         {c.voiceInputSupported === false && (

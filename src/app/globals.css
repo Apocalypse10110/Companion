@@ -331,4 +331,8 @@ dialog::backdrop {
   .lesson-card li {
     break-inside: avoid;
   }
+  .lesson-card .lesson-num {
+    height: 2.75rem !important;
+    width: 2.75rem !important;
+  }
 }

@@ -19,18 +19,18 @@ type ActionTileProps = Common & ({ href: string; onClick?: never; disabled?: nev
  */
 export function ActionTile({ icon: Icon, title, description, tone = "plain", className, ...rest }: ActionTileProps) {
   const classes = cn(
-    "bw flex w-full min-h-[calc(var(--target)*1.6)] items-center gap-4 rounded-3xl px-5 py-4 text-left transition-[transform,background-color] duration-150 ease-out active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60",
+    "bw flex w-full min-h-[calc(var(--target)*1.3)] items-center gap-4 rounded-3xl px-4 py-3 text-left transition-[transform,background-color] duration-150 ease-out active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60",
     tone === "primary" ? "bg-primary text-on-primary" : "bg-surface text-ink hover:bg-surface-2",
     className,
   );
   const body = (
     <>
-      <span className={cn("flex size-14 shrink-0 items-center justify-center rounded-2xl", tone === "primary" ? "bg-on-primary/15" : "bg-accent-soft")}>
-        <Icon aria-hidden="true" className="size-8" strokeWidth={2.25} />
+      <span className={cn("flex size-12 shrink-0 items-center justify-center rounded-2xl", tone === "primary" ? "bg-on-primary/15" : "bg-accent-soft")}>
+        <Icon aria-hidden="true" className="size-7" strokeWidth={2.25} />
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="display text-2xl font-bold [overflow-wrap:anywhere]">{title}</span>
-        <span className={cn("text-lg", tone === "primary" ? "text-on-primary" : "text-muted")}>{description}</span>
+        <span className="display text-[1.375rem] font-bold leading-tight [overflow-wrap:anywhere]">{title}</span>
+        <span className={cn("text-lg leading-snug", tone === "primary" ? "text-on-primary" : "text-muted")}>{description}</span>
       </span>
     </>
   );

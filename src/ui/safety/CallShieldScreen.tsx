@@ -33,6 +33,8 @@ export function CallShieldScreen() {
   const session = useRef<VoiceInputSession | null>(null);
   const wanted = useRef(false);
   const transcript = useRef("");
+  /** The latest "listen once", for restarting after each pause. */
+  const again = useRef<() => void>(() => {});
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading device capabilities after mount
@@ -74,12 +76,16 @@ export function CallShieldScreen() {
         },
         // Speech recognition stops after each pause: keep going until Stop is pressed.
         onEnd: () => {
-          if (wanted.current) setTimeout(listenOnce, 150);
+          if (wanted.current) setTimeout(() => again.current(), 150);
         },
       },
       { language: navigator.language || "en-US" },
     );
   }, [announce, stop, voiceInput]);
+
+  useEffect(() => {
+    again.current = listenOnce;
+  }, [listenOnce]);
 
   const start = () => {
     setProblem(null);
