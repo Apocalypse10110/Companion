@@ -29,7 +29,7 @@ describe("teaching is visible from the first time", () => {
     const { ask, record } = assistantWith({ skill: "connect to wifi", taskDone: true, reply: "Well done! You can do this on your own now." });
     const r = await ask("it says connected!");
     expect(r.lesson).toEqual({ skill: "connect to wifi", stage: "learned" });
-    expect(record).toHaveBeenCalledWith("connect to wifi");
+    expect(record).toHaveBeenCalledWith("connect to wifi", false);
   });
 
   it("no lesson for ordinary questions or actions", async () => {

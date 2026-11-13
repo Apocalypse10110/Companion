@@ -21,6 +21,13 @@ export interface AssistantImage {
   data: string;
 }
 
+/**
+ * What a photo or message is being sent for. "help" is the default Show Me.
+ * "check": the person did the last step and sends a photo so Companion can check it.
+ * "scam": "is this real?" for a message, call or pop-up. "document": read a bill or letter.
+ */
+export type AssistantMode = "help" | "check" | "scam" | "document";
+
 export interface AssistantRequest {
   /** What the person said or typed. For quick actions, a plain sentence such as "I want to make a call". */
   text: string;
@@ -29,6 +36,8 @@ export interface AssistantRequest {
   quickActionId?: QuickActionId;
   /** Set when source is "photo": what the person wants help with in the picture. */
   image?: AssistantImage;
+  /** What this request is for (default "help"). */
+  mode?: AssistantMode;
   /** Recent turns, oldest first, so the assistant has context. Capped by the UI. */
   history: AssistantTurn[];
   /** BCP 47 language tag, for example "en-US". */
@@ -68,6 +77,36 @@ export interface AssistantReply {
    * seem stuck or after a scam warning. Never sent without the person confirming.
    */
   familyNote?: string;
+  /** For a message, call, pop-up or letter: how it looks, and why. Never a guarantee. */
+  scam?: ScamCheck;
+  /** "Check my step": did the photo show the step was done? Only set when a photo was checked. */
+  stepCheck?: StepCheck;
+  /** "Point at a bill": what could be read from a bill or letter. Values are as seen, never guessed. */
+  document?: DocumentInfo;
+}
+
+export type ScamVerdict = "scam" | "suspicious" | "safe" | "unsure";
+
+export interface ScamCheck {
+  verdict: ScamVerdict;
+  /** Plain reasons ("The link isn't the delivery company's website"). Up to 4. */
+  reasons: string[];
+}
+
+export type StepCheck = "done" | "not-yet" | "unsure";
+
+export interface DocumentInfo {
+  /** Who it's from, as printed. */
+  organization?: string;
+  /** Amount due as printed, e.g. "$84.20". */
+  amount?: string;
+  /** Due date as YYYY-MM-DD, only when clearly printed. */
+  dueDate?: string;
+  reference?: string;
+  /** What the letter asks them to do, in plain words. */
+  summary?: string;
+  /** Fields that were hard to read, so the person checks them. */
+  unclear: string[];
 }
 
 /** Where to tap in a photo. Box is [ymin, xmin, ymax, xmax], in thousandths of the photo's height and width. */

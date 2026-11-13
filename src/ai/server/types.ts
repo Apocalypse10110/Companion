@@ -1,4 +1,4 @@
-import type { AssistantImage, AssistantTurn } from "@/contracts";
+import type { AssistantImage, AssistantMode, AssistantTurn } from "@/contracts";
 
 export interface InterpretInput {
   text: string;
@@ -10,6 +10,8 @@ export interface InterpretInput {
   image?: AssistantImage;
   /** Tasks the person has finished before, with how many times ("connect to wifi (2 times)"). */
   skills?: string[];
+  /** What the request is for (default "help"). */
+  mode?: AssistantMode;
 }
 
 /** What a server-side adapter returns. All of it is untrusted; the client validates it. */
@@ -27,7 +29,13 @@ export interface InterpretOutput {
   /** A note the person may send to family, untrusted. */
   familyNote?: string;
   /** For a message, call, pop-up or letter they asked about: the AI's verdict. Used by the scam scorecard. */
-  scam?: "scam" | "suspicious" | "safe";
+  scam?: "scam" | "suspicious" | "safe" | "unsure";
+  /** Why it is (or isn't) a scam. Untrusted. */
+  scamReasons?: unknown;
+  /** "Check my step": untrusted. */
+  stepCheck?: unknown;
+  /** "Point at a bill": untrusted. */
+  document?: unknown;
 }
 
 /** A server-side AI adapter. Returns untrusted raw output; the client validates it. */

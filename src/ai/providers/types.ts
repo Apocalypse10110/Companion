@@ -6,7 +6,7 @@
  * Owner: Developer B.
  */
 
-import type { AssistantImage, AssistantTurn } from "@/contracts";
+import type { AssistantImage, AssistantMode, AssistantTurn, DocumentInfo, ScamCheck, StepCheck } from "@/contracts";
 
 export interface InterpretRequest {
   text: string;
@@ -20,6 +20,8 @@ export interface InterpretRequest {
   image?: AssistantImage;
   /** Tasks they've finished before, so the AI can let them try first. */
   skills?: string[];
+  /** What the request is for (default "help"). */
+  mode?: AssistantMode;
 }
 
 export interface InterpretResult {
@@ -37,6 +39,10 @@ export interface InterpretResult {
   target?: unknown;
   /** A note the person may choose to send to family. Untrusted; checked with cleanFamilyNote. */
   familyNote?: string;
+  /** Already checked by the client (see src/ai/target.ts). */
+  scam?: ScamCheck;
+  stepCheck?: StepCheck;
+  document?: DocumentInfo;
 }
 
 /** Why there is no AI: nothing set up, or the server's key was refused. */

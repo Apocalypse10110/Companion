@@ -7,7 +7,7 @@
  */
 
 import { AssistantError } from "@/contracts";
-import { cleanFamilyNote, cleanTarget } from "../target";
+import { cleanDocument, cleanFamilyNote, cleanScam, cleanStepCheck, cleanTarget } from "../target";
 import { redactPhoneNumbers } from "./redact";
 import type { AIProvider, AIUnavailableReason, InterpretRequest, InterpretResult } from "./types";
 
@@ -61,6 +61,10 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
         taskDone?: unknown;
         target?: unknown;
         familyNote?: unknown;
+        scam?: unknown;
+        scamReasons?: unknown;
+        stepCheck?: unknown;
+        document?: unknown;
       } | null;
       if (!data || typeof data !== "object") throw new AssistantError("unknown", "Bad response");
       const suggestions = Array.isArray(data.suggestions) ? data.suggestions.filter((x): x is string => typeof x === "string") : [];
@@ -73,6 +77,9 @@ export function createRemoteProvider(endpoint = ASSISTANT_ENDPOINT, fetchImpl: t
         // Checked again here: the phone trusts nothing it is sent.
         ...(cleanTarget(data.target) ? { target: cleanTarget(data.target) } : {}),
         ...(cleanFamilyNote(data.familyNote) ? { familyNote: cleanFamilyNote(data.familyNote)! } : {}),
+        ...(cleanScam(data.scam, data.scamReasons) ? { scam: cleanScam(data.scam, data.scamReasons)! } : {}),
+        ...(cleanStepCheck(data.stepCheck) ? { stepCheck: cleanStepCheck(data.stepCheck)! } : {}),
+        ...(cleanDocument(data.document) ? { document: cleanDocument(data.document)! } : {}),
       };
     },
   };

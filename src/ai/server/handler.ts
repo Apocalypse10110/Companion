@@ -6,7 +6,7 @@
 
 import type { AssistantImage, AssistantTurn } from "@/contracts";
 import { cleanString, validateIntent } from "../intents/schema";
-import { cleanFamilyNote, cleanTarget } from "../target";
+import { cleanDocument, cleanFamilyNote, cleanScam, cleanStepCheck, cleanTarget } from "../target";
 import { createAnthropicInterpreter } from "./anthropic";
 import { createGeminiInterpreter, parseModelList } from "./gemini";
 import { createOpenAICompatibleInterpreter } from "./openaiCompatible";
@@ -115,6 +115,7 @@ export function parseInput(body: unknown): InterpretInput | null {
         .slice(0, 20)
     : [];
   const image = parseImage(b.image);
+  const mode = b.mode === "check" || b.mode === "scam" || b.mode === "document" ? b.mode : undefined;
   return {
     text,
     history,
@@ -123,6 +124,7 @@ export function parseInput(body: unknown): InterpretInput | null {
     lastAssistantText: cleanString(b.lastAssistantText, 1_000),
     ...(image ? { image } : {}),
     ...(skills.length ? { skills } : {}),
+    ...(mode ? { mode } : {}),
   };
 }
 
@@ -209,7 +211,11 @@ export async function handleAssistantRequest(
       // "Tap here" only makes sense with a photo to draw on.
       target: input.image ? cleanTarget(result?.target) : null,
       familyNote: cleanFamilyNote(result?.familyNote),
-      scam: result?.scam === "scam" || result?.scam === "suspicious" || result?.scam === "safe" ? result.scam : null,
+      scam: result?.scam === "scam" || result?.scam === "suspicious" || result?.scam === "safe" || result?.scam === "unsure" ? result.scam : null,
+      scamReasons: cleanScam(result?.scam, result?.scamReasons)?.reasons ?? [],
+      // A step is only "checked" against a photo.
+      stepCheck: input.image ? cleanStepCheck(result?.stepCheck) : null,
+      document: cleanDocument(result?.document),
     });
   } catch (err) {
     if (controller.signal.aborted) return json(504, { error: "timeout" });

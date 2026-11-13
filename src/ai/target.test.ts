@@ -122,7 +122,7 @@ describe("tap here, end to end", () => {
     const known: string[] = [];
     const { send, record } = setup({ skill: "free up storage", taskDone: true, target: answer.target }, known);
     const r = await send();
-    expect(record).toHaveBeenCalledWith("free up storage");
+    expect(record).toHaveBeenCalledWith("free up storage", false);
     expect(r.pointAt?.hidden).toBeUndefined();
   });
 

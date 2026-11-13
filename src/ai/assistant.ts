@@ -17,7 +17,10 @@ import {
   type AssistantRequest,
   type AssistantSendOptions,
   type AssistantService,
+  type DocumentInfo,
   type PointAt,
+  type ScamCheck,
+  type StepCheck,
   type ProposedAction,
 } from "@/contracts";
 import { speakable } from "@/voice/speakable";
@@ -26,14 +29,14 @@ import { PRONOUNS, classify, cleanContact, looksLikeQuestion, normalize, stripPo
 import { cleanString, validateIntent, type Intent } from "./intents/schema";
 import { describeWhen, parseWhen } from "./intents/time";
 import { noProvider, type AIProvider } from "./providers/types";
-import { recordSkill, skillsForPrompt } from "./skills";
+import { recordAttempt, recordSkill, skillsForPrompt } from "./skills";
 import { cleanFamilyNote, cleanTarget } from "./target";
 import { APP_GUIDANCE, APP_LABELS, OPENABLE_APPS, SETTING_TITLES, capitalize, contactLabel, recoverCase, yourify } from "./words";
 
 export interface AssistantOptions {
   provider?: AIProvider;
   /** What the person has learned before, for help that fades. Defaults to the on-device record. */
-  skills?: { list(): string[]; record(name: string): void };
+  skills?: { list(): string[]; record(name: string, independent?: boolean): void; attempt?(name: string): void };
   /** For tests. */
   now?: () => Date;
   newId?: () => string;
@@ -60,6 +63,9 @@ type AIState = "answered" | "none" | "failed";
 
 type Lesson = NonNullable<AssistantReply["lesson"]>;
 
+/** The person asked to be shown or told exactly: a finish after this isn't "on their own". */
+const EXACT_HELP = /\b(tell me exactly|show me where|show me again|i can'?t find|that didn'?t work)\b/i;
+
 /** Offered the first time a task is taught, so the person can choose to try before being told. */
 export const TRY_MYSELF = "Let me try it myself";
 
@@ -83,6 +89,8 @@ interface Understood {
   aiSuggestions?: string[];
   lesson?: Lesson;
   familyNote?: string;
+  scam?: ScamCheck;
+  document?: DocumentInfo;
   ai: AIState;
 }
 
@@ -105,6 +113,9 @@ interface Draft {
   pointAt?: PointAt;
   familyNote?: string;
   lesson?: Lesson;
+  scam?: ScamCheck;
+  stepCheck?: StepCheck;
+  document?: DocumentInfo;
 }
 
 export function createAssistant(options: AssistantOptions = {}): AssistantService & { reset(): void } {
@@ -112,7 +123,29 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
   const now = options.now ?? (() => new Date());
   const newId = options.newId ?? defaultId;
   const store = new ContextStore();
-  const skills = options.skills ?? { list: () => skillsForPrompt(), record: (n: string) => void recordSkill(n) };
+  const skills = options.skills ?? {
+    list: () => skillsForPrompt(),
+    record: (n: string, independent?: boolean) => void recordSkill(n, new Date(), independent),
+    attempt: (n: string) => void recordAttempt(n),
+  };
+  /** Lessons already counted as an attempt in this conversation. */
+  const attempted = new Set<string>();
+
+  /** Count a lesson start once per conversation, and record a finish (independent if no exact help was asked for). */
+  function trackLesson(request: AssistantRequest, skill: string | undefined, taskDone: boolean | undefined): void {
+    const name = skill?.trim().toLowerCase();
+    if (!name) return;
+    if (taskDone) {
+      const asked = [request.text, ...request.history.filter((t) => t.role === "user").map((t) => t.text)].some((t) => EXACT_HELP.test(t));
+      skills.record(name, knowsSkill(skills.list(), name) && !asked);
+      attempted.delete(name);
+      return;
+    }
+    if (!attempted.has(name)) {
+      attempted.add(name);
+      skills.attempt?.(name);
+    }
+  }
 
   async function understand(request: AssistantRequest, ctx: ConversationContext, signal?: AbortSignal): Promise<Understood> {
     const raw = classify(request.text, now());
@@ -135,6 +168,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
           now: now().toISOString(),
           lastAssistantText: lastAssistant,
           skills: skills.list(),
+          ...(request.mode && request.mode !== "help" ? { mode: request.mode } : {}),
         },
         signal,
       );
@@ -148,7 +182,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     if (!result) return { intent: local, ai: provider.unavailableReason?.() === "ai-auth" ? "failed" : "none" };
     const intent = validateIntent(result.intent) ?? local;
     const lesson = lessonFrom(skills.list(), result.skill, result.taskDone);
-    if (result.taskDone && result.skill) skills.record(result.skill);
+    trackLesson(request, result.skill, result.taskDone);
     const aiSuggestions = withTryMyself(
       (result.suggestions ?? [])
         .map((x) => cleanString(x, 60))
@@ -163,6 +197,8 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       aiSuggestions,
       ...(lesson ? { lesson } : {}),
       ...(cleanFamilyNote(result.familyNote) ? { familyNote: cleanFamilyNote(result.familyNote)! } : {}),
+      ...(result.scam ? { scam: result.scam } : {}),
+      ...(result.document ? { document: result.document } : {}),
       ai: "answered",
     };
   }
@@ -475,6 +511,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
           lastAssistantText: lastAssistant,
           image: request.image,
           skills: skills.list(),
+          ...(request.mode && request.mode !== "help" ? { mode: request.mode } : {}),
         },
         signal,
       );
@@ -489,7 +526,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
     // Read before recording, so finishing a task now doesn't hide this ring.
     const known = knowsSkill(skills.list(), result.skill);
     const lesson = lessonFrom(skills.list(), result.skill, result.taskDone);
-    if (result.taskDone && result.skill) skills.record(result.skill);
+    trackLesson(request, result.skill, result.taskDone);
     let suggestions = (result.suggestions ?? [])
       .map((x) => cleanString(x, 60))
       .filter((x): x is string => Boolean(x))
@@ -506,11 +543,17 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       ...(lesson ? { lesson } : {}),
       ...(pointAt ? { pointAt } : {}),
       ...(familyNote ? { familyNote } : {}),
+      ...(result.scam ? { scam: result.scam } : {}),
+      ...(result.stepCheck && request.mode === "check" ? { stepCheck: result.stepCheck } : {}),
+      ...(result.document ? { document: result.document } : {}),
     };
   }
 
   return {
-    reset: () => store.reset(),
+    reset: () => {
+      store.reset();
+      attempted.clear();
+    },
 
     async send(request: AssistantRequest, opts: AssistantSendOptions = {}): Promise<AssistantReply> {
       const { signal } = opts;
@@ -551,6 +594,8 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
         draft = respond(intent, request, ctx, understood);
         if (understood?.familyNote && !draft.action) draft = { ...draft, familyNote: understood.familyNote };
         if (understood?.lesson && !draft.action) draft = { ...draft, lesson: understood.lesson };
+        if (understood?.scam && !draft.action) draft = { ...draft, scam: understood.scam };
+        if (understood?.document && !draft.action) draft = { ...draft, document: understood.document };
       }
 
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
@@ -563,6 +608,9 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
       if (draft.pointAt) reply.pointAt = draft.pointAt;
       if (draft.lesson) reply.lesson = draft.lesson;
       if (!draft.action && draft.familyNote) reply.familyNote = draft.familyNote;
+      if (draft.scam) reply.scam = draft.scam;
+      if (draft.stepCheck) reply.stepCheck = draft.stepCheck;
+      if (draft.document) reply.document = draft.document;
 
       const next: ConversationContext = { lastContact: ctx.lastContact, lastReplyText: reply.text };
       if (draft.action) {
@@ -586,7 +634,7 @@ export function createAssistant(options: AssistantOptions = {}): AssistantServic
 export function knowsSkill(list: string[], skill: string | undefined): boolean {
   const name = skill?.trim().toLowerCase();
   if (!name) return false;
-  return list.some((s) => s.replace(/\s*\((?:once|\d+ times)\)$/, "").trim().toLowerCase() === name);
+  return list.some((s) => s.replace(/\s*\([^)]*\)$/, "").trim().toLowerCase() === name);
 }
 
 function PRONOUNS_ASKED(text: string): boolean {

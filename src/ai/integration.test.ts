@@ -208,7 +208,7 @@ describe("Show me (photos) and help that fades", () => {
     const interpret = vi.fn(async () => ({ intent: { name: "HELP", params: {} }, reply: "You did it!", skill: "connect to wifi", taskDone: true }));
     const assistant = createAssistant({ provider: { interpret }, skills: { list: () => [], record } });
     await assistant.send({ text: "done, it works", source: "text", history: [], language: "en-US", hints: { plainLanguage: true, willBeSpoken: false } });
-    expect(record).toHaveBeenCalledWith("connect to wifi");
+    expect(record).toHaveBeenCalledWith("connect to wifi", false);
   });
 
   it("the server only accepts real, small images", async () => {
@@ -225,7 +225,7 @@ describe("Show me (photos) and help that fades", () => {
     recordSkill("connect to wifi");
     expect(recordSkill("<script>")).toBeNull();
     expect(loadSkills()[0]).toMatchObject({ name: "connect to wifi", times: 2 });
-    expect(skillsForPrompt()).toEqual(["connect to wifi (2 times)"]);
+    expect(skillsForPrompt()).toEqual(["connect to wifi (level 3, done 2 times)"]);
   });
 });
 
