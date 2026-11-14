@@ -1,0 +1,148 @@
+{
+  "total": 71.404,
+  "beats": [
+    {
+      "id": "open1",
+      "kind": "hook",
+      "cue": "cut",
+      "caption": "Every day, technology moves a little faster.",
+      "narration": "Every day, technology moves a little faster.",
+      "start": 0.0,
+      "dur": 4.206,
+      "speechStart": 0.25,
+      "speechDur": 3.506
+    },
+    {
+      "id": "open2",
+      "kind": "hook2",
+      "cue": "cut",
+      "caption": "And every day, someone gets left a little further behind.",
+      "narration": "And every day, someone gets left a little further behind.",
+      "start": 4.206,
+      "dur": 4.763,
+      "speechStart": 4.456,
+      "speechDur": 4.063
+    },
+    {
+      "id": "problem",
+      "kind": "photo",
+      "cue": "cut",
+      "caption": "It starts with a message she doesn't understand. Is it real? What do I press? Who do I ask?",
+      "narration": "It starts with a message she doesn't understand. Is it real? What do I press? Who do I ask?",
+      "start": 8.97,
+      "dur": 9.077,
+      "speechStart": 9.22,
+      "speechDur": 8.377
+    },
+    {
+      "id": "stat",
+      "kind": "stat",
+      "cue": "stat",
+      "caption": "In 2025, people aged 60 and over reported losing $7.7\u00a0billion to internet fraud.",
+      "narration": "In 2025, people aged sixty and over reported losing seven point seven billion dollars to internet fraud.",
+      "start": 18.047,
+      "dur": 9.291,
+      "speechStart": 18.297,
+      "speechDur": 8.591
+    },
+    {
+      "id": "meet",
+      "kind": "logo",
+      "cue": "chime",
+      "caption": "Meet Companion. A patient helper for the moments tech gets confusing.",
+      "narration": "Meet Companion. A patient helper for the moments tech gets confusing.",
+      "start": 27.338,
+      "dur": 5.957,
+      "speechStart": 27.588,
+      "speechDur": 5.257
+    },
+    {
+      "id": "photo",
+      "kind": "photo",
+      "cue": "flash",
+      "caption": "Take a photo of your screen.",
+      "narration": "Take a photo of your screen.",
+      "start": 33.295,
+      "dur": 3.01,
+      "speechStart": 33.545,
+      "speechDur": 2.31
+    },
+    {
+      "id": "explain",
+      "kind": "ring",
+      "cue": "chime",
+      "caption": "Companion explains it, and circles the exact spot to tap.",
+      "narration": "Companion explains it, and circles the exact spot to tap.",
+      "start": 36.306,
+      "dur": 5.042,
+      "speechStart": 36.556,
+      "speechDur": 4.342
+    },
+    {
+      "id": "wait",
+      "kind": "wait",
+      "cue": "tap",
+      "caption": "Then it waits while she tries.",
+      "narration": "Then it waits while she tries.",
+      "start": 41.348,
+      "dur": 2.941,
+      "speechStart": 41.598,
+      "speechDur": 2.241
+    },
+    {
+      "id": "scam",
+      "kind": "verdict",
+      "cue": "cut",
+      "caption": "Before she taps a link, it gives a calm second opinion.",
+      "narration": "Before she taps a link, it gives a calm second opinion.",
+      "start": 44.289,
+      "dur": 4.566,
+      "speechStart": 44.539,
+      "speechDur": 3.866
+    },
+    {
+      "id": "fade",
+      "kind": "skills",
+      "cue": "cut",
+      "caption": "Each time, a little less help. Until it's hers.",
+      "narration": "Each time, a little less help. Until it's hers.",
+      "start": 48.855,
+      "dur": 5.214,
+      "speechStart": 49.105,
+      "speechDur": 4.514
+    },
+    {
+      "id": "family",
+      "kind": "family",
+      "cue": "tap",
+      "caption": "A clear note for her daughter, sent only when she says yes.",
+      "narration": "A clear note for her daughter, sent only when she says yes.",
+      "start": 54.069,
+      "dur": 4.914,
+      "speechStart": 54.319,
+      "speechDur": 4.214
+    },
+    {
+      "id": "lesson",
+      "kind": "lesson",
+      "cue": "stamp",
+      "caption": "Not doing it for her. Teaching her, at her pace.",
+      "narration": "Not doing it for her. Teaching her, at her pace.",
+      "start": 58.984,
+      "dur": 4.994,
+      "speechStart": 59.234,
+      "speechDur": 4.294
+    },
+    {
+      "id": "close",
+      "kind": "end",
+      "cue": "bell",
+      "caption": "Growing technology is not a reason to leave others behind.",
+      "narration": "Growing technology is not a reason to leave others behind.",
+      "start": 63.977,
+      "dur": 7.427,
+      "speechStart": 64.227,
+      "speechDur": 3.727
+    }
+  ]
+}

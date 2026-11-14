@@ -4,564 +4,370 @@
 <meta charset="utf-8">
 <title>Companion launch film</title>
 <!--
-  Companion launch film, 1920×1080, 60 s.
-  Everything on screen is a pure function of time: window.render(t) draws the frame at t seconds.
-  video/render.mjs steps through it at 30 fps and encodes an MP4 with ffmpeg.
-  Open this file in a browser to preview it: it plays in real time (click to pause or play; arrow keys seek).
+  Companion launch film, 1920×1080.
+  The film follows video/timeline.js (written by video/voice.py from the narration), so every beat, caption and
+  picture is on cue with the voice. Everything is a pure function of time: window.render(t) draws frame t.
+  Open this file in a browser to preview it in real time (click pauses; arrow keys seek 5 s).
 -->
+<script src="timeline.js"></script>
 <style>
+  @font-face { font-family: "Atkinson"; src: url(fonts/atkinson.woff2) format("woff2"); font-weight: 200 800; }
   @font-face { font-family: "Fraunces"; src: url(fonts/fraunces.woff2) format("woff2"); font-weight: 300 600; font-style: normal; }
   @font-face { font-family: "Fraunces"; src: url(fonts/fraunces-italic.woff2) format("woff2"); font-weight: 300 600; font-style: italic; }
-  @font-face { font-family: "Atkinson"; src: url(fonts/atkinson.woff2) format("woff2"); font-weight: 200 800; }
 
   :root {
-    --bg: #fbf8f3; --bg2: #f3ede4; --ink: #1d1813; --muted: #6a5e53; --line: #ddd3c5;
-    --accent: #d4580a; --accent-hi: #ff8a3d; --accent-soft: #fde6d3; --accent-ink: #a8420a;
-    --danger: #b0261b; --danger-soft: #fbe4df; --success: #1f6b3a; --success-soft: #e1f2e3;
-    --serif: "Fraunces", Georgia, serif; --sans: "Atkinson", system-ui, sans-serif;
+    --ink: #1d1813; --cream: #fbf8f3; --paper: #fffaf2; --line: #ddd3c5; --muted: #6a5e53;
+    --accent: #ff8a3d; --accent2: #d4580a; --danger: #b0261b; --danger-soft: #fbe4df;
+    --success: #1f6b3a; --success-soft: #e1f2e3; --sans: "Atkinson", system-ui, sans-serif; --serif: "Fraunces", Georgia, serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
   body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); }
 
-  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 40%, #fdfaf5 0%, var(--bg) 45%, #efe6d9 100%); }
-  .scene { position: absolute; inset: 0; will-change: transform, opacity; }
-  .a { will-change: transform, opacity, filter; opacity: 0; }
-
-  /* film finish */
-  #grain { position: absolute; left: -64px; top: -64px; width: 2048px; height: 1208px; pointer-events: none; opacity: .07; mix-blend-mode: multiply; z-index: 50; }
-  #vignette { position: absolute; inset: 0; pointer-events: none; z-index: 51;
-    background: radial-gradient(140% 110% at 50% 45%, transparent 55%, rgba(60,40,20,.18) 100%); }
-  #night { position: absolute; inset: 0; z-index: 40; opacity: 0;
-    background: radial-gradient(110% 90% at 50% 42%, #2a221c 0%, #1d1813 55%, #120e0b 100%); }
-  #black { position: absolute; inset: 0; background: #000; z-index: 60; }
-
-  /* type */
-  .serif { font-family: var(--serif); font-variation-settings: "opsz" 72; letter-spacing: -0.005em; }
+  .beat { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .beat.dark { background: radial-gradient(120% 90% at 50% 40%, #2a221c 0%, #1d1813 60%, #140f0c 100%); color: #fbf8f3; }
+  .beat.cream { background: radial-gradient(120% 90% at 50% 40%, #fffdf9 0%, var(--cream) 55%, #efe6d9 100%); color: var(--ink); }
+  .beat.orange { background: radial-gradient(120% 100% at 50% 40%, #ff9a52 0%, #d4580a 70%, #a8420a 100%); color: #1d1813; }
+  .abs { position: absolute; }
   .center { position: absolute; left: 0; right: 0; text-align: center; }
-  em { font-style: italic; color: var(--accent); }
 
-  /* scene 1 */
-  #s1 h1 { font-size: 88px; font-weight: 350; line-height: 1.1; }
-  #s1 .l1 { top: 330px; }
-  #s1 .l2 { top: 470px; font-size: 64px; color: var(--muted); }
-  #dots { position: absolute; left: 0; right: 0; top: 760px; height: 40px; }
-  .dot { position: absolute; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); }
+  /* grain + motion background (the "signal" feel) */
+  #grain { position: absolute; left: -64px; top: -64px; width: 2048px; height: 1208px; pointer-events: none; opacity: .08; mix-blend-mode: overlay; z-index: 80; }
+  .ring-bg { position: absolute; border-radius: 50%; border: 2px solid rgba(255,138,61,.35); }
 
-  /* phone */
+  /* captions: white (or ink on cream), lowercase, big and bold, words light up as they are spoken */
+  #caption { position: absolute; left: 220px; right: 220px; bottom: 96px; text-align: center; z-index: 60;
+    font: 380 62px/1.22 var(--serif); font-variation-settings: "opsz" 72; letter-spacing: -.005em; text-shadow: 0 2px 18px rgba(0,0,0,.2); }
+  #caption .w { display: inline-block; margin: 0 .09em; opacity: .32; transition: none; }
+  #caption .w.on { opacity: 1; color: var(--accent); }
+  .beat.cream + #caption, #stage.light #caption { color: var(--ink); }
+  #caption .w.on.pop { }
+  #brand { position: absolute; left: 90px; top: 70px; z-index: 60; display: flex; align-items: center; gap: 16px; font: 800 30px var(--sans); letter-spacing: .02em; }
+  #brand svg { width: 52px; height: 52px; }
+
+  /* phone mock */
   .phone { position: absolute; width: 452px; height: 924px; border-radius: 68px; background: #1d1813; padding: 13px;
-    box-shadow: 0 2px 0 1px #3a312a inset, 0 50px 90px -30px rgba(50,30,10,.45), 0 20px 40px -20px rgba(50,30,10,.3); }
-  .phone .screen-wrap { position: relative; width: 100%; height: 100%; border-radius: 56px; overflow: hidden; background: var(--bg); }
+    box-shadow: 0 0 0 2px #3a312a inset, 0 50px 110px -30px rgba(0,0,0,.6); }
+  .phone .scr { position: relative; width: 100%; height: 100%; border-radius: 56px; overflow: hidden; background: var(--cream); color: var(--ink); }
   .phone .island { position: absolute; top: 14px; left: 50%; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #0d0b09; z-index: 5; }
-  .statusbar { position: absolute; top: 16px; left: 40px; right: 36px; display: flex; justify-content: space-between; font: 700 19px var(--sans); z-index: 4; }
-
-  /* scene 2: lock screen */
-  #lock { background: linear-gradient(170deg, #4b3f52 0%, #2c2733 45%, #1b1820 100%); color: #fff; }
-  #lock .time { position: absolute; top: 110px; left: 0; right: 0; text-align: center; font: 300 104px var(--sans); letter-spacing: -2px; }
-  #lock .date { position: absolute; top: 92px; left: 0; right: 0; text-align: center; font: 600 22px var(--sans); opacity: .85; }
-  .notif { position: absolute; left: 16px; right: 16px; padding: 16px 18px; border-radius: 26px; background: rgba(245,240,235,.82);
-    color: #1d1813; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4); }
-  .notif .nhead { display: flex; justify-content: space-between; font: 700 15px var(--sans); color: #6a5e53; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .sbar { position: absolute; top: 16px; left: 40px; right: 36px; display: flex; justify-content: space-between; font: 700 19px var(--sans); z-index: 4; }
+  .app { position: absolute; inset: 0; padding: 74px 22px 0; font-family: var(--sans); }
+  .ahead { display: flex; align-items: center; gap: 12px; font: 800 30px var(--sans); margin: 0 4px 18px; }
+  .ahead svg { width: 40px; height: 40px; }
+  .bme { margin-left: 46px; background: #fde6d3; border-radius: 28px; padding: 16px; font-size: 22px; line-height: 1.35; }
+  .bai { margin: 18px 18px 0 0; background: #fff; border: 1.5px solid var(--line); border-radius: 28px; padding: 20px 22px; font-size: 23px; line-height: 1.4; }
+  .photo { position: relative; height: 196px; border-radius: 20px; background: #2b2724; display: grid; place-items: center; margin-bottom: 12px; }
+  .dlg { width: 78%; background: #fff; border-radius: 12px; padding: 14px 16px; font-size: 15px; color: #222; }
+  .dlg b { display: block; font-size: 16px; margin-bottom: 6px; }
+  .dlg .row { display: flex; justify-content: space-between; margin-top: 12px; color: #2a62d6; font-weight: 700; }
+  .btn { margin: 14px 18px 0 0; border: 1.5px solid var(--line); background: #fff; border-radius: 22px; padding: 16px; text-align: center; font: 800 21px var(--sans); }
+  .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ring { position: absolute; border: 6px solid var(--accent2); border-radius: 14px; box-shadow: 0 0 0 5px rgba(255,255,255,.9); }
+  .chip { position: absolute; background: var(--accent2); color: #fff; font: 800 16px var(--sans); padding: 5px 11px; border-radius: 10px; white-space: nowrap; }
+  .notif { position: absolute; left: 16px; right: 16px; padding: 16px 18px; border-radius: 26px; background: rgba(245,240,235,.9); color: #1d1813; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4); }
+  .notif .nh { display: flex; justify-content: space-between; font: 700 15px var(--sans); color: #6a5e53; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
   .notif b { display: block; font: 700 20px var(--sans); margin-bottom: 3px; }
   .notif p { font: 400 18px/1.3 var(--sans); }
-  #s2 .q { position: absolute; left: 860px; width: 900px; }
-  #s2 .q1 { top: 300px; font-size: 76px; font-weight: 350; line-height: 1.12; }
-  #s2 .q2 { top: 560px; font-size: 40px; font-style: italic; color: var(--muted); font-weight: 300; }
-  #s2 .q2 span { display: inline-block; margin-right: .32em; }
-
-  /* scene 3 */
-  #glow { position: absolute; left: 960px; top: 400px; width: 900px; height: 900px; margin: -450px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,138,61,.45) 0%, rgba(255,138,61,.12) 40%, transparent 70%); }
-  .ripple { position: absolute; left: 960px; top: 400px; width: 100px; height: 100px; margin: -50px; border-radius: 50%; border: 2px solid var(--accent); }
-  #icon { position: absolute; left: 960px; top: 400px; width: 230px; height: 230px; margin: -115px; filter: drop-shadow(0 30px 40px rgba(60,30,10,.35)); }
-  #s3 h1 { top: 590px; font-size: 112px; font-weight: 400; }
-  #s3 p { top: 760px; font-size: 40px; color: var(--muted); }
-
-  /* app ui inside phone */
-  .app { position: absolute; inset: 0; padding: 70px 22px 0; font-family: var(--sans); }
-  .apphead { display: flex; align-items: center; gap: 12px; font: 800 30px var(--sans); margin: 0 4px 18px; }
-  .apphead svg { width: 40px; height: 40px; }
-  .bub-me { margin-left: 46px; background: var(--accent-soft); border-radius: 28px; padding: 16px; font-size: 22px; line-height: 1.35; }
-  .bub-ai { margin-top: 18px; margin-right: 18px; background: #fff; border: 1.5px solid var(--line); border-radius: 28px; padding: 20px 22px; font-size: 23px; line-height: 1.4; }
-  .photo { position: relative; height: 196px; border-radius: 20px; background: #2b2724; display: grid; place-items: center; margin-bottom: 12px; }
-  .dialog { width: 78%; background: #fff; border-radius: 12px; padding: 14px 16px; font-size: 15px; color: #222; }
-  .dialog b { display: block; font-size: 16px; margin-bottom: 6px; }
-  .dialog .row { display: flex; justify-content: space-between; margin-top: 12px; color: #2a62d6; font-weight: 700; }
-  .ring { position: absolute; border: 5px solid var(--accent); border-radius: 14px; box-shadow: 0 0 0 4px rgba(255,255,255,.85); }
-  .ring2 { position: absolute; border: 3px solid var(--accent-hi); border-radius: 18px; }
-  .chip { position: absolute; background: var(--accent); color: #fff; font: 800 15px var(--sans); padding: 5px 10px; border-radius: 10px; white-space: nowrap; }
-  .btn { margin-top: 14px; border: 1.5px solid var(--line); background: #fff; border-radius: 22px; padding: 16px; text-align: center; font: 800 21px var(--sans); }
-  .btn.primary { background: var(--ink); color: #fffaf2; border-color: var(--ink); }
   .sms { width: 84%; background: #e9e5e1; border-radius: 16px; padding: 12px 14px; font-size: 14.5px; line-height: 1.35; color: #222; }
-  .verdict { margin-top: 18px; margin-right: 18px; border-radius: 28px; padding: 20px 22px; background: var(--danger-soft); border: 2px solid var(--danger); }
-  .verdict h3 { display: flex; align-items: center; gap: 10px; color: var(--danger); font: 800 26px var(--sans); margin-bottom: 10px; }
+  .verdict { margin: 18px 18px 0 0; border-radius: 28px; padding: 20px 22px; background: var(--danger-soft); border: 2px solid var(--danger); }
+  .verdict h3 { color: var(--danger); font: 800 26px var(--sans); margin-bottom: 10px; }
   .verdict li { list-style: none; font-size: 20px; line-height: 1.35; padding-left: 26px; position: relative; margin-top: 8px; }
   .verdict li::before { content: ""; position: absolute; left: 4px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
-  .verdict .advice { margin-top: 14px; font-weight: 700; font-size: 20px; line-height: 1.35; }
-  .skills h2 { font: 800 34px var(--sans); margin: 6px 4px 6px; }
-  .skills .sub { font-size: 19px; color: var(--muted); margin: 0 4px 18px; }
-  .skill { background: #fff; border: 1.5px solid var(--line); border-radius: 24px; padding: 18px 20px; margin-bottom: 14px; }
-  .skill .top { display: flex; justify-content: space-between; align-items: baseline; font: 800 21px var(--sans); }
-  .skill .lvl { font: 700 17px var(--sans); color: var(--muted); }
-  .skill .lvl.done { color: var(--success); }
+  .skill { background: #fff; border: 1.5px solid var(--line); border-radius: 24px; padding: 18px 20px; margin: 0 18px 14px 0; }
+  .skill .top { display: flex; justify-content: space-between; font: 800 21px var(--sans); }
+  .skill .lvl { font: 700 16px var(--sans); color: var(--muted); }
   .bars { display: flex; gap: 6px; margin-top: 12px; }
-  .bars i { flex: 1; height: 12px; border-radius: 6px; background: var(--bg2); overflow: hidden; position: relative; }
-  .bars i b { position: absolute; inset: 0; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .bars i { flex: 1; height: 12px; border-radius: 6px; background: #f3ede4; overflow: hidden; position: relative; display: block; }
+  .bars i b { position: absolute; inset: 0; background: var(--accent2); transform-origin: left; transform: scaleX(0); }
   .bars.done i b { background: var(--success); }
-  .note { margin-top: 6px; background: #fff; border: 1.5px solid var(--line); border-radius: 28px; padding: 20px 22px; }
-  .note .lbl { font: 800 16px var(--sans); color: var(--accent-ink); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .note { margin: 6px 18px 0 0; background: #fff; border: 1.5px solid var(--line); border-radius: 28px; padding: 20px 22px; }
+  .note .lbl { font: 800 16px var(--sans); color: #a8420a; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
   .note p { font-size: 21px; line-height: 1.42; }
-  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 34px 34px 0 0; padding: 30px 26px 44px;
-    box-shadow: 0 -20px 50px -10px rgba(40,25,10,.35); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 34px 34px 0 0; padding: 30px 26px 44px; box-shadow: 0 -20px 50px -10px rgba(40,25,10,.35); }
   .sheet h3 { font: 800 30px var(--sans); margin-bottom: 8px; }
   .sheet p { font-size: 20px; color: var(--muted); line-height: 1.4; }
   .scrim { position: absolute; inset: 0; background: rgba(29,24,19,.38); }
 
-  /* scene 4 text */
-  .feat { position: absolute; left: 190px; top: 0; width: 820px; }
-  .feat .eye { position: absolute; top: 300px; font: 800 26px var(--sans); color: var(--accent-ink); letter-spacing: .14em; text-transform: uppercase; display: flex; gap: 18px; align-items: center; }
-  .feat .eye i { display: inline-block; width: 56px; height: 3px; background: var(--accent); font-style: normal; }
-  .feat h2 { position: absolute; top: 360px; font-size: 92px; font-weight: 380; line-height: 1.05; }
-  .feat p { position: absolute; top: 590px; font-size: 38px; line-height: 1.4; color: var(--muted); width: 760px; }
-  #progress { position: absolute; left: 190px; top: 840px; display: flex; gap: 12px; }
-  #progress i { width: 70px; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; position: relative; }
-  #progress i b { position: absolute; inset: 0; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  /* stat */
+  .stat-num { font: 800 330px/1 var(--sans); letter-spacing: -14px; color: var(--accent); text-shadow: 0 10px 60px rgba(255,138,61,.35); }
+  .stat-sub { font: 700 40px var(--sans); color: #fbf8f3; opacity: .9; }
+  .stat-src { font: 600 24px var(--sans); color: #c9bcae; }
 
-  /* scene 5 */
-  #card { position: absolute; left: 1080px; top: 150px; width: 640px; height: 800px; background: #fff; border-radius: 10px; padding: 56px 58px;
-    box-shadow: 0 40px 80px -30px rgba(50,30,10,.45), 0 4px 12px rgba(50,30,10,.08); }
-  #card .k { font: 800 18px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  #card h3 { font: 800 46px/1.1 var(--sans); margin: 14px 0 34px; }
-  #card .step { display: flex; gap: 22px; align-items: flex-start; margin-bottom: 30px; }
-  #card .num { flex: none; width: 58px; height: 58px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 800 28px var(--sans); }
-  #card .step p { font-size: 27px; line-height: 1.32; padding-top: 10px; }
-  #card .foot { position: absolute; left: 58px; right: 58px; bottom: 44px; border-top: 1.5px dashed var(--line); padding-top: 18px; font-size: 20px; color: var(--muted); }
-  #stamp { position: absolute; right: 40px; top: 46px; border: 5px solid var(--success); color: var(--success); border-radius: 14px; padding: 8px 18px;
-    font: 800 30px var(--sans); letter-spacing: .12em; }
-  #s5 .t1 { position: absolute; left: 190px; top: 330px; font-size: 96px; font-weight: 380; line-height: 1.05; width: 820px; }
-  #s5 .t2 { position: absolute; left: 190px; top: 560px; font-size: 64px; font-weight: 320; line-height: 1.12; width: 820px; }
-  #s5 .t3 { position: absolute; left: 190px; top: 760px; font-size: 32px; color: var(--muted); }
+  /* logo moment */
+  .mark { width: 300px; height: 300px; }
+  .wordmark { font: 800 150px var(--sans); letter-spacing: -4px; }
 
-  /* scene 6 */
-  #s6 { z-index: 45; color: #f6efe6; }
-  #s6 .catch { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-size: 104px; font-weight: 340; line-height: 1.14; }
-  #s6 .catch span { display: inline-block; margin: 0 .13em; }
-  #s6 .catch em { color: var(--accent-hi); }
-  #brand { position: absolute; left: 0; right: 0; top: 720px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  #brand .row { display: flex; align-items: center; gap: 20px; font: 800 58px var(--sans); }
-  #brand .row svg { width: 74px; height: 74px; }
-  #brand .tag { font-size: 26px; color: #c9bcae; letter-spacing: .04em; }
+  /* lesson card */
+  .card { position: absolute; width: 640px; height: 800px; background: #fff; border-radius: 10px; padding: 56px 58px; color: var(--ink);
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,.5); }
+  .card .k { font: 800 18px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .card h3 { font: 800 46px/1.1 var(--sans); margin: 14px 0 34px; }
+  .step { display: flex; gap: 22px; align-items: flex-start; margin-bottom: 30px; }
+  .num { flex: none; width: 58px; height: 58px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 800 28px var(--sans); }
+  .step p { font-size: 27px; line-height: 1.32; padding-top: 10px; }
+  .stamp { position: absolute; right: 40px; top: 46px; border: 5px solid var(--success); color: var(--success); border-radius: 14px; padding: 8px 18px; font: 800 30px var(--sans); letter-spacing: .12em; }
+
+  /* question marks */
+  .q { font: 800 300px/1 var(--sans); color: var(--accent); }
+
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 70; pointer-events: none; }
 </style>
 </head>
 <body>
 <div id="stage">
-
-  <!-- 1. Opening -->
-  <section class="scene" id="s1">
-    <h1 class="center serif a l1">Every day, technology moves a little faster.</h1>
-    <h1 class="center serif a l2"><em>And every day, someone gets left a little further behind.</em></h1>
-    <div id="dots" class="a"></div>
-  </section>
-
-  <!-- 2. The problem -->
-  <section class="scene" id="s2">
-    <div class="phone a" id="p2" style="left:240px; top:78px">
-      <div class="screen-wrap" id="lock">
-        <div class="island"></div>
-        <div class="date">Saturday 14 November</div>
-        <div class="time">9:41</div>
-        <div class="notif a" id="n1" style="top:300px">
-          <div class="nhead"><span>Messages</span><span>now</span></div>
-          <b>+44 7700 900183</b>
-          <p>Your bank account has been LOCKED. Verify immediately or lose access: bit.ly/acct-verify</p>
-        </div>
-        <div class="notif a" id="n2" style="top:468px">
-          <div class="nhead"><span>Settings</span><span>2m ago</span></div>
-          <b>Storage Almost Full</b>
-          <p>You can manage your storage in Settings.</p>
-        </div>
-        <div class="notif a" id="n3" style="top:600px">
-          <div class="nhead"><span>System</span><span>5m ago</span></div>
-          <b>Update required</b>
-          <p>Install now or tonight? Your phone may restart.</p>
-        </div>
-      </div>
-    </div>
-    <h2 class="q serif a q1">It starts with a message she doesn't understand.</h2>
-    <p class="q serif a q2" id="q2"><span>Is it real?</span><span>What do I press?</span><span>Who do I ask?</span></p>
-  </section>
-
-  <!-- 3. Meet Companion -->
-  <section class="scene" id="s3">
-    <div id="glow" class="a"></div>
-    <div class="ripple a" id="r1"></div>
-    <div class="ripple a" id="r2"></div>
-    <svg id="icon" class="a" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#1d1813"/><g transform="translate(78.4 78.4) scale(7.4)"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#ff8a3d" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#fbf8f3"/></g></svg>
-    <h1 class="center serif a">Meet Companion.</h1>
-    <p class="center a">A patient helper for the moments tech gets confusing.</p>
-  </section>
-
-  <!-- 4. Features -->
-  <section class="scene" id="s4">
-    <div class="feat" id="f0">
-      <div class="eye a"><i></i>Show me</div>
-      <h2 class="serif a">Take a photo.<br><em>See where to tap.</em></h2>
-      <p class="a">Companion circles the exact button, then waits while you try it.</p>
-    </div>
-    <div class="feat" id="f1">
-      <div class="eye a"><i></i>Scam check</div>
-      <h2 class="serif a">A calm second<br><em>opinion.</em></h2>
-      <p class="a">Before you tap a link or reply, it explains what looks wrong, in plain words.</p>
-    </div>
-    <div class="feat" id="f2">
-      <div class="eye a"><i></i>Help that fades</div>
-      <h2 class="serif a">A little less help<br><em>every time.</em></h2>
-      <p class="a">Step by step at first, then a hint, then just a nudge. Until it's yours.</p>
-    </div>
-    <div class="feat" id="f3">
-      <div class="eye a"><i></i>Family, kept close</div>
-      <h2 class="serif a">Stuck? Ask family,<br><em>your way.</em></h2>
-      <p class="a">A clear note for your daughter, shared only when you say yes.</p>
-    </div>
-    <div id="progress" class="a"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
-
-    <div class="phone a" id="p4" style="left:1250px; top:78px">
-      <div class="screen-wrap">
-        <div class="island"></div>
-        <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
-
-        <!-- Show me -->
-        <div class="app a" id="sc0">
-          <div class="apphead"><svg viewBox="0 0 48 48"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#d4580a" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#1d1813"/></svg>Companion</div>
-          <div class="bub-me a" id="sm-me">
-            <div class="photo" id="sm-photo">
-              <div class="dialog"><b>Storage Almost Full</b>You can manage your storage in Settings.<div class="row"><span>Close</span><span id="sm-target">Settings</span></div></div>
-              <div class="ring a" id="sm-ring"></div><div class="ring2 a" id="sm-ring2"></div><div class="chip a" id="sm-chip">Tap here</div>
-            </div>
-            What do I do with this?
-          </div>
-          <div class="bub-ai a" id="sm-ai">Your phone is running low on space. Let's start by tapping <b>Settings</b>, in the bottom right of that box.</div>
-          <div class="btn a" id="sm-b1" style="margin-right:18px">I've done it</div>
-          <div class="btn a" id="sm-b2" style="margin-right:18px">Show me again</div>
-        </div>
-
-        <!-- Scam -->
-        <div class="app a" id="sc1">
-          <div class="apphead"><svg viewBox="0 0 48 48"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#d4580a" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#1d1813"/></svg>Companion</div>
-          <div class="bub-me a" id="sc-me">
-            <div class="photo" style="height:160px"><div class="sms">Parcel Delivery: your parcel is on hold due to an unpaid fee of £1.45. Pay now to avoid return: http://parcel-redelivery-uk.info</div></div>
-            Is this a scam?
-          </div>
-          <div class="verdict a" id="sc-v">
-            <h3><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b0261b" stroke-width="2.6" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg>This looks like a scam</h3>
-            <ul>
-              <li class="a" id="sc-r1">It asks you to pay through a link</li>
-              <li class="a" id="sc-r2">The web address isn't the real company's</li>
-              <li class="a" id="sc-r3">It tries to rush you</li>
-            </ul>
-            <div class="advice a" id="sc-adv">Don't tap the link. If you're unsure, check on the company's own website.</div>
-          </div>
-        </div>
-
-        <!-- Skills -->
-        <div class="app a skills" id="sc2">
-          <div class="apphead"><svg viewBox="0 0 48 48"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#d4580a" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#1d1813"/></svg>Companion</div>
-          <h2>My Skills</h2>
-          <div class="sub">Look how far you've come.</div>
-          <div id="skillrows"></div>
-        </div>
-
-        <!-- Family -->
-        <div class="app a" id="sc3">
-          <div class="apphead"><svg viewBox="0 0 48 48"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#d4580a" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#1d1813"/></svg>Companion</div>
-          <div class="note a" id="fm-note">
-            <div class="lbl">Help card for Anna</div>
-            <p>Hi Anna, I'm trying to set up video calls. I got as far as opening the app, but I can't find where to add you. Could you help me on Sunday?</p>
-          </div>
-          <div class="btn primary a" id="fm-b1">Send to my daughter (Anna)</div>
-          <div class="btn a" id="fm-b2">Share another way</div>
-          <div class="scrim a" id="fm-scrim"></div>
-          <div class="sheet a" id="fm-sheet">
-            <h3>Send this to Anna?</h3>
-            <p>Nothing is sent until you choose. You can change the note first.</p>
-            <div class="btn primary" id="fm-yes">Yes, share it</div>
-            <div class="btn">Not now</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. Lesson card -->
-  <section class="scene" id="s5">
-    <h2 class="serif a t1">Not doing it <em>for</em> you.</h2>
-    <h2 class="serif a t2">Teaching you,<br><em>at your pace.</em></h2>
-    <p class="a t3">Print a lesson card for the fridge.</p>
-    <div id="card" class="a">
-      <div class="k">My lesson card</div>
-      <h3>How to join the<br>Wi‑Fi at home</h3>
-      <div class="step a"><div class="num">1</div><p>Open <b>Settings</b>. It's the grey gear.</p></div>
-      <div class="step a"><div class="num">2</div><p>Tap <b>Wi‑Fi</b> near the top.</p></div>
-      <div class="step a"><div class="num">3</div><p>Tap your network's name. It's on the router.</p></div>
-      <div class="step a"><div class="num">4</div><p>Type the password, then tap <b>Join</b>.</p></div>
-      <div class="foot">Learned on 14 November · Companion</div>
-      <div id="stamp" class="a">LEARNED</div>
-    </div>
-  </section>
-
-  <div id="night"></div>
-
-  <!-- 6. Close -->
-  <section class="scene" id="s6">
-    <div class="catch serif" id="catch"></div>
-    <div id="brand">
-      <div class="row a" id="b1"><svg viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#fbf8f3"/><g transform="translate(78.4 78.4) scale(7.4)"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#d4580a" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#1d1813"/></g></svg>Companion</div>
-      <div class="tag a" id="b2">A patient tech helper for older adults · Ice Hacks 2026</div>
-    </div>
-  </section>
-
+  <div id="brand"></div>
+  <div id="beats"></div>
+  <div id="caption"></div>
+  <div id="flash"></div>
   <canvas id="grain" width="2048" height="1208"></canvas>
-  <div id="vignette"></div>
-  <div id="black"></div>
 </div>
 
 <script>
-const DURATION = 60;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lerp = (a, b, k) => a + (b - a) * k;
-const ease = k => (k = clamp(k), k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);   // easeInOutCubic
-const out = k => 1 - Math.pow(1 - clamp(k), 3);                                                // easeOutCubic
-const ramp = (t, a, b) => (b <= a ? (t >= a ? 1 : 0) : clamp((t - a) / (b - a)));
-/** 0→1 between a..b, then 1→0 between c..d (eased). */
-const vis = (t, a, b, c = Infinity, d = Infinity) => out(ramp(t, a, b)) * (1 - ease(ramp(t, c, d)));
+const easeOut = k => 1 - Math.pow(1 - clamp(k), 3);
+const easeBack = k => { k = clamp(k); const c = 1.7; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+const ramp = (x, a, b) => clamp((x - a) / (b - a));
 
-/** Soft reveal: rise, unblur, fade. */
-function reveal(el, t, a, b, c, d, { y = 28, blur = 10, x = 0, s = 0 } = {}) {
-  const inK = out(ramp(t, a, b)), outK = ease(ramp(t, c ?? Infinity, d ?? Infinity));
-  const v = inK * (1 - outK);
-  el.style.opacity = v.toFixed(4);
-  const dy = (1 - inK) * y - outK * y * 0.6, dx = (1 - inK) * x;
-  const sc = 1 + (1 - inK) * s;
-  el.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${sc.toFixed(4)})`;
-  const bl = (1 - inK) * blur + outK * blur * 0.6;
-  el.style.filter = bl > 0.05 ? `blur(${bl.toFixed(2)}px)` : "none";
+const TL = window.TIMELINE;
+const DURATION = TL.total;
+window.DURATION = DURATION;
+
+// the brand mark: the open ring with a dot (same as the app icon)
+const MARK = `<svg viewBox="0 0 512 512"><g transform="translate(78.4 78.4) scale(7.4)"><path d="M36.3 13.7A16 16 0 1 0 36.3 34.3" fill="none" stroke="#ff8a3d" stroke-width="7.5" stroke-linecap="round"/><circle cx="35.5" cy="24" r="4.75" fill="#fbf8f3"/></g></svg>`;
+const MARK_ON_CREAM = MARK.replace('fill="#fbf8f3"', 'fill="#1d1813"');
+$("#brand").innerHTML = `<span style="width:52px;height:52px;display:block">${MARK}</span>Companion`;
+
+// --- phone builder ---------------------------------------------------------
+const phone = (inner, cls = "") => `<div class="phone ${cls}" style="transform:scale(.8);transform-origin:top left"><div class="scr"><div class="island"></div><div class="sbar"><span>9:41</span><span>●●● ▮</span></div><div class="app">${inner}</div></div></div>`;
+const appHead = `<div class="ahead"><span style="width:40px;height:40px;display:block">${MARK_ON_CREAM}</span>Companion</div>`;
+
+// --- beat content -----------------------------------------------------------
+// each beat has: a background class, optional inner HTML, and a function that animates it from local time lt
+const BEAT = {
+  hook: { bg: "dark", html: `<div class="abs" style="left:1300px;top:70px">${phone(`
+      <div class="notif" id="hk-n" style="top:300px"><div class="nh"><span>Settings</span><span>now</span></div><b>Storage Almost Full</b><p>You can manage your storage in Settings.</p></div>`)}</div>` },
+  hook2: { bg: "cream", html: `<div class="center" style="top:250px"><div class="q" id="q1">?</div></div>` },
+  stat: { bg: "dark", html: `<div class="center" style="top:220px"><div class="stat-num" id="sn" style="font-size:230px;letter-spacing:-8px">$7.7 billion</div><div class="stat-sub" id="ss" style="display:none">lost to internet fraud in 2025</div><div class="stat-src" id="sr" style="margin-top:20px">People 60 and over · Source: FBI Internet Crime Report 2025 (IC3)</div></div>` },
+  logo: { bg: "cream", html: `<div class="center" style="top:250px"><div id="lg-mark" style="width:300px;height:300px;margin:0 auto">${MARK_ON_CREAM}</div><div class="wordmark" id="lg-w" style="margin-top:16px">Companion</div></div>` },
+  photo: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div class="bme"><div class="photo" style="height:200px"><div class="dlg"><b>Storage Almost Full</b>You can manage your storage in Settings.<div class="row"><span>Close</span><span>Settings</span></div></div></div>What do I do with this?</div>`)}</div>` },
+  ring: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div class="bme"><div class="photo" style="height:200px;position:relative" id="rg-photo"><div class="ring" id="rg-ring" style="opacity:0"></div><div class="chip" id="rg-chip" style="opacity:0">Tap here</div><div class="dlg"><b>Storage Almost Full</b>You can manage your storage in Settings.<div class="row"><span>Close</span><span id="rg-target">Settings</span></div></div></div>What do I do with this?</div>
+      <div class="bai" id="rg-ai">Let's start by tapping <b>Settings</b>, in the bottom right of that box.</div>`)}
+      </div>` },
+  wait: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div class="bai">Tap <b>Settings</b>, then <b>Storage</b>. Tell me when you're there.</div>
+      <div class="btn" id="wt-b1">I've done it</div>
+      <div class="btn" id="wt-b2">Show me again</div>`)}</div>` },
+  verdict: { bg: "dark", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div class="bme"><div class="photo" style="height:160px"><div class="sms">Parcel Delivery: your parcel is on hold. Pay now to avoid return: http://parcel-redelivery-uk.info</div></div>Is this a scam?</div>
+      <div class="verdict" id="vd"><h3>This looks like a scam</h3>
+        <ul><li id="vr1">It asks you to pay through a link</li><li id="vr2">The web address isn't the real company's</li><li id="vr3">It tries to rush you</li></ul>
+        <div style="margin-top:14px;font-weight:700;font-size:20px;line-height:1.35">Don't tap the link. Check on the company's own website.</div></div>`)}</div>` },
+  skills: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div style="padding:0 4px"><div style="font:800 34px var(--sans);margin:6px 0">My Skills</div><div style="font-size:19px;color:var(--muted);margin-bottom:18px">Look how far you've come.</div></div>
+      <div id="sk-rows"></div>`)}</div>` },
+  family: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
+      <div class="note"><div class="lbl">Help card for Anna</div><p>Hi Anna, I'm trying to set up video calls. Could you help me on Sunday?</p></div>
+      <div class="btn primary" id="fm-b1">Send to my daughter (Anna)</div>
+      <div class="scrim" id="fm-scrim" style="opacity:0"></div>
+      <div class="sheet" id="fm-sheet" style="transform:translateY(420px)"><h3>Send this to Anna?</h3><p>Nothing is sent until you choose.</p><div class="btn primary" id="fm-yes" style="margin-right:0">Yes, share it</div></div>`)}</div>` },
+  lesson: { bg: "dark", html: `<div class="card" id="cd" style="left:1180px;top:110px;transform:scale(.86) rotate(-4deg)">
+      <div class="k">My lesson card</div><h3>How to join the<br>Wi‑Fi at home</h3>
+      <div class="step"><div class="num">1</div><p>Open <b>Settings</b>. It's the grey gear.</p></div>
+      <div class="step"><div class="num">2</div><p>Tap <b>Wi‑Fi</b> near the top.</p></div>
+      <div class="step"><div class="num">3</div><p>Tap your network's name.</p></div>
+      <div class="step"><div class="num">4</div><p>Type the password, then tap <b>Join</b>.</p></div>
+      <div class="stamp" id="st" style="opacity:0">LEARNED</div></div>` },
+  end: { bg: "dark", html: `<div class="center" style="top:130px"><div style="width:220px;height:220px;margin:0 auto" id="en-mark">${MARK}</div>
+      <div class="wordmark" id="en-w" style="font-size:118px;margin-top:14px">Companion</div>
+      <div id="en-t" style="font:700 32px var(--sans);color:#c9bcae;margin-top:16px">A patient tech helper for older adults · Ice Hacks 2026</div></div>` },
+};
+
+// build the beats once
+const beatsEl = $("#beats");
+TL.beats.forEach((b, i) => {
+  const def = BEAT[b.kind] || BEAT.logo;
+  const d = document.createElement("section");
+  d.className = "beat " + def.bg; d.id = "b" + i;
+  d.innerHTML = def.html;
+  beatsEl.appendChild(d);
+});
+
+// rough word-by-word caption: words light up as the voice says them
+const capEl = $("#caption");
+// The caption is the line being spoken. It fades in as the voice starts it and fades out before the next beat,
+// so the words on screen and the words in the voice are always the same line at the same moment.
+function setCaption(b, lt) {
+  if (capEl.dataset.key !== b.id) {
+    capEl.dataset.key = b.id;
+    capEl.textContent = b.caption;
+  }
+  const onCream = BEAT[b.kind] && BEAT[b.kind].bg === "cream";
+  const orange = BEAT[b.kind] && BEAT[b.kind].bg === "orange";
+  capEl.style.color = onCream || orange ? "#1d1813" : "#fbf8f3";
+  const speechStart = b.speechStart - b.start;
+  const inK = ramp(lt, speechStart - .1, speechStart + .45);
+  const outK = ramp(lt, b.dur - .45, b.dur - .05);
+  capEl.style.opacity = (easeOut(inK) * (1 - easeOut(outK))).toFixed(4);
+  capEl.style.transform = `translateY(${((1 - easeOut(inK)) * 14).toFixed(2)}px)`;
 }
 
-// ---------- setup ----------
-// dots for scene 1
-const DOTS = 9;
-for (let i = 0; i < DOTS; i++) { const d = document.createElement("div"); d.className = "dot"; $("#dots").append(d); }
+// per-kind animation: lt = local time in this beat, dur = beat length
+function animate(b, i, lt) {
+  const root = $("#b" + i);
+  const q = s => root.querySelector(s) || document.getElementById(s.replace("#", ""));
+  switch (b.kind) {
+    case "hook": {
+      const n = $("#hk-n");
+      const k = easeBack(ramp(lt, .2, .75));
+      n.style.transform = `translateY(${(1 - k) * -60}px) scale(${lerp(.9, 1, k)})`;
+      n.style.opacity = clamp(ramp(lt, .2, .5));
+      break;
+    }
+    case "hook2": {
+      const q1 = $("#q1");
+      const k = easeBack(ramp(lt, 0, .45));
+      q1.style.transform = `scale(${lerp(.4, 1, k)})`;
+      q1.style.opacity = clamp(ramp(lt, 0, .2));
+      break;
+    }
+    case "stat": {
+      const sn = $("#sn"), ss = $("#ss"), sr = $("#sr");
+      const k = easeBack(ramp(lt, 0, .32));
+      sn.style.transform = `scale(${lerp(1.5, 1, k)})`;
+      sn.style.opacity = clamp(ramp(lt, 0, .12));
+      ss.style.opacity = clamp(ramp(lt, .55, .9)); ss.style.transform = `translateY(${(1 - easeOut(ramp(lt, .55, .9))) * 22}px)`;
+      sr.style.opacity = clamp(ramp(lt, 1.2, 1.6));
+      break;
+    }
+    case "logo": {
+      const m = $("#lg-mark"), w = $("#lg-w");
+      const k = easeBack(ramp(lt, 0, .5));
+      m.style.transform = `scale(${lerp(.3, 1, k)})`; m.style.opacity = clamp(ramp(lt, 0, .2));
+      w.style.opacity = clamp(ramp(lt, .6, 1.0)); w.style.transform = `translateY(${(1 - easeOut(ramp(lt, .6, 1))) * 30}px)`;
+      break;
+    }
+    case "photo": {
+      // camera flash at the start of the beat
+      const f = $("#flash");
+      f.style.opacity = lt < .18 ? (1 - lt / .18) * .85 : 0;
+      break;
+    }
+    case "ring": {
+      const ring = $("#rg-ring"), chip = $("#rg-chip"), ai = $("#rg-ai"), tgt = $("#rg-target");
+      if (!ring.dataset.placed) {   // put the ring on "Settings" (layout measured, unscaled)
+        ring.dataset.placed = 1;
+        Object.assign(ring.style, { left: tgt.offsetLeft - 10 + "px", top: tgt.offsetTop - 8 + "px", width: tgt.offsetWidth + 20 + "px", height: tgt.offsetHeight + 16 + "px" });
+        Object.assign(chip.style, { left: tgt.offsetLeft - 10 + "px", top: tgt.offsetTop + tgt.offsetHeight + 12 + "px" });
+      }
+      const k = easeOut(ramp(lt, .5, 1.0));
+      ring.style.opacity = k; ring.style.transform = `scale(${lerp(1.6, 1, k)})`;
+      const pulse = ramp(lt, 1.2, 9) > 0 ? ((lt - 1.2) % 1.2) / 1.2 : 0;
+      ring.style.boxShadow = `0 0 0 5px rgba(255,255,255,.9), 0 0 0 ${5 + pulse * 22}px rgba(212,88,10,${(1 - pulse) * .45})`;
+      chip.style.opacity = clamp(ramp(lt, 1.0, 1.3));
+      ai.style.opacity = clamp(ramp(lt, 1.4, 1.9)); ai.style.transform = `translateY(${(1 - easeOut(ramp(lt, 1.4, 1.9))) * 18}px)`;
+      break;
+    }
+    case "wait": {
+      const b1 = $("#wt-b1");
+      const pulse = Math.sin(clamp(ramp(lt, .6, 2.2)) * Math.PI * 3) * .5 + .5;
+      b1.style.background = ramp(lt, 1.6, 1.7) > 0 && lt > 1.6 ? "#1d1813" : "#fff";
+      b1.style.color = lt > 1.6 ? "#fffaf2" : "#1d1813";
+      b1.style.transform = `scale(${1 + (lt > 1.4 && lt < 1.8 ? .04 : 0)})`;
+      b1.style.boxShadow = `0 0 0 ${pulse * 10}px rgba(212,88,10,${.35 * (1 - pulse)})`;
+      break;
+    }
+    case "verdict": {
+      const v = $("#vd"); const k = easeBack(ramp(lt, 0, .5));
+      v.style.transform = `scale(${lerp(.92, 1, k)})`; v.style.opacity = clamp(ramp(lt, 0, .3));
+      ["#vr1", "#vr2", "#vr3"].forEach((id, j) => { const e = $(id); e.style.opacity = clamp(ramp(lt, .6 + j * .35, .9 + j * .35)); });
+      break;
+    }
+    case "skills": {
+      const rows = $("#sk-rows");
+      if (!rows.dataset.built) {
+        rows.dataset.built = 1;
+        const L = [["Join the Wi‑Fi", 5], ["Send a photo", 4], ["Make a video call", 3], ["Spot a scam text", 2]];
+        rows.innerHTML = L.map(([n]) => `<div class="skill"><div class="top"><span>${n}</span><span class="lvl"></span></div><div class="bars">${'<i><b></b></i>'.repeat(5)}</div></div>`).join("");
+        rows.dataset.levels = JSON.stringify(L.map(x => x[1]));
+      }
+      const levels = JSON.parse(rows.dataset.levels);
+      const cards = $$(".skill", rows);
+      cards.forEach((card, j) => {
+        const start = .4 + j * .3;
+        const prog = levels[j] * easeOut(ramp(lt, start + .6, start + 2.6));
+        $$(".bars i b", card).forEach((bb, n) => bb.style.transform = `scaleX(${clamp(prog - n).toFixed(3)})`);
+        const lv = Math.max(1, Math.floor(prog + 1e-6));
+        $(".lvl", card).textContent = `Level ${lv}`;
+        $(".bars", card).classList.toggle("done", lv === 5);
+        card.style.opacity = clamp(ramp(lt, start, start + .35));
+      });
+      break;
+    }
+    case "family": {
+      const sheet = $("#fm-sheet"), sc = $("#fm-scrim");
+      const k = easeOut(ramp(lt, 1.5, 2.3));
+      sheet.style.transform = `translateY(${(1 - k) * 420}px)`;
+      sc.style.opacity = k * .9;
+      break;
+    }
+    case "lesson": {
+      const st = $("#st");
+      const k = easeBack(ramp(lt, 1.0, 1.4));
+      st.style.opacity = clamp(ramp(lt, 1.0, 1.15));
+      st.style.transform = `rotate(9deg) scale(${lerp(1.8, 1, k)})`;
+      const cd = $("#cd"); cd.style.transform = `scale(.86) rotate(-4deg) translateY(${(1 - easeOut(ramp(lt, 0, .5))) * 260}px)`;
+      break;
+    }
+    case "end": {
+      const w = $("#en-w"), t2 = $("#en-t");
+      w.style.opacity = clamp(ramp(lt, .3, .9)); t2.style.opacity = clamp(ramp(lt, 1.1, 1.7));
+      break;
+    }
+  }
+  // the ring-bg pulse behind any dark stat/logo beat is drawn by the grain layer; nothing else to animate
+}
 
-// catchphrase words
-const WORDS = [["Growing", "technology", "is", "not", "a", "reason"], ["to", "leave", "<em>others</em>", "<em>behind.</em>"]];
-$("#catch").innerHTML = WORDS.map(line => line.map(w => `<span class="a">${w}</span>`).join("")).join("<br>");
+// --- render ------------------------------------------------------------------
+function render(t) {
+  t = clamp(t, 0, DURATION - 0.001);
+  let idx = TL.beats.findIndex(b => t >= b.start && t < b.start + b.dur);
+  if (idx < 0) idx = TL.beats.length - 1;
+  TL.beats.forEach((b, i) => { $("#b" + i).style.display = i === idx ? "block" : "none"; });
+  const b = TL.beats[idx], lt = t - b.start;
+  $("#b" + idx).style.opacity = easeOut(ramp(lt, 0, .5)).toFixed(4);   // each scene fades in, nothing jumps
+  animate(b, idx, lt);
+  setCaption(b, lt);
+  // the lesson beat is orange, so its caption is ink; every other caption is white, or ink on cream
+  $("#grain").style.transform = `translate(${((Math.floor(t * 30) * 37) % 64) - 32}px, ${((Math.floor(t * 30) * 53) % 64) - 32}px)`;
+  if (!(lt < .18 && b.kind === "photo")) $("#flash").style.opacity = 0;
+  // fade out at the very end
+  $("#stage").style.filter = "none";
+  if (t > DURATION - .8) $("#stage").style.opacity = clamp((DURATION - t) / .8);
+  else $("#stage").style.opacity = 1;
+}
 
-// skills rows
-const SKILLS = [
-  ["Join the Wi‑Fi", 5], ["Send a photo", 4], ["Make a video call", 3], ["Spot a scam text", 2],
-];
-const LEVEL = ["", "Learning", "Practising", "Practising", "Nearly there", "Learned ✓"];
-$("#skillrows").innerHTML = SKILLS.map(([n], i) =>
-  `<div class="skill a" id="sk${i}"><div class="top"><span>${n}</span><span class="lvl"></span></div><div class="bars">${"<i><b></b></i>".repeat(5)}</div></div>`).join("");
-
-// film grain (seeded, so every render is identical)
+// grain, seeded so every render is identical (mulberry32)
 (function grain() {
   const c = $("#grain"), g = c.getContext("2d"), img = g.createImageData(c.width, c.height);
-  let s = 1234567;   // mulberry32
+  let s = 1234567;
   const rnd = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let x = Math.imul(s ^ s >>> 15, 1 | s); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; };
   for (let i = 0; i < img.data.length; i += 4) { const v = 110 + rnd() * 145; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
   g.putImageData(img, 0, 0);
 })();
 
-// position the Tap Here ring around "Settings" in the photo (measured once, layout is static)
-function placeRing() {
-  const photo = $("#sm-photo"), tgt = $("#sm-target");
-  const p = photo.getBoundingClientRect(), r = tgt.getBoundingClientRect();
-  const k = p.width / photo.offsetWidth || 1;
-  const x = (r.left - p.left) / k - 10, y = (r.top - p.top) / k - 8, w = r.width / k + 20, h = r.height / k + 16;
-  Object.assign($("#sm-ring").style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
-  Object.assign($("#sm-ring2").style, { left: x - 6 + "px", top: y - 6 + "px", width: w + 12 + "px", height: h + 12 + "px" });
-  Object.assign($("#sm-chip").style, { left: x + w - 86 + "px", top: y + h + 8 + "px" });
-}
-
-// ---------- timeline ----------
-const T = { s1: [0, 7.6], s2: [7.6, 16.2], s3: [16.2, 21.8], f: 21.8, fLen: 6, s5: [45.8, 52.4], s6: 52.4 };
-
-function kenBurns(el, t, a, b, from = 1.035, to = 1) {
-  const k = ease(ramp(t, a, b));
-  el.style.transform = `scale(${lerp(from, to, k).toFixed(5)})`;
-}
-
-function render(t) {
-  // black in / out
-  $("#black").style.opacity = (1 - ease(ramp(t, 0, 1.6)) + ease(ramp(t, 59.3, 60))).toFixed(4);
-
-  // grain jitter: changes every frame, deterministic
-  const f = Math.floor(t * 30);
-  $("#grain").style.transform = `translate(${((f * 37) % 64) - 32}px, ${((f * 53) % 64) - 32}px)`;
-  $("#grain").style.mixBlendMode = t > T.s6 ? "overlay" : "multiply";
-
-  // ----- 1. opening -----
-  const s1 = $("#s1");
-  s1.style.display = t < T.s1[1] + .1 ? "" : "none";
-  if (s1.style.display === "") {
-    kenBurns(s1, t, 0, 7.6, 1.04, 1);
-    reveal($(".l1", s1), t, 1.0, 2.6, 6.6, 7.5);
-    reveal($(".l2", s1), t, 3.2, 4.8, 6.6, 7.5);
-    const dots = $("#dots"); dots.style.opacity = vis(t, 1.4, 2.6, 6.4, 7.4).toFixed(4);
-    $$(".dot", dots).forEach((d, i) => {
-      const lag = i === 0;
-      const base = 520 + i * 70, speed = lag ? 6 : 52;
-      const x = base + speed * Math.max(0, t - 2.4) - (lag ? 0 : 0);
-      const fadeLag = lag ? ease(ramp(t, 3.4, 6)) : 0;
-      d.style.transform = `translateX(${x.toFixed(2)}px)`;
-      d.style.background = lag ? `rgb(${lerp(29, 212, fadeLag)}, ${lerp(24, 88, fadeLag)}, ${lerp(19, 10, fadeLag)})` : "";
-      d.style.opacity = lag ? 1 : (0.85 - i * 0.03).toFixed(3);
-    });
-  }
-
-  // ----- 2. the problem -----
-  const s2 = $("#s2"), [a2, b2] = T.s2;
-  s2.style.display = t > a2 - .2 && t < b2 + .6 ? "" : "none";
-  if (s2.style.display === "") {
-    kenBurns(s2, t, a2, b2 + .6, 1, 1.03);
-    reveal($("#p2"), t, a2, a2 + 1.4, b2 - .6, b2 + .5, { y: 60, blur: 6 });
-    // notifications drop in, the scam one with a small shake
-    [["#n1", 1.0], ["#n2", 2.0], ["#n3", 2.8]].forEach(([id, d]) => {
-      const el = $(id), k = out(ramp(t, a2 + d, a2 + d + .7));
-      const shake = id === "#n1" ? Math.sin((t - a2 - d) * 40) * 6 * (1 - ramp(t, a2 + d + .3, a2 + d + 1.2)) * (t > a2 + d + .3 ? 1 : 0) : 0;
-      el.style.opacity = k.toFixed(4);
-      el.style.transform = `translate(${shake.toFixed(2)}px, ${((1 - k) * -40).toFixed(2)}px) scale(${lerp(.94, 1, k).toFixed(4)})`;
-    });
-    reveal($(".q1", s2), t, a2 + 1.6, a2 + 3.0, b2 - .9, b2 - .1, { x: 0 });
-    const q2 = $("#q2"); q2.style.opacity = vis(t, a2 + 3.6, a2 + 3.8, b2 - .9, b2 - .1).toFixed(4);
-    $$("span", q2).forEach((s, i) => reveal(s, t, a2 + 3.8 + i * 1.0, a2 + 4.8 + i * 1.0, null, null, { y: 16, blur: 8 }));
-  }
-
-  // ----- 3. meet companion -----
-  const s3 = $("#s3"), [a3, b3] = T.s3;
-  s3.style.display = t > a3 - .2 && t < b3 + .4 ? "" : "none";
-  if (s3.style.display === "") {
-    kenBurns(s3, t, a3, b3, 1.02, 1);
-    const g = $("#glow"), gk = out(ramp(t, a3 + .2, a3 + 2.2));
-    g.style.opacity = (gk * (1 - ease(ramp(t, b3 - .8, b3)))).toFixed(4);
-    g.style.transform = `scale(${lerp(.4, 1.15, gk).toFixed(4)})`;
-    [["#r1", .5], ["#r2", 1.3]].forEach(([id, d]) => {
-      const k = out(ramp(t, a3 + d, a3 + d + 2.6));
-      const el = $(id); el.style.opacity = (t > a3 + d ? (1 - k) * .6 : 0).toFixed(4);
-      el.style.transform = `scale(${lerp(2, 10, k).toFixed(3)})`;
-    });
-    reveal($("#icon"), t, a3 + .4, a3 + 1.8, b3 - .8, b3, { y: 0, blur: 12, s: -.35 });
-    reveal($("h1", s3), t, a3 + 1.4, a3 + 2.8, b3 - .8, b3);
-    reveal($("p", s3), t, a3 + 2.3, a3 + 3.6, b3 - .8, b3, { y: 18 });
-  }
-
-  // ----- 4. features -----
-  const s4 = $("#s4"), F = T.f, L = T.fLen, end4 = F + 4 * L;
-  s4.style.display = t > F - .2 && t < end4 + .6 ? "" : "none";
-  if (s4.style.display === "") {
-    reveal($("#p4"), t, F, F + 1.3, end4 - .5, end4 + .4, { y: 70, x: 80, blur: 6 });
-    $("#progress").style.opacity = vis(t, F + .4, F + 1.2, end4 - .6, end4).toFixed(4);
-    $$("#progress i b").forEach((b, i) => b.style.transform = `scaleX(${ramp(t, F + i * L, F + (i + 1) * L).toFixed(4)})`);
-    for (let i = 0; i < 4; i++) {
-      const s = F + i * L, e = s + L, feat = $("#f" + i);
-      const last = i === 3;
-      const oa = last ? end4 - .6 : e - .7, ob = last ? end4 : e - .1;
-      reveal($(".eye", feat), t, s + .3, s + 1.1, oa, ob, { y: 14 });
-      reveal($("h2", feat), t, s + .5, s + 1.6, oa, ob);
-      reveal($("p", feat), t, s + 1.2, s + 2.2, oa, ob, { y: 18 });
-      const sc = $("#sc" + i);
-      const k = i === 0 ? 1 : out(ramp(t, s - .2, s + .5));
-      const ko = last ? 0 : ease(ramp(t, e - .3, e + .3));
-      sc.style.opacity = (k * (1 - ko)).toFixed(4);
-      sc.style.transform = `translateX(${((1 - k) * 40 - ko * 40).toFixed(2)}px)`;
-    }
-    // show me
-    { const s = F;
-      reveal($("#sm-me"), t, s + .6, s + 1.3, null, null, { y: 20, blur: 0 });
-      const rk = out(ramp(t, s + 1.7, s + 2.3));
-      const ring = $("#sm-ring"); ring.style.opacity = rk; ring.style.transform = `scale(${lerp(1.6, 1, rk).toFixed(3)})`;
-      const pk = t > s + 2.3 ? ((t - s - 2.3) % 1.3) / 1.3 : 0;
-      const r2 = $("#sm-ring2"); r2.style.opacity = t > s + 2.3 ? ((1 - pk) * .9).toFixed(3) : 0; r2.style.transform = `scale(${lerp(1, 1.35, out(pk)).toFixed(3)})`;
-      reveal($("#sm-chip"), t, s + 2.1, s + 2.6, null, null, { y: -8, blur: 0 });
-      reveal($("#sm-ai"), t, s + 2.7, s + 3.4, null, null, { y: 20, blur: 0 });
-      reveal($("#sm-b1"), t, s + 3.5, s + 4.0, null, null, { y: 14, blur: 0 });
-      reveal($("#sm-b2"), t, s + 3.7, s + 4.2, null, null, { y: 14, blur: 0 });
-    }
-    // scam
-    { const s = F + L;
-      reveal($("#sc-me"), t, s + .3, s + 1.0, null, null, { y: 20, blur: 0 });
-      reveal($("#sc-v"), t, s + 1.4, s + 2.1, null, null, { y: 24, blur: 0, s: .04 });
-      ["#sc-r1", "#sc-r2", "#sc-r3"].forEach((id, j) => reveal($(id), t, s + 2.1 + j * .45, s + 2.6 + j * .45, null, null, { y: 8, blur: 0, x: -10 }));
-      reveal($("#sc-adv"), t, s + 3.6, s + 4.2, null, null, { y: 10, blur: 0 });
-    }
-    // skills, levels fill one bar at a time
-    { const s = F + 2 * L;
-      SKILLS.forEach(([, target], j) => {
-        const row = $("#sk" + j);
-        reveal(row, t, s + .4 + j * .25, s + 1.0 + j * .25, null, null, { y: 16, blur: 0 });
-        const prog = target * ease(ramp(t, s + 1.0 + j * .15, s + 4.2 + j * .15));
-        $$(".bars i b", row).forEach((b, n) => b.style.transform = `scaleX(${clamp(prog - n).toFixed(4)})`);
-        const lvl = Math.max(1, Math.floor(prog + 1e-6));
-        const lab = $(".lvl", row); const txt = `Level ${lvl} · ${LEVEL[lvl]}`;
-        if (lab.textContent !== txt) lab.textContent = txt;
-        lab.classList.toggle("done", lvl === 5);
-        $(".bars", row).classList.toggle("done", lvl === 5);
-      });
-    }
-    // family
-    { const s = F + 3 * L;
-      reveal($("#fm-note"), t, s + .3, s + 1.0, null, null, { y: 20, blur: 0 });
-      reveal($("#fm-b1"), t, s + .9, s + 1.4, null, null, { y: 12, blur: 0 });
-      reveal($("#fm-b2"), t, s + 1.1, s + 1.6, null, null, { y: 12, blur: 0 });
-      $("#fm-scrim").style.opacity = out(ramp(t, s + 2.2, s + 2.8)).toFixed(4);
-      const sk = out(ramp(t, s + 2.3, s + 3.1));
-      const sh = $("#fm-sheet"); sh.style.opacity = sk > 0 ? 1 : 0; sh.style.transform = `translateY(${((1 - sk) * 420).toFixed(1)}px)`;
-    }
-  }
-
-  // ----- 5. lesson card -----
-  const s5 = $("#s5"), [a5, b5] = T.s5;
-  s5.style.display = t > a5 - .2 && t < b5 + .6 ? "" : "none";
-  if (s5.style.display === "") {
-    kenBurns(s5, t, a5, b5 + .6, 1, 1.025);
-    reveal($(".t1", s5), t, a5 + .4, a5 + 1.6, b5 - .5, b5 + .4);
-    reveal($(".t2", s5), t, a5 + 1.6, a5 + 2.8, b5 - .5, b5 + .4);
-    reveal($(".t3", s5), t, a5 + 3.0, a5 + 3.9, b5 - .5, b5 + .4, { y: 14 });
-    const card = $("#card"), ck = out(ramp(t, a5, a5 + 1.6)), co = ease(ramp(t, b5 - .5, b5 + .4));
-    card.style.opacity = (ck * (1 - co)).toFixed(4);
-    card.style.transform = `translateY(${((1 - ck) * 260).toFixed(1)}px) rotate(${lerp(-7, -2.5, ck).toFixed(3)}deg)`;
-    $$(".step", card).forEach((st, j) => reveal(st, t, a5 + 1.2 + j * .45, a5 + 1.8 + j * .45, null, null, { y: 10, blur: 0 }));
-    const stk = out(ramp(t, a5 + 3.6, a5 + 4.0));
-    const stamp = $("#stamp"); stamp.style.opacity = stk; stamp.style.transform = `rotate(9deg) scale(${lerp(1.8, 1, stk).toFixed(3)})`;
-  }
-
-  // ----- 6. the close -----
-  const S6 = T.s6;
-  $("#night").style.opacity = ease(ramp(t, S6, S6 + 1.4)).toFixed(4);
-  $("#vignette").style.opacity = (1 - .4 * ramp(t, S6, S6 + 1.4)).toFixed(3);
-  const s6 = $("#s6"); s6.style.display = t > S6 ? "" : "none";
-  if (s6.style.display === "") {
-    const words = $$("#catch span");
-    words.forEach((w, j) => reveal(w, t, S6 + 1.2 + j * .3, S6 + 2.4 + j * .3, null, null, { y: 22, blur: 12 }));
-    const lift = ease(ramp(t, S6 + 4.4, S6 + 5.4));
-    $("#catch").style.transform = `translateY(${(-50 * lift).toFixed(2)}px)`;
-    reveal($("#b1"), t, S6 + 4.8, S6 + 5.6, null, null, { y: 16 });
-    reveal($("#b2"), t, S6 + 5.2, S6 + 6.0, null, null, { y: 12 });
-  }
-}
-
-window.DURATION = DURATION;
 window.render = render;
-window.ready = document.fonts.ready.then(() => { placeRing(); render(0); return true; });
+window.ready = document.fonts.ready.then(() => { render(0); return true; });
 
-// Real-time preview when opened directly in a browser (the renderer sets ?render).
+// live preview when opened directly (the renderer adds ?render)
 if (!location.search.includes("render")) {
   let t0 = performance.now(), offset = 0, playing = true;
-  const tick = () => { if (playing) { const t = (offset + (performance.now() - t0) / 1000) % DURATION; render(t); } requestAnimationFrame(tick); };
+  const tick = () => { if (playing) render((offset + (performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(tick); };
   window.ready.then(tick);
   addEventListener("click", () => { if (playing) offset += (performance.now() - t0) / 1000; else t0 = performance.now(); playing = !playing; });
   addEventListener("keydown", e => { const d = e.key === "ArrowRight" ? 5 : e.key === "ArrowLeft" ? -5 : 0; if (d) { offset = Math.max(0, offset + (performance.now() - t0) / 1000 + d); t0 = performance.now(); } });

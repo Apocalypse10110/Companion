@@ -31,3 +31,7 @@ NEXT-STEPS.md
 video/stills/
 video/*.raw.mp4
 video/companion-launch-*.mp4
+video/score.wav
+video/companion-launch-sound.tmp.mp4
+video/voice/
+video/sfx.wav
