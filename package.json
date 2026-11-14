@@ -13,7 +13,7 @@
     "test:ui": "node scripts/ui-check.mjs",
     "test:e2e": "node scripts/e2e-check.mjs",
     "eval:scams": "node scripts/scam-scorecard.mjs",
-    "video": "node video/render.mjs"
+    "video": "node video/render.mjs && node video/score.mjs && node video/mux.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
