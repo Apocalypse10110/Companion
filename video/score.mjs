@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SR = 44100, DUR = 60, N = SR * DUR;
+const SR = 44100, DUR = 71, N = SR * DUR;
 const L = new Float32Array(N), R = new Float32Array(N);
 
 const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
@@ -54,10 +54,10 @@ function pluck(t0, midi, amp, pan) {
 }
 
 // ---- compose ----
-CHORDS.forEach((notes, c) => {
-  const t0 = c * CHORD_LEN;
+for (let c = 0; c * CHORD_LEN < DUR; c++) {
+  const notes = CHORDS[c % CHORDS.length], t0 = c * CHORD_LEN;
   notes.forEach((m, j) => pad(t0 + j * 0.06, m, CHORD_LEN + 0.6, 0.075, j % 2 ? 0.3 : -0.3));
-});
+}
 
 // gentle melody: chord tones an octave up, one note about every 1.25 s, slightly more in the lift
 const MELODY = [74, 69, 66, 71, 74, 78, 74, 69, 67, 71, 74, 71, 69, 66, 62, 66, 69, 74, 71, 67, 66, 69, 74, 78, 74, 71, 69, 66, 69, 74];
@@ -69,7 +69,7 @@ while (tm < DUR - 4) {
 }
 
 // the lift: a soft high shimmer under the catchphrase (starts at 52 s)
-[86, 90].forEach((m, j) => pad(52, m, 8, 0.03, j ? 0.4 : -0.4));
+[86, 90].forEach((m, j) => pad(63, m, 8, 0.03, j ? 0.4 : -0.4));
 
 // ---- simple stereo room: a few decaying delayed copies ----
 function echo(buf, taps) {

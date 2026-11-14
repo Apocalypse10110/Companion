@@ -5,7 +5,7 @@
 Reads video/narration.json, renders each line with Piper into video/voice/line-N.wav (cached, gitignored),
 then mixes them at their start times into video/voice/narration.wav (44.1 kHz stereo).
 """
-import json, os, subprocess, sys
+import hashlib, json, os, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -19,7 +19,8 @@ if not MODEL or not Path(MODEL).exists():
 lines = json.loads((HERE / "narration.json").read_text())
 parts = []
 for i, line in enumerate(lines):
-    wav = OUT / f"line-{i:02d}.wav"
+    digest = hashlib.sha1((MODEL + line["text"]).encode()).hexdigest()[:10]
+    wav = OUT / f"line-{i:02d}-{digest}.wav"
     if not wav.exists():
         subprocess.run([PY, "-m", "piper", "--model", MODEL, "--output_file", str(wav)],
                        input=line["text"].encode(), check=True, stdout=subprocess.DEVNULL)
@@ -36,6 +37,6 @@ for i, (_, start) in enumerate(parts):
     labels.append(f"[a{i}]")
 chains.append("".join(labels) + f"amix=inputs={len(parts)}:normalize=0:dropout_transition=0,"
               "volume=1.6,alimiter=limit=0.9[narr]")
-args += ["-filter_complex", ";".join(chains), "-map", "[narr]", "-t", "60", str(OUT / "narration.wav")]
+args += ["-filter_complex", ";".join(chains), "-map", "[narr]", "-t", "71", str(OUT / "narration.wav")]
 subprocess.run(args, check=True)
 print("wrote", OUT / "narration.wav", f"({len(parts)} lines)")

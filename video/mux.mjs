@@ -20,7 +20,7 @@ const mix = hasVoice
   ? "[1:a]volume=0.45[sc];[2:a]aformat=sample_rates=44100:channel_layouts=stereo[nv];" +
     "[sc][nv]amix=inputs=2:normalize=0:dropout_transition=0[m];"
   : "[1:a]anull[m];";
-const filter = mix + "[m]loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=1.5,afade=t=out:st=57:d=3[out]";
+const filter = mix + "[m]loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=1.5,afade=t=out:st=68:d=3[out]";
 args.push("-filter_complex", filter, "-map", "0:v:0", "-map", "[out]",
   "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "44100", "-ac", "2",
   "-shortest", "-movflags", "+faststart", tmp);
