@@ -13,16 +13,20 @@ OUT = HERE / "voice"
 OUT.mkdir(exist_ok=True)
 PY = os.environ.get("PIPER_PYTHON", sys.executable)
 MODEL = os.environ.get("PIPER_MODEL")
+SPEED = os.environ.get("PIPER_LENGTH_SCALE", "1.15")  # >1 is slower and calmer
 if not MODEL or not Path(MODEL).exists():
     sys.exit("Set PIPER_MODEL to a Piper .onnx voice file (see docs in this file).")
 
 lines = json.loads((HERE / "narration.json").read_text())
 parts = []
 for i, line in enumerate(lines):
-    digest = hashlib.sha1((MODEL + line["text"]).encode()).hexdigest()[:10]
+    digest = hashlib.sha1((MODEL + SPEED + line["text"]).encode()).hexdigest()[:10]
     wav = OUT / f"line-{i:02d}-{digest}.wav"
     if not wav.exists():
-        subprocess.run([PY, "-m", "piper", "--model", MODEL, "--output_file", str(wav)],
+        # slower and softer than the default: a longer length-scale stretches the speech, and a pause
+        # between sentences gives it room to breathe
+        subprocess.run([PY, "-m", "piper", "--model", MODEL, "--length-scale", SPEED,
+                        "--sentence-silence", "0.35", "--output_file", str(wav)],
                        input=line["text"].encode(), check=True, stdout=subprocess.DEVNULL)
     parts.append((wav, line["start"]))
 
