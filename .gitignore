@@ -26,3 +26,6 @@ NEXT-STEPS.md
 .vercel
 .env*
 !.env.example
+
+# launch film test stills
+video/stills/
