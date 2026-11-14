@@ -26,3 +26,8 @@ NEXT-STEPS.md
 .vercel
 .env*
 !.env.example
+
+# launch film test stills
+video/stills/
+video/*.raw.mp4
+video/companion-launch-*.mp4

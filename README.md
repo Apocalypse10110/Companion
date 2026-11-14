@@ -11,6 +11,10 @@ Talk to it, show it a photo, or point your camera at the problem. It explains wh
 
 Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" makes it an app.
 
+[![Companion launch film: "Growing technology is not a reason to leave others behind."](docs/screenshots/launch-poster.jpg)](video/companion-launch.mp4)
+
+**▶ [Watch the 60-second launch film](video/companion-launch.mp4)** · *Growing technology is not a reason to leave others behind.*
+
 [![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](https://uprepcompanion.vercel.app/status)
 
 Built for **Ice Hacks 2026** · Next.js 16 · Google Gemini + Gemini Live · 545 automated tests + real-browser checks
@@ -165,6 +169,7 @@ Every push runs lint, typecheck, tests and a production build on GitHub Actions.
 | Phone actions, reminders, people, camera | `src/actions`, `src/people`, `src/phone`, `src/permissions` |
 | Lesson cards | `src/lessons` |
 | Shared interfaces | `src/contracts`, wired in `src/integration/index.ts` |
+| Launch film (HTML timeline → MP4, `npm run video`) | `video/launch.html`, `video/render.mjs` |
 
 - [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md): pipeline, validation, fading levels, Live Help, Call Shield
 - [docs/PRIVACY.md](docs/PRIVACY.md): what leaves the phone
