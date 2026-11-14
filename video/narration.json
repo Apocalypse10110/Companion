@@ -1,0 +1,17 @@
+[
+  { "scene": "opening",   "start": 1.0,  "text": "Every day, technology moves a little faster." },
+  { "scene": "opening",   "start": 3.2,  "text": "And every day, someone gets left a little further behind." },
+  { "scene": "problem",   "start": 9.2,  "text": "It starts with a message she doesn't understand." },
+  { "scene": "problem",   "start": 11.4, "text": "Is it real? What do I press? Who do I ask?" },
+  { "scene": "meet",      "start": 17.6, "text": "Meet Companion." },
+  { "scene": "meet",      "start": 18.5, "text": "A patient helper for the moments tech gets confusing." },
+  { "scene": "show me",   "start": 22.3, "text": "Take a photo. See where to tap." },
+  { "scene": "show me",   "start": 23.0, "text": "Companion circles the exact button, then waits while you try it." },
+  { "scene": "scam",      "start": 27.8, "text": "A calm second opinion. Before you tap a link or reply, it explains what looks wrong, in plain words." },
+  { "scene": "fading",    "start": 33.8, "text": "A little less help every time. Step by step at first, then a hint, then just a nudge. Until it's yours." },
+  { "scene": "family",    "start": 39.8, "text": "Stuck? Ask family, your way. A clear note for your daughter, shared only when you say yes." },
+  { "scene": "lesson",    "start": 46.2, "text": "Not doing it for you." },
+  { "scene": "lesson",    "start": 47.4, "text": "Teaching you, at your pace." },
+  { "scene": "lesson",    "start": 48.8, "text": "Print a lesson card for the fridge." },
+  { "scene": "close",     "start": 53.6, "text": "Growing technology is not a reason to leave others behind." }
+]
