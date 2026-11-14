@@ -30,6 +30,21 @@ for i, line in enumerate(lines):
                        input=line["text"].encode(), check=True, stdout=subprocess.DEVNULL)
     parts.append((wav, line["start"]))
 
+# no two lines may overlap: if a line runs long, the next one waits for it, with a short pause between
+import wave
+def seconds(path):
+    with wave.open(str(path)) as w:
+        return w.getnframes() / w.getframerate()
+GAP = 0.3
+scheduled, prev_end = [], -1.0
+for wav, start in parts:
+    s = max(start, prev_end + GAP if prev_end > 0 else start)
+    scheduled.append((wav, s))
+    prev_end = s + seconds(wav)
+parts = scheduled
+for wav, s in parts:
+    print(f"{s:6.2f}s  {wav.name}")
+
 # mix: each line delayed to its start time, then normalised to a steady speech level
 args = ["ffmpeg", "-loglevel", "error", "-y"]
 for wav, _ in parts:
