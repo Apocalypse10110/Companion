@@ -37,8 +37,8 @@
   .ring-bg { position: absolute; border-radius: 50%; border: 2px solid rgba(255,138,61,.35); }
 
   /* captions: white (or ink on cream), lowercase, big and bold, words light up as they are spoken */
-  #caption { position: absolute; left: 140px; right: 140px; bottom: 120px; text-align: center; z-index: 60;
-    font: 800 84px/1.12 var(--sans); letter-spacing: -.01em; text-shadow: 0 4px 24px rgba(0,0,0,.25); }
+  #caption { position: absolute; left: 220px; right: 220px; bottom: 96px; text-align: center; z-index: 60;
+    font: 380 62px/1.22 var(--serif); font-variation-settings: "opsz" 72; letter-spacing: -.005em; text-shadow: 0 2px 18px rgba(0,0,0,.2); }
   #caption .w { display: inline-block; margin: 0 .09em; opacity: .32; transition: none; }
   #caption .w.on { opacity: 1; color: var(--accent); }
   .beat.cream + #caption, #stage.light #caption { color: var(--ink); }
@@ -151,7 +151,7 @@ const BEAT = {
   hook: { bg: "dark", html: `<div class="abs" style="left:1300px;top:70px">${phone(`
       <div class="notif" id="hk-n" style="top:300px"><div class="nh"><span>Settings</span><span>now</span></div><b>Storage Almost Full</b><p>You can manage your storage in Settings.</p></div>`)}</div>` },
   hook2: { bg: "cream", html: `<div class="center" style="top:250px"><div class="q" id="q1">?</div></div>` },
-  stat: { bg: "dark", html: `<div class="center" style="top:220px"><div class="stat-num" id="sn">$7.7B</div><div class="stat-sub" id="ss" style="display:none">lost to internet fraud in 2025</div><div class="stat-src" id="sr" style="margin-top:20px">People 60 and over · Source: FBI Internet Crime Report 2025 (IC3)</div></div>` },
+  stat: { bg: "dark", html: `<div class="center" style="top:220px"><div class="stat-num" id="sn" style="font-size:230px;letter-spacing:-8px">$7.7 billion</div><div class="stat-sub" id="ss" style="display:none">lost to internet fraud in 2025</div><div class="stat-src" id="sr" style="margin-top:20px">People 60 and over · Source: FBI Internet Crime Report 2025 (IC3)</div></div>` },
   logo: { bg: "cream", html: `<div class="center" style="top:250px"><div id="lg-mark" style="width:300px;height:300px;margin:0 auto">${MARK_ON_CREAM}</div><div class="wordmark" id="lg-w" style="margin-top:16px">Companion</div></div>` },
   photo: { bg: "cream", html: `<div class="abs" style="left:1300px;top:70px">${phone(`${appHead}
       <div class="bme"><div class="photo" style="height:200px"><div class="dlg"><b>Storage Almost Full</b>You can manage your storage in Settings.<div class="row"><span>Close</span><span>Settings</span></div></div></div>What do I do with this?</div>`)}</div>` },
@@ -200,21 +200,21 @@ TL.beats.forEach((b, i) => {
 
 // rough word-by-word caption: words light up as the voice says them
 const capEl = $("#caption");
+// The caption is the line being spoken. It fades in as the voice starts it and fades out before the next beat,
+// so the words on screen and the words in the voice are always the same line at the same moment.
 function setCaption(b, lt) {
-  const text = b.caption;
   if (capEl.dataset.key !== b.id) {
     capEl.dataset.key = b.id;
-    capEl.innerHTML = text.split(" ").map(w => `<span class="w">${w}</span>`).join(" ");
+    capEl.textContent = b.caption;
   }
-  const words = $$(".w", capEl);
-  const speechStart = b.speechStart - b.start, speechDur = b.speechDur;
-  const p = clamp((lt - speechStart) / speechDur);
-  const lit = Math.round(p * words.length);
-  words.forEach((w, i) => w.classList.toggle("on", i < lit));
   const onCream = BEAT[b.kind] && BEAT[b.kind].bg === "cream";
-  capEl.style.color = onCream ? "#1d1813" : "#fbf8f3";
-  if (BEAT[b.kind] && BEAT[b.kind].bg === "orange") capEl.style.color = "#1d1813";
-  capEl.style.opacity = lt > b.dur - .15 ? 0 : 1;
+  const orange = BEAT[b.kind] && BEAT[b.kind].bg === "orange";
+  capEl.style.color = onCream || orange ? "#1d1813" : "#fbf8f3";
+  const speechStart = b.speechStart - b.start;
+  const inK = ramp(lt, speechStart - .1, speechStart + .45);
+  const outK = ramp(lt, b.dur - .45, b.dur - .05);
+  capEl.style.opacity = (easeOut(inK) * (1 - easeOut(outK))).toFixed(4);
+  capEl.style.transform = `translateY(${((1 - easeOut(inK)) * 14).toFixed(2)}px)`;
 }
 
 // per-kind animation: lt = local time in this beat, dur = beat length
@@ -340,6 +340,7 @@ function render(t) {
   if (idx < 0) idx = TL.beats.length - 1;
   TL.beats.forEach((b, i) => { $("#b" + i).style.display = i === idx ? "block" : "none"; });
   const b = TL.beats[idx], lt = t - b.start;
+  $("#b" + idx).style.opacity = easeOut(ramp(lt, 0, .5)).toFixed(4);   // each scene fades in, nothing jumps
   animate(b, idx, lt);
   setCaption(b, lt);
   // the lesson beat is orange, so its caption is ink; every other caption is white, or ink on cream
