@@ -29,3 +29,5 @@ NEXT-STEPS.md
 
 # launch film test stills
 video/stills/
+video/*.raw.mp4
+video/companion-launch-*.mp4
