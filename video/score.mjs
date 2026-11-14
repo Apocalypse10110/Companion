@@ -7,7 +7,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SR = 44100, DUR = 71, N = SR * DUR;
+import { readFileSync } from "node:fs";
+const TL = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "timeline.json"), "utf8"));
+const SR = 44100, DUR = TL.total, N = Math.ceil(SR * DUR);
 const L = new Float32Array(N), R = new Float32Array(N);
 
 const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
@@ -69,7 +71,7 @@ while (tm < DUR - 4) {
 }
 
 // the lift: a soft high shimmer under the catchphrase (starts at 52 s)
-[86, 90].forEach((m, j) => pad(63, m, 8, 0.03, j ? 0.4 : -0.4));
+[86, 90].forEach((m, j) => pad(TL.beats.find(b => b.id === "close").start, m, 8, 0.03, j ? 0.4 : -0.4));
 
 // ---- simple stereo room: a few decaying delayed copies ----
 function echo(buf, taps) {

@@ -5,11 +5,12 @@
 // a gentle compressor evens the level so the voice stays calm; the result is normalised to -15 LUFS;
 // the film fades in over 1.5 s and out over the last 3 s. The video stream is copied, not re-encoded.
 import { spawnSync } from "node:child_process";
-import { existsSync, renameSync } from "node:fs";
+import { existsSync, readFileSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
+const TL = JSON.parse(readFileSync(join(here, "timeline.json"), "utf8"));
 const film = join(here, "companion-launch.mp4");
 const score = join(here, "score.wav");
 const narration = join(here, "voice", "narration.wav");
@@ -42,7 +43,7 @@ parts.push(`${inputs.join("")}amix=inputs=${inputs.length}:normalize=0:dropout_t
 parts.push(
   "[m]acompressor=threshold=-20dB:ratio=2.5:attack=25:release=300:makeup=2," +
   "loudnorm=I=-15:TP=-1.5:LRA=9," +
-  "afade=t=in:d=1.5,afade=t=out:st=68:d=3[out]"
+  `afade=t=in:d=1.5,afade=t=out:st=${TL.total - 3}:d=3[out]`
 );
 
 args.push("-filter_complex", parts.join(";"), "-map", "0:v:0", "-map", "[out]",

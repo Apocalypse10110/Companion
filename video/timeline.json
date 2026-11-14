@@ -1,0 +1,137 @@
+{
+  "total": 59.287,
+  "beats": [
+    {
+      "id": "hook",
+      "kind": "hook",
+      "cue": "cut",
+      "caption": "storage almost full.",
+      "narration": "Margaret's phone just said: storage almost full.",
+      "start": 0.0,
+      "dur": 4.496,
+      "speechStart": 0.25,
+      "speechDur": 3.796
+    },
+    {
+      "id": "dont",
+      "kind": "hook2",
+      "cue": "cut",
+      "caption": "what do I press?",
+      "narration": "She doesn't know what to press.",
+      "start": 4.496,
+      "dur": 2.72,
+      "speechStart": 4.746,
+      "speechDur": 2.02
+    },
+    {
+      "id": "stat",
+      "kind": "stat",
+      "cue": "stat",
+      "caption": "$7.7 billion lost to internet fraud in 2025.",
+      "narration": "In 2025, people aged sixty and over reported losing seven point seven billion dollars to internet fraud.",
+      "start": 7.217,
+      "dur": 9.291,
+      "speechStart": 7.467,
+      "speechDur": 8.591
+    },
+    {
+      "id": "intro",
+      "kind": "logo",
+      "cue": "chime",
+      "caption": "meet companion.",
+      "narration": "Companion is a patient helper, right on the phone.",
+      "start": 16.508,
+      "dur": 4.45,
+      "speechStart": 16.758,
+      "speechDur": 3.75
+    },
+    {
+      "id": "photo",
+      "kind": "photo",
+      "cue": "flash",
+      "caption": "take a photo.",
+      "narration": "She takes a photo of the screen.",
+      "start": 20.958,
+      "dur": 3.231,
+      "speechStart": 21.208,
+      "speechDur": 2.531
+    },
+    {
+      "id": "explain",
+      "kind": "ring",
+      "cue": "chime",
+      "caption": "and circles the exact spot.",
+      "narration": "Companion explains it, and circles the exact spot to tap.",
+      "start": 24.189,
+      "dur": 5.042,
+      "speechStart": 24.439,
+      "speechDur": 4.342
+    },
+    {
+      "id": "wait",
+      "kind": "wait",
+      "cue": "tap",
+      "caption": "then it waits.",
+      "narration": "Then it waits while she tries.",
+      "start": 29.231,
+      "dur": 2.941,
+      "speechStart": 29.481,
+      "speechDur": 2.241
+    },
+    {
+      "id": "scam",
+      "kind": "verdict",
+      "cue": "cut",
+      "caption": "a calm second opinion.",
+      "narration": "Before she taps a link, it gives a calm second opinion.",
+      "start": 32.172,
+      "dur": 4.566,
+      "speechStart": 32.422,
+      "speechDur": 3.866
+    },
+    {
+      "id": "fade",
+      "kind": "skills",
+      "cue": "cut",
+      "caption": "less help, every time.",
+      "narration": "Each time, a little less help. Until it's hers.",
+      "start": 36.738,
+      "dur": 5.214,
+      "speechStart": 36.988,
+      "speechDur": 4.514
+    },
+    {
+      "id": "family",
+      "kind": "family",
+      "cue": "tap",
+      "caption": "sent only when she says yes.",
+      "narration": "A clear note for her daughter, sent only when she says yes.",
+      "start": 41.952,
+      "dur": 4.914,
+      "speechStart": 42.202,
+      "speechDur": 4.214
+    },
+    {
+      "id": "lesson",
+      "kind": "lesson",
+      "cue": "stamp",
+      "caption": "not doing it for her.",
+      "narration": "Not doing it for her. Teaching her, at her pace.",
+      "start": 46.867,
+      "dur": 4.994,
+      "speechStart": 47.117,
+      "speechDur": 4.294
+    },
+    {
+      "id": "close",
+      "kind": "end",
+      "cue": "bell",
+      "caption": "growing technology is not a reason to leave others behind.",
+      "narration": "Growing technology is not a reason to leave others behind.",
+      "start": 51.861,
+      "dur": 7.427,
+      "speechStart": 52.111,
+      "speechDur": 3.727
+    }
+  ]
+}
