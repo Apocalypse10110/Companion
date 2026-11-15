@@ -11,9 +11,9 @@ Talk to it, show it a photo, or point your camera at the problem. It explains wh
 
 Works in iPhone Safari and Android Chrome with no install. "Add to Home Screen" makes it an app.
 
-[![Companion launch film: "Growing technology is not a reason to leave others behind."](docs/screenshots/launch-poster.jpg)]([video/companion-launch.mp4](https://vimeo.com/1246957568?share=copy&fl=sv&fe=ci))
+[![Companion launch film: "Growing technology is not a reason to leave others behind."](docs/screenshots/launch-poster.jpg)](https://vimeo.com/1246957568)
 
-**▶ [Watch the 60-second launch film]([video/companion-launch.mp4](https://vimeo.com/1246957568?share=copy&fl=sv&fe=ci))** · *Growing technology is not a reason to leave others behind.*
+**▶ [Watch the 60-second launch film](https://vimeo.com/1246957568)** · *Growing technology is not a reason to leave others behind.*
 
 [![CI](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/Apocalypse10110/Companion/actions/workflows/ci.yml) · [Live status](https://uprepcompanion.vercel.app/status)
 
