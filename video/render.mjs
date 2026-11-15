@@ -16,6 +16,9 @@ const FPS = 30;
 const args = process.argv.slice(2);
 const stillsArg = args.includes("--stills") ? args[args.indexOf("--stills") + 1] : null;
 const outFile = join(here, "companion-launch.mp4");
+// optional: --from <s> --to <s> --out <file> renders only that span (used to re-render the end card)
+const argOf = name => (args.includes(name) ? args[args.indexOf(name) + 1] : null);
+const fromArg = argOf("--from"), toArg = argOf("--to"), outArg = argOf("--out");
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
@@ -39,13 +42,14 @@ if (stillsArg) {
 } else {
   const ff = spawn("ffmpeg", [
     "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(FPS), "-c:v", "png", "-i", "-",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", outFile,
+    "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", outArg || outFile,
   ], { stdio: ["pipe", "inherit", "inherit"] });
-  const total = Math.round(duration * FPS);
-  for (let i = 0; i < total; i++) {
+  const first = fromArg ? Math.round(Number(fromArg) * FPS) : 0;
+  const last = toArg ? Math.round(Number(toArg) * FPS) : Math.round(duration * FPS);
+  for (let i = first; i < last; i++) {
     const buf = await frameAt(i / FPS);
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once("drain", r));
-    if (i % 150 === 0) console.log(`frame ${i}/${total}`);
+    if (i % 150 === 0) console.log(`frame ${i}/${last}`);
   }
   ff.stdin.end();
   await new Promise((res, rej) => ff.on("close", c => (c === 0 ? res() : rej(new Error("ffmpeg exited " + c)))));
